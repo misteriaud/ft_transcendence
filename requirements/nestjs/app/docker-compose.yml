@@ -1,0 +1,15 @@
+# THIS FILE IS FOR DEVELOPMENT ONLY AND SHOULD BE REMOVED IN THE FINAL COMMIT.
+version: '3.8'
+services:
+  dev-db:
+    image: postgres:13
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: dev
+    networks:
+      - dev
+networks:
+  dev:

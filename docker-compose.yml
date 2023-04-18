@@ -1,0 +1,76 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    docker-compose.yml                                 :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: spayeur <spayeur@student.42.fr>            +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2023/03/21 16:58:11 by spayeur           #+#    #+#              #
+#    Updated: 2023/03/28 21:18:49 by spayeur          ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+version: '3.9'
+
+services:
+    react:
+        build: requirements/react
+        container_name: react
+        ports:
+            - ${REACT_PORT}:${REACT_PORT}
+        environment:
+            - PORT=${REACT_PORT}
+        networks:
+            - ft_transcendence
+        depends_on:
+            - nestjs
+        restart: unless-stopped
+
+    nestjs:
+        build: requirements/nestjs
+        container_name: nestjs
+        ports:
+            - ${NESTJS_PORT}:${NESTJS_PORT}
+        environment:
+            - PORT=${NESTJS_PORT}
+            - DATABASE_URL=postgresql://${PGSQL_USER}:${PGSQL_PASSWORD}@pgsql:${PGSQL_PORT}/${PGSQL_DATABASE}
+        env_file:
+            - requirements/nestjs/.env
+        networks:
+            - ft_transcendence
+        restart: unless-stopped
+
+    pgsql:
+        image: postgres:15.2-alpine3.17
+        container_name: pgsql
+        environment:
+            - PGPORT=${PGSQL_PORT}
+            - POSTGRES_USER=${PGSQL_USER}
+            - POSTGRES_PASSWORD=${PGSQL_PASSWORD}
+            - POSTGRES_DATABASE=${PGSQL_DATABASE}
+        volumes:
+            - pgsql:/var/lib/postgresql/data
+        networks:
+            - ft_transcendence
+        restart: unless-stopped
+
+
+    prisma_studio:
+        build: requirements/prisma_studio
+        container_name: prisma_studio
+        ports:
+            - ${PRISMA_STUDIO_PORT}:${PRISMA_STUDIO_PORT}
+        environment:
+            - PORT=${PRISMA_STUDIO_PORT}
+            - DATABASE_URL=postgresql://${PGSQL_USER}:${PGSQL_PASSWORD}@pgsql:${PGSQL_PORT}/${PGSQL_DATABASE}
+        networks:
+            - ft_transcendence
+        restart: unless-stopped
+
+volumes:
+    pgsql:
+        name: pgsql
+
+networks:
+    ft_transcendence:
+        name: ft_transcendence
