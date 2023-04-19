@@ -14,7 +14,7 @@ version: '3.9'
 
 services:
     react:
-        build: requirements/react
+        build: images/react
         container_name: react
         ports:
             - ${REACT_PORT}:${REACT_PORT}
@@ -22,22 +22,25 @@ services:
             - PORT=${REACT_PORT}
         networks:
             - ft_transcendence
+        volumes:
+            - react_app:/app
         depends_on:
             - nestjs
         restart: unless-stopped
 
     nestjs:
-        build: requirements/nestjs
+        build: images/nestjs
         container_name: nestjs
         ports:
             - ${NESTJS_PORT}:${NESTJS_PORT}
         environment:
             - PORT=${NESTJS_PORT}
             - DATABASE_URL=postgresql://${PGSQL_USER}:${PGSQL_PASSWORD}@pgsql:${PGSQL_PORT}/${PGSQL_DATABASE}
-        env_file:
-            - requirements/nestjs/.env
+            - NESTJS_JWT_SECRET
         networks:
             - ft_transcendence
+        volumes:
+            - nestjs_app:/app
         restart: unless-stopped
 
     pgsql:
@@ -56,7 +59,7 @@ services:
 
 
     prisma_studio:
-        build: requirements/prisma_studio
+        build: images/prisma_studio
         container_name: prisma_studio
         ports:
             - ${PRISMA_STUDIO_PORT}:${PRISMA_STUDIO_PORT}
@@ -68,8 +71,20 @@ services:
         restart: unless-stopped
 
 volumes:
-    pgsql:
-        name: pgsql
+  nestjs_app:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: './apps/nestjs'
+  react_app:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: './apps/react'
+  pgsql:
+    name: pgsql
 
 networks:
     ft_transcendence:

@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 #                                                                              #
 #                                                         :::      ::::::::    #
 #    nestjs_setup.sh                                    :+:      :+:    :+:    #
@@ -9,6 +10,10 @@
 #    Updated: 2023/04/17 12:44:51 by spayeur          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+cd app;
+
+npm install --silent;
 
 # Wait until the database is up.
 while ! pg_isready --dbname=$DATABASE_URL --quiet
@@ -24,4 +29,4 @@ then
 fi
 
 # Start the NestJS application.
-exec npm run start
+exec npm run start:dev

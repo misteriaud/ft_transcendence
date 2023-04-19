@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: spayeur <spayeur@student.42.fr>            +#+  +:+       +#+         #
+#    By: mriaud <mriaud@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/06/13 02:33:30 by spayeur           #+#    #+#              #
-#    Updated: 2023/04/17 11:41:27 by spayeur          ###   ########.fr        #
+#    Updated: 2023/04/19 16:44:10 by mriaud           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,6 +15,7 @@
 # **************************************************************************** #
 
 NAME		=	ft_transcendence
+COMPOSE		=	docker compose
 
 # **************************************************************************** #
 #                                    Rules                                     #
@@ -25,10 +26,10 @@ all:		$(NAME)
 $(NAME):	up
 
 up:
-			docker-compose up --build
+			$(COMPOSE) up --build
 
 down:
-			docker-compose down
+			$(COMPOSE) down
 
 clean:
 			docker system prune -f
