@@ -60,9 +60,9 @@ model Member {
 	user		User			@relation(fields: [user_id], references: [id])
 	user_id		Int
 	role		e_member_role	@default(NONE)
-	muted		Boolean
-	muted_until	DateTime
-	banned		Boolean
+	muted		Boolean			@default(false)
+	muted_until	DateTime		@default(now())
+	banned		Boolean			@default(false)
 	messages	Message[]
 
 	@@unique([room_id, user_id])
