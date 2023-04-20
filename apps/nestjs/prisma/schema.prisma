@@ -46,7 +46,7 @@ model Match {
 
 model Room {
 	id			Int				@id @default(autoincrement())
-	name		String
+	name		String?
 	access		e_room_access	@default(PUBLIC)
 	hash		String?
 	members		Member[]
@@ -101,7 +101,7 @@ enum e_room_access {
 	PUBLIC
 	PROTECTED
 	PRIVATE
-	DM
+	DIRECT_MESSAGE
 }
 
 enum e_member_role {
