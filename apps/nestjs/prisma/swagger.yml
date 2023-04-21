@@ -1,0 +1,368 @@
+openapi: '3.0.0'
+info:
+  version: '1.0.0'
+  title: My API
+securityDefinitions:
+  bearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: "Bearer JWT"
+
+paths:
+
+  /auth/callback:
+    get:
+      summary: callback url from intra 42
+      parameters:
+        - in: query
+          name: accessToken
+          schema: 
+            type: string
+      responses:
+        '200':
+          description: Return JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  JWT:
+                    type: string
+
+  /auth/2fa:
+    post:
+      summary: path to get a authorized JWT in the case of 2fa
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                TOTP:
+                  type: string
+      responses:
+        '200':
+          description: Return authorized JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  JWT:
+                    type: string
+
+  /users/me:
+    get:
+      summary: get my user
+    put:
+      summary: Update my user
+      # parameters:
+      #   # - in: path
+      #   #   name: id
+      #   #   type: integer
+      #   #   required: true
+      #   - in: body
+      #     name: user
+      #     schema:
+      #       $ref: '#/components/schemas/User'
+      # responses:
+      #   '200':
+      #     description: The updated user
+      #     content:
+      #       application/json:
+      #         schema:
+      #           $ref: '#/components/schemas/User'
+
+  /users/{id}:
+    get:
+      summary: Get a user by ID
+      # parameters:
+      #   - in: path
+      #     name: id
+      #     schema:
+      #       type: integer
+      #       format: int32
+      #     required: true
+      # responses:
+      #   '200':
+      #     description: The requested user
+      #     content:
+      #       application/json:
+      #         schema:
+      #           $ref: '#/components/schemas/User'
+    
+  /users/{id}/block:
+    post:
+      summary: block a user by id
+    delete:
+      summary: umblock a user by id
+
+
+  /users/{id}/friend:
+    post:
+      summary: accept friend request
+    delete:
+      summary: remove friend by id
+  
+  /users/{id}/friend/request:
+    post:
+      summary: send a friend request by id
+    delete:
+      summary: cancel friend request by id
+
+  /rooms:
+    get:
+      summary: get all public and protected rooms
+    post:
+      summary: create a new room
+
+  /rooms/{id}:
+    put:
+      summary: edit room (password, name, members)
+    delete:
+      summary: delete room
+
+  /rooms/{id}/join:
+    put:
+      summary: join a room
+
+  /rooms/{id}/leave:
+    put:
+      summary: leave a room
+
+# messages --> websocket
+# matches --> websocket
+
+
+
+
+
+          
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        username:
+          type: string
+          uniqueItems: true
+        login42:
+          type: string
+          uniqueItems: true
+        avatar:
+          type: string
+        twoFactorAuth:
+          type: boolean
+          default: false
+        status:
+          $ref: "#/components/schemas/e_user_status"
+          default: ONLINE
+        friends:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+          description: "Relation 'Friends'"
+        friendOf:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+          description: "Relation 'Friends'"
+        blocked:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+          description: "Relation 'Blocked'"
+        blockedBy:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+          description: "Relation 'Blocked'"
+        friendRequestsSent:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+          description: "Relation 'friendRequests'"
+        friendRequestsReceived:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+          description: "Relation 'friendRequests'"
+        wins:
+          type: integer
+          format: int32
+          default: 0
+        losses:
+          type: integer
+          format: int32
+          default: 0
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/Match"
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/Member"
+        createdAt:
+          type: string
+          format: date-time
+          default: now()
+        updatedAt:
+          type: string
+          format: date-time
+          description: "@updatedAt"
+      required:
+        - id
+        - username
+        - login42
+      description: "Model User"
+    Match:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        playedBy:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        score1:
+          type: integer
+          format: int32
+          default: 0
+        score2:
+          type: integer
+          format: int32
+          default: 0
+        map:
+          $ref: "#/components/schemas/e_match_map"
+          default: CLASSIC
+        powerUp:
+          type: boolean
+          default: false
+        state:
+          $ref: "#/components/schemas/e_match_state"
+          default: PREPARATION
+        createdAt:
+          type: string
+          format: date-time
+          default: now()
+        updatedAt:
+          type: string
+          format: date-time
+          description: "@updatedAt"
+      required:
+        - id
+      description: "Model Match"
+    Room:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+        access:
+          $ref: "#/components/schemas/e_room_access"
+          default: PUBLIC
+        hash:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/Member"
+      required:
+        - id
+      description: "Model Room"
+    Member:
+      type: object
+      properties:
+        room:
+          $ref: "#/components/schemas/Room"
+        room_id:
+          type: integer
+        user:
+          $ref: "#/components/schemas/User"
+        user_id:
+          type: integer
+        role:
+          $ref: "#/components/schemas/e_member_role"
+        muted:
+          type: boolean
+        muted_until:
+          type: string
+          format: date-time
+        banned:
+          type: boolean
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+      required:
+        - room_id
+        - user_id
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        room:
+          $ref: "#/components/schemas/Member"
+        room_id:
+          type: integer
+        user_id:
+          type: integer
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - room_id
+        - user_id
+        - content
+        - createdAt
+    e_user_status:
+      type: string
+      enum:
+        - ONLINE
+        - INQUEUE
+        - INGAME
+        - OFFLINE
+
+    e_match_map:
+      type: string
+      enum:
+        - CLASSIC
+
+    e_match_state:
+      type: string
+      enum:
+        - PREPARATION
+        - INPROGRESS
+        - FINISHED
+
+    e_room_access:
+      type: string
+      enum:
+        - PUBLIC
+        - PROTECTED
+        - PRIVATE
+        - DIRECT_MESSAGE
+
+    e_member_role:
+      type: string
+      enum:
+        - NONE
+        - ADMIN
+        - OWNER
+
+
