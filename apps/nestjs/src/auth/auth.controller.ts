@@ -1,33 +1,28 @@
-import { Controller, Get, Headers, Query, Request, UseGuards, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Headers, Query, Request, UseGuards, UnauthorizedException, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { FortyTwoOAuthGuard } from './42.guard';
+import { UnauthorizedJWTGuard } from './JWT.guard';
+import { GetUser } from './decorator';
 
 @Controller('auth')
 export class AuthController {
 	constructor(private readonly authService: AuthService) {}
 
-	@Get()
 	@UseGuards(FortyTwoOAuthGuard)
-	login() {
-		console.log('get /auth');
-	}
-
 	@Get('callback')
-	@UseGuards(FortyTwoOAuthGuard)
 	async callback(@Request() req: any) {
 		return this.authService.login(req);
 	}
 
-	// @Get('me')
-	// @UseGuards(FortyTwoOAuthGuard)
-	// async me(@Request() req: any) {
-	// 	return this.authService.me(req);
-	// }
+	@UseGuards(UnauthorizedJWTGuard)
+	@Get('activate_2fa')
+	async activate_2fa(@GetUser('id') userId: number) {
+		return this.authService.generate2fa(userId);
+	}
 
+	@UseGuards(UnauthorizedJWTGuard)
 	@Get('2fa')
-	async verify2fa(@Headers('Authorization') jwt: string, @Query('token') totp: string) {
-		const [type, jwt_token] = jwt?.split(' ') ?? [];
-		if (!jwt_token) throw new UnauthorizedException('JWT Missing');
-		return this.authService.validate2fa(jwt_token, totp);
+	async verify2fa(@GetUser('id') userId: number, @Body('totp') totp: string) {
+		return this.authService.validate2fa(userId, totp);
 	}
 }

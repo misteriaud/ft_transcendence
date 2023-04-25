@@ -14,8 +14,12 @@ export class UserService {
 		return this.prisma.user.findMany();
 	}
 
-	async findOne(schoolId: string) {
+	async findOneBySchoolId(schoolId: string) {
 		return await this.prisma.user.findUnique({ where: { schoolId } });
+	}
+
+	async findOneById(id: number) {
+		return await this.prisma.user.findUnique({ where: { id } });
 	}
 
 	// update(id: number, updateUserDto: UpdateUserDto) {
@@ -24,5 +28,17 @@ export class UserService {
 
 	remove(id: number) {
 		return `This action removes a #${id} user`;
+	}
+
+	async set2fa(secret: string, userId: number) {
+		return this.prisma.user.update({
+			where: {
+				id: userId,
+			},
+			data: {
+				twoFactorSecret: secret,
+				twoFactorEnabled: true,
+			},
+		});
 	}
 }

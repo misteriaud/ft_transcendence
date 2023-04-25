@@ -1,9 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-// import { PrismaService } from './../prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
-// import { MailService } from 'src/mail/mail.service';
-import * as speakeasy from 'speakeasy';
+import { i_JWTPayload } from './interface/jwt';
+import { authenticator } from 'otplib';
 
 @Injectable()
 export class AuthService {
@@ -12,52 +11,50 @@ export class AuthService {
 		private jwtService: JwtService, // private mailService: MailService
 	) {}
 
+	async signJWT(payload: i_JWTPayload) {
+		return {
+			jwt: await this.jwtService.signAsync({ ...payload }),
+		};
+	}
+
 	async login(req: any) {
 		if (!req.user) {
 			throw new UnauthorizedException();
 		}
 
-		const user = await this.userService.findOne(req.user.username);
+		const user = await this.userService.findOneBySchoolId(req.user.username);
 		if (!user) console.log('user not found');
 
-		if (user.twoFactorEnabled && user.twoFactorSecret) {
-			// const token = speakeasy.totp({
-			// 	secret: process.env.SPEAKEASY_SECRET + req.user.username,
-			// 	time: Date.now() / 60,
-			// });
-		}
+		return await this.signJWT({
+			id: user.id,
+			twoFactorEnabled: user.twoFactorEnabled,
+			authorized: !user.twoFactorEnabled,
+		});
+	}
 
-		// console.log(process.env.SPEAKEASY_SECRET + req.user.username);
-		// await this.mailService.sendUserConfirmation(
-		// 	'maxime.riaud@gmail.com',
-		// 	token,
-		// );
-		// console.log(user);
+	async generate2fa(userId: number) {
+		const secret = authenticator.generateSecret();
+
+		await this.userService.set2fa(secret, userId);
+
 		return {
-			jwt: await this.jwtService.signAsync(user),
-			// totp: token,
+			secret,
 		};
 	}
 
-	async validate2fa(jwt: string, totp: string) {
-		let username = '';
-		try {
-			({ username } = this.jwtService.verify(jwt));
-		} catch (error) {
-			throw new UnauthorizedException('invalid JWT');
-		}
-		// if (
-		// 	// !speakeasy.totp.verify({
-		// 	// 	secret: process.env.SPEAKEASY_SECRET + username,
-		// 	// 	token: totp,
-		// 	// 	time: Date.now() / 60,
-		// 	// })
-		// )
-		// throw new UnauthorizedException('Invalid TOTP');
-		return {
-			access_token: await this.jwtService.signAsync({
-				username: username,
-			}),
-		};
+	async validate2fa(userId: number, totp: string) {
+		if (
+			!authenticator.verify({
+				token: totp,
+				secret: (await this.userService.findOneById(userId)).twoFactorSecret,
+			})
+		)
+			throw new UnauthorizedException('totp is not good');
+
+		return await this.signJWT({
+			id: userId,
+			twoFactorEnabled: true,
+			authorized: true,
+		});
 	}
 }
