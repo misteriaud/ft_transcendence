@@ -1,5 +1,6 @@
 import React from "react";
 import axios from "axios";
+import { error } from "console";
 
 export default class PersonList extends React.Component {
   state: {
@@ -12,7 +13,9 @@ export default class PersonList extends React.Component {
     axios.get(`/api/auth/login`).then((res) => {
       const persons = res.data;
       this.setState({ persons });
-    });
+    }).catch(error => {
+		console.log(error)
+	});
   }
 
   render() {

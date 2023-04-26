@@ -13,9 +13,9 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
 			// Configure the OAuth2 strategy options here
 			authorizationURL: 'https://api.intra.42.fr/oauth/authorize',
 			tokenURL: 'https://api.intra.42.fr/oauth/token',
-			clientID: process.env.NESTJS_OAUTH_42_UID,
-			clientSecret: process.env.NESTJS_OAUTH_42_SECRET,
-			callbackURL: process.env.NESTJS_OAUTH_CALLBACK_URL,
+			clientID: process.env.OAUTH_42_UID,
+			clientSecret: process.env.OAUTH_42_SECRET,
+			callbackURL: process.env.OAUTH_CALLBACK_URL,
 		});
 		this.name = '42';
 		this._profileURL = 'https://api.intra.42.fr/v2/me';
