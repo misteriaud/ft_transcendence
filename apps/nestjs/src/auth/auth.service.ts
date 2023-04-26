@@ -28,7 +28,7 @@ export class AuthService {
 		return await this.signJWT({
 			id: user.id,
 			twoFactorEnabled: user.twoFactorEnabled,
-			authorized: !user.twoFactorEnabled,
+			authorized2fa: false,
 		});
 	}
 
@@ -43,6 +43,7 @@ export class AuthService {
 	}
 
 	async validate2fa(userId: number, totp: string) {
+		console.log(totp);
 		if (
 			!authenticator.verify({
 				token: totp,
@@ -54,7 +55,7 @@ export class AuthService {
 		return await this.signJWT({
 			id: userId,
 			twoFactorEnabled: true,
-			authorized: true,
+			authorized2fa: true,
 		});
 	}
 }

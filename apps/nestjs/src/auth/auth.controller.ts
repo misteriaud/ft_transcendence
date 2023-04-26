@@ -1,16 +1,17 @@
-import { Controller, Get, Headers, Query, Request, UseGuards, UnauthorizedException, Body } from '@nestjs/common';
+import { Controller, Get, Post, Request, UseGuards, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { FortyTwoOAuthGuard } from './42.guard';
 import { UnauthorizedJWTGuard } from './JWT.guard';
 import { GetUser } from './decorator';
+import { Validate2faDTO } from './DTO/2fa.dto';
 
 @Controller('auth')
 export class AuthController {
 	constructor(private readonly authService: AuthService) {}
 
 	@UseGuards(FortyTwoOAuthGuard)
-	@Get('callback')
-	async callback(@Request() req: any) {
+	@Get('login')
+	async login(@Request() req: any) {
 		return this.authService.login(req);
 	}
 
@@ -21,8 +22,8 @@ export class AuthController {
 	}
 
 	@UseGuards(UnauthorizedJWTGuard)
-	@Get('2fa')
-	async verify2fa(@GetUser('id') userId: number, @Body('totp') totp: string) {
-		return this.authService.validate2fa(userId, totp);
+	@Post('2fa')
+	async verify2fa(@Body() body: Validate2faDTO, @GetUser('id') userId: number) {
+		return this.authService.validate2fa(userId, body.totp);
 	}
 }

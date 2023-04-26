@@ -39,6 +39,7 @@ services:
             - NESTJS_JWT_SECRET
             - NESTJS_OAUTH_42_UID
             - NESTJS_OAUTH_42_SECRET
+            - NESTJS_OAUTH_CALLBACK_URL
         networks:
             - ft_transcendence
         volumes:

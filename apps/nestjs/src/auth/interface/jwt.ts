@@ -1,5 +1,5 @@
 export interface i_JWTPayload {
 	id: number;
-	authorized: boolean;
+	authorized2fa: boolean;
 	twoFactorEnabled: boolean;
 }
