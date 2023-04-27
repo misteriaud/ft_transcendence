@@ -8,6 +8,8 @@ datasource db {
 }
 
 model User {
+	email String
+	hash String
 	id						Int				@id @default(autoincrement())
 	username				String			@unique
 	login42					String			@unique
@@ -23,7 +25,7 @@ model User {
 	wins					Int				@default(0)
 	losses					Int				@default(0)
 	history					Match[]
-	members					Member[]
+	memberOf				Member[]
 	createdAt				DateTime		@default(now())
 	updatedAt				DateTime		@updatedAt
 
@@ -55,17 +57,17 @@ model Room {
 }
 
 model Member {
-	room		Room			@relation(fields: [room_id], references: [id])
+	room		Room			@relation(fields: [room_id], references: [id], onDelete: Cascade)
 	room_id		Int
-	user		User			@relation(fields: [user_id], references: [id])
+	user		User			@relation(fields: [user_id], references: [id], onDelete: Cascade)
 	user_id		Int
-	role		e_member_role	@default(NONE)
+	role		e_member_role	@default(MEMBER)
 	muted		Boolean			@default(false)
 	muted_until	DateTime		@default(now())
 	banned		Boolean			@default(false)
 	messages	Message[]
 
-	@@unique([room_id, user_id])
+	@@id([room_id, user_id])
 	@@map("members")
 }
 
@@ -105,7 +107,7 @@ enum e_room_access {
 }
 
 enum e_member_role {
-	NONE
-	ADMIN
 	OWNER
+	ADMIN
+	MEMBER
 }

@@ -8,41 +8,44 @@ import { AuthDto } from './dto';
 
 @Injectable()
 export class AuthService {
-	constructor(private Prisma: PrismaService, private jwt: JwtService, private config: ConfigService) {}
+	constructor(private prisma: PrismaService, private jwt: JwtService, private config: ConfigService) {}
 	async signup(dto: AuthDto) {
 		const hash = await argon.hash(dto.password);
 
 		try {
-			const user = await this.Prisma.user.create({
+			const user = await this.prisma.user.create({
 				data: {
+					username: dto.username,
+					login42: dto.login42,
 					email: dto.email,
 					hash: hash,
 				},
 			});
 			return this.signToken(user.id, user.email);
-		}
-		catch (error) {
-			if (error instanceof Prisma.PrismaClientKnownRequestError)
-			{
-				if (error.code === 'P2002')
+		} catch (error) {
+			if (error instanceof Prisma.PrismaClientKnownRequestError) {
+				if (error.code === 'P2002') {
 					throw new ConflictException('Credentials taken');
+				}
 			}
 			throw error;
 		}
 	}
 
 	async signin(dto: AuthDto) {
-		const user = await this.Prisma.user.findUnique({
+		const user = await this.prisma.user.findUnique({
 			where: {
-				email: dto.email,
+				login42: dto.login42,
 			},
 		});
-		if (!user)
+		if (!user) {
 			throw new UnauthorizedException('Credentials incorrect');
+		}
 
 		const match = await argon.verify(user.hash, dto.password);
-		if (!match)
+		if (!match) {
 			throw new UnauthorizedException('Credentials incorrect');
+		}
 		return this.signToken(user.id, user.email);
 	}
 
