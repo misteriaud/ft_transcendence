@@ -1,20 +1,22 @@
 import { Link, Navigate, Outlet } from "react-router-dom";
-import { useAuth, i_User } from "../providers/authProvider"
+import { useUserContext, useUserDispatchContext, UserState } from "../providers/userProvider"
 
 export const DashboardLayout = () => {
-  const { user }: { user?: i_User } = useAuth();
+  const user: UserState = useUserContext();
+  const dispatch = useUserDispatchContext()
 
-  if (!user) {
+  if (!user.log) {
     return <Navigate to="/login" />;
   }
 
   return (
-    <div>
+    <>
+		{user.JWT}
       <nav>
         <Link to="/settings">Settings</Link>
         <Link to="/profile">Profile</Link>
       </nav>
       <Outlet />
-    </div>
+    </>
   )
 };

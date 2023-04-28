@@ -1,13 +1,13 @@
 import { useSearchParams, Navigate } from "react-router-dom";
 import { apiProvider } from "../providers/apiProvider";
-import { useAuth } from "../providers/authProvider";
+import { useUserContext, useUserDispatchContext, UserState, UserActionType } from "../providers/userProvider";
 
 export const TwoFactorPage = () => {
-  const { user, login }: any = useAuth();
+  const user = useUserContext();
 
-	if (!user || !user.twoFactorEnabled) {
-		return <Navigate to="/login" />;
-	}
+	// if (!user || !user.twoFactorEnabled) {
+	// 	return <Navigate to="/login" />;
+	// }
 
 //   if (code) {
 // 	apiProvider.get("auth/login", {

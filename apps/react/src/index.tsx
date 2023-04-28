@@ -4,6 +4,7 @@ import "./index.css";
 import { RouterProvider } from "react-router-dom";
 
 import { router } from "./Router"
+import { UserProvider } from "./providers/userProvider";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement

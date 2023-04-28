@@ -1,13 +1,14 @@
 import { useSearchParams, Navigate } from "react-router-dom";
 import { apiProvider } from "../providers/apiProvider";
-import { useAuth } from "../providers/authProvider";
+import { useUserContext, useUserDispatchContext, UserState, UserActionType } from "../providers/userProvider";
 
 export const LoginPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const code = searchParams.get("code");
-  const { user, login }: any = useAuth();
+  const user: UserState = useUserContext();
+  const dispatch = useUserDispatchContext();
 
-  if (user) {
+  if (user.log) {
     return <Navigate to="/dashboard" />;
   }
   if (code) {
@@ -15,7 +16,10 @@ export const LoginPage = () => {
 		params: { code }
 	}).then((result) => {
 		if (result.data.jwt)
-			login(result.data.jwt)
+			dispatch({
+				type: UserActionType.LOGIN,
+				content: result.data.jwt
+			})
 	})
 	.catch(error => {
 		console.log("an error occured")
