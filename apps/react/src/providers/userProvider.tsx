@@ -1,16 +1,22 @@
-import { createContext, useContext, useReducer, ReactNode } from "react";
-import { useOutlet, useNavigate } from "react-router-dom";
-import { useLocalStorage, useLocalStorageReducer } from "../utils/useLocalStorage";
+import { createContext, useContext} from "react";
+import { useOutlet} from "react-router-dom";
+import { useLocalStorageReducer } from "../utils/useLocalStorage";
 import jwt from 'jwt-decode'
 
 // export interface i_User {
 // 	username:	string;
 // 	JWT:		string;
 // }
-export type UserState = {
-	username: string,
-	JWT: string,
-	log: boolean
+export class UserState {
+	public username: string;
+	public JWT: string;
+	public log: boolean;
+
+	constructor() {
+		this.username = "";
+		this.JWT = "";
+		this.log = false
+	}
 };
 
 export enum UserActionType {
@@ -20,18 +26,18 @@ export enum UserActionType {
 type UserAction =
 	{ type: UserActionType.LOGIN, content: any }
 
-const userInitState: UserState = {
-	username: "",
-	JWT: "",
-	log: false
-}
+// const userInitState: UserState = {
+// 	username: "",
+// 	JWT: "",
+// 	log: false
+// }
 
-const UserContext = createContext(userInitState);
+const UserContext = createContext(new UserState);
 const UserDispatchContext = createContext<React.Dispatch<UserAction> | undefined>(undefined)
 
 export function UserProvider() {
 	const outlet = useOutlet();
-	const [user, dispatch] = useLocalStorageReducer("user", userReducer, userInitState)
+	const [user, dispatch] = useLocalStorageReducer("user", userReducer, new UserState)
 	// const [user, dispatch] = useReducer(userReducer, userInitState)
 
 	return (

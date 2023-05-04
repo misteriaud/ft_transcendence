@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Type } from "typescript";
+import { UserState } from "../providers/userProvider";
 
 export const useLocalStorage = (keyName: string, defaultValue: any) => {
   const [storedValue, setStoredValue] = useState(() => {
@@ -24,12 +24,16 @@ export const useLocalStorage = (keyName: string, defaultValue: any) => {
   return [storedValue, setValue];
 };
 
-export function useLocalStorageReducer<State, Action>(keyName: string, reducer: (s: State, a: Action) => State, defaultValue: State): [State, (a: Action) => void]{
+export function useLocalStorageReducer<State, Action>(keyName: string, reducer: (s: State, a: Action) => State, defaultValue: State)
+: [State, (a: Action) => void] {
   const [storedValue, setStoredValue] = useState<State>(() => {
     try {
       const value = window.localStorage.getItem(keyName);
       if (value) {
-        return JSON.parse(value);
+		const state = JSON.parse(value);
+		// if (!(state instanceof UserState))
+			// return defaultValue
+		return state
       } else {
         window.localStorage.setItem(keyName, JSON.stringify(defaultValue));
         return defaultValue;
@@ -41,7 +45,6 @@ export function useLocalStorageReducer<State, Action>(keyName: string, reducer: 
 
   function dispatch(action: Action) {
 	  const newState = reducer(storedValue, action);
-	  console.log(newState)
 	  try {
 		window.localStorage.setItem(keyName, JSON.stringify(newState));
 	  } catch (err) {
