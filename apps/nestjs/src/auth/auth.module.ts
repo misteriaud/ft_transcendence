@@ -7,6 +7,8 @@ import { JwtModule } from '@nestjs/jwt';
 // import { ConfigService } from '@nestjs/config';
 import { FortyTwoStrategy } from './42.strategy';
 import { UserModule } from 'src/user/user.module';
+import { UserService } from 'src/user/user.service';
+import { PrismaUserService } from 'src/user/prismaUser.service';
 // import { MailModule } from 'src/mail/mail.module';
 
 @Module({
@@ -18,9 +20,8 @@ import { UserModule } from 'src/user/user.module';
 			secret: process.env.NESTJS_JWT_SECRET,
 			signOptions: { expiresIn: '5m' }, // e.g. 30s, 7d, 24h
 		}),
-		// MailModule,
 	],
-	providers: [AuthService, FortyTwoStrategy],
+	providers: [AuthService, FortyTwoStrategy, UserService, PrismaUserService],
 	controllers: [AuthController],
 })
 export class AuthModule {}

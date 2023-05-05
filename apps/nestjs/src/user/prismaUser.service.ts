@@ -8,7 +8,7 @@ export class PrismaUserService {
 	constructor(private prisma: PrismaService) {}
 
 	// Get me
-	async getMe(user_id: number) {
+	async getMe(user_id: number, includeSecret: boolean = false) {
 		return await this.prisma.user.findUnique({
 			where: {
 				id: user_id,
@@ -20,6 +20,7 @@ export class PrismaUserService {
 				avatar: true,
 				status: true,
 				twoFactorEnabled: true,
+				twoFactorSecret: includeSecret,
 				friends: {
 					select: {
 						userB: {
@@ -114,7 +115,7 @@ export class PrismaUserService {
 			},
 			data: {
 				username: dto.username,
-				twoFactorEnabled: dto.twoFactorAuth,
+				twoFactorEnabled: dto.twoFactorEnabled,
 			},
 			select: {
 				id: true,

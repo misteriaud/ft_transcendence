@@ -1,13 +1,13 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Put, UseGuards } from '@nestjs/common';
 import { Member, Room, User } from '@prisma/client';
-import { JwtGuard } from 'src/auth/guard';
+import { JWTGuard } from 'src/auth/JWT.guard';
 import { GetUser } from 'src/auth/decorator';
 import { RoomDto, RoomInviteDto, RoomJoinDto, RoomMuteDto } from './dto';
 import { RoomService } from './room.service';
 import { GetInvitationToken, GetMember, GetRoom } from './decorator';
 import { GetInvitationTokenGuard, GetMemberGuard, GetRoomGuard, HierarchyGuard, RoomAdminGuard, RoomMemberGuard, RoomOwnerGuard } from './guard';
 
-@UseGuards(JwtGuard)
+@UseGuards(JWTGuard)
 @Controller('rooms')
 export class RoomController {
 	constructor(private roomService: RoomService) {}

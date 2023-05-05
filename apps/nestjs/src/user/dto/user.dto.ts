@@ -12,5 +12,5 @@ export class UserDto {
 	@IsBoolean()
 	@IsNotEmpty()
 	@IsOptional()
-	twoFactorAuth: boolean;
+	twoFactorEnabled: boolean;
 }
