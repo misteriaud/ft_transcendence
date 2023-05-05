@@ -22,7 +22,7 @@ export class AuthService {
 			throw new UnauthorizedException();
 		}
 
-		const user = await this.userService.findOneBySchoolId(req.user.username);
+		const user = await this.userService.getMeByLogin42(req.user.username);
 		if (!user) console.log('user not found');
 
 		return await this.signJWT({
@@ -35,7 +35,7 @@ export class AuthService {
 	async generate2fa(userId: number) {
 		const secret = authenticator.generateSecret();
 
-		await this.userService.set2fa(secret, userId);
+		await this.userService.set2faSecret(secret, userId);
 
 		return {
 			secret,
@@ -43,11 +43,10 @@ export class AuthService {
 	}
 
 	async validate2fa(userId: number, totp: string) {
-		console.log(totp);
 		if (
 			!authenticator.verify({
 				token: totp,
-				secret: (await this.userService.findOneById(userId)).twoFactorSecret,
+				secret: (await this.userService.getMe(userId)).twoFactorSecret,
 			})
 		)
 			throw new UnauthorizedException('totp is not good');

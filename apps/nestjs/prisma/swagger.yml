@@ -1,0 +1,1654 @@
+openapi: 3.0.0
+info:
+  title: ft_transcendence API
+  description: Welcome to the OpenAPI documentation for the backend of the 'ft_transcendence' project, built with NestJS. This documentation provides a comprehensive overview of the API endpoints available for interacting with the application, including descriptions of each endpoint's functionality, input and output parameters, response codes...
+  version: 1.0.0
+tags:
+  - name: users
+    description: Everything about users
+  - name: rooms
+    description: Everything about rooms
+servers:
+  - url: http://localhost:3000
+    description: NestJS server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+paths:
+  /users/me:
+    get:
+      tags:
+        - users
+      summary: Get your user information
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"id": 1, "username": "new username", "login42": "login42", "avatar": null, "status": "ONLINE", "twoFactorAuth": false, "friends": [], "blocked": [], "blockedBy": [], "friendRequestsSent": [], "friendRequestsReceived": [], "wins": 0, "losses": 0, "history": [], "memberOf": [{"room": {"id": 1, "name": "name", "access": "PUBLIC"}}, {"room": {"id": 3, "name": "name", "access": "PROTECTED"}}, {"room": {"id": 4, "name": "name", "access": "PRIVATE"}}], "createdAt": "2023-05-03T10:57:04.381Z", "updatedAt": "2023-05-03T11:56:56.913Z"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+    put:
+      tags:
+        - users
+      summary: Edit your user information (Does not work with images yet)
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The new username
+                  example: New username
+                twoFactorAuth:
+                  type: string
+                  description: Whether to activate the two-factor autentication
+                  example: "true"
+      responses:
+        '200':
+          description: User information edited successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"id": 1, "username": "new username", "avatar": null, "twoFactorAuth": false}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                empty_username:
+                  value: {"statusCode": 400, "message": ["username should not be empty"], "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+    delete:
+      tags:
+        - users
+      summary: Delete your account 
+      responses:
+        '204':
+          description: Account deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+  /users/{id}:
+    get:
+      tags:
+        - users
+      summary: Get user information
+      parameters:
+        - name: id
+          in: path
+          description: Id of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"id": 1, "username": "username", "login42": "login42", "avatar": null, "status": "ONLINE", "wins": 0, "losses": 0, "history": [], "createdAt": "2023-05-03T10:57:04.381Z"}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_user_id:
+                  summary: Invalid user id
+                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                user_blocked:
+                  summary: User blocked
+                  value: {"statusCode": 403, "message": "You have blocked this user", "error": "Forbidden"}
+                blocked_by_this_user:
+                  summary: Blocked by this user
+                  value: {"statusCode": 403, "message": "You have been blocked by this user", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                user:
+                  summary: User
+                  value: {"statusCode": 404, "message": "User not found", "error": "Not found"}
+  /users/{id}/block:
+    post:
+      tags:
+        - users
+      summary: Block user
+      parameters:
+        - name: id
+          in: path
+          description: Id of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: User blocked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"userA_id": 1, "userB_id": 2}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_user_id:
+                  summary: Invalid user id
+                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                self:
+                  summary: Self-block
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                user:
+                  summary: User
+                  value: {"statusCode": 404, "message": "User not found", "error": "Not found"}
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 409, "message": "This user is not blocked", "error":"Conflict"}
+    delete:
+      tags:
+        - users
+      summary: Unblock user
+      parameters:
+        - name: id
+          in: path
+          description: Id of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: User unblocked successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_user_id:
+                  summary: Invalid user id
+                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                self:
+                  summary: Self-unblock
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                user:
+                  summary: User
+                  value: {"statusCode": 404, "message": "User not found", "error": "Not found"}
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 409, "message": "This user is already blocked", "error":"Conflict"}
+  /users/{id}/friend/request:
+    post:
+      tags:
+        - users
+      summary: Send friend request
+      parameters:
+        - name: id
+          in: path
+          description: Id of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Friend request sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                friend_request:
+                  summary: Friend request
+                  value: {"userA_id": 1, "userB_id": 2}
+                friend:
+                  summary: Friend
+                  value: {"userA_id": 1, "userB_id": 2}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_user_id:
+                  summary: Invalid user id
+                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                self:
+                  summary: Send to yourself
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+                user_blocked:
+                  summary: User blocked
+                  value: {"statusCode": 403, "message": "You have blocked this user", "error": "Forbidden"}
+                blocked_by_this_user:
+                  summary: Blocked by this user
+                  value: {"statusCode": 403, "message": "You have been blocked by this user", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                user:
+                  summary: User
+                  value: {"statusCode": 404, "message": "User not found", "error": "Not found"}
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                friend_request_already_sent:
+                  summary: Friend request already sent
+                  value: {"statusCode": 409, "message": "You have already sent a friend request to this user", "error": "Conflict"}
+                already_friends:
+                  summary: Already friends
+                  value: {"statusCode": 409, "message": "You are already friends with this user", "error": "Conflict"}
+    delete:
+      tags:
+        - users
+      summary: Cancel friend request
+      parameters:
+        - name: id
+          in: path
+          description: Id of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Friend request cancelled successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_user_id:
+                  summary: Invalid user id
+                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                self:
+                  summary: Cancel to yourself
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+                user_blocked:
+                  summary: User blocked
+                  value: {"statusCode": 403, "message": "You have blocked this user", "error": "Forbidden"}
+                blocked_by_this_user:
+                  summary: Blocked by this user
+                  value: {"statusCode": 403, "message": "You have been blocked by this user", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                user:
+                  summary: User
+                  value: {"statusCode": 404, "message": "User not found", "error": "Not found"}
+                friend_request:
+                  summary: Friend request
+                  value: {"statusCode": 404, "message": "Friend request not found", "error": "Not Found"}
+  /users/{id}/friend/response:
+    post:
+      tags:
+        - users
+      summary: Accept friend request
+      parameters:
+        - name: id
+          in: path
+          description: Id of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Friend request accepted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                friend:
+                  summary: Friend
+                  value: {"userA_id": 1, "userB_id": 2}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_user_id:
+                  summary: Invalid user id
+                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                self:
+                  summary: Accept to yourself
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+                user_blocked:
+                  summary: User blocked
+                  value: {"statusCode": 403, "message": "You have blocked this user", "error": "Forbidden"}
+                blocked_by_this_user:
+                  summary: Blocked by this user
+                  value: {"statusCode": 403, "message": "You have been blocked by this user", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                user:
+                  summary: User
+                  value: {"statusCode": 404, "message": "User not found", "error": "Not found"}
+                friend_request:
+                  summary: Friend request
+                  value: {"statusCode": 404, "message": "Friend request not found", "error": "Not found"}
+    delete:
+      tags:
+        - users
+      summary: Reject friend request
+      parameters:
+        - name: id
+          in: path
+          description: Id of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Friend request rejected successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_user_id:
+                  summary: Invalid user id
+                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                self:
+                  summary: Reject to yourself
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+                user_blocked:
+                  summary: User blocked
+                  value: {"statusCode": 403, "message": "You have blocked this user", "error": "Forbidden"}
+                blocked_by_this_user:
+                  summary: Blocked by this user
+                  value: {"statusCode": 403, "message": "You have been blocked by this user", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                user:
+                  summary: User
+                  value: {"statusCode": 404, "message": "User not found", "error": "Not found"}
+                friend_request:
+                  summary: Friend request
+                  value: {"statusCode": 404, "message": "Friend request not found", "error": "Not found"}
+  /rooms:
+    post:
+      tags:
+        - rooms
+      summary: Create a new room
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name of the room
+                  example: Room 1
+                access:
+                  type: string
+                  description: The access level of the room
+                  example: PUBLIC
+                password:
+                  type: string
+                  description: The password of the room (PROTECTED)
+                  example: secret
+              required:
+                - name
+                - access
+      responses:
+        '201':
+          description: Room created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"id": 1, "name": "Room 1", "access": "PUBLIC"}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: { "statusCode": 400, "message": ["name should not be empty", "name must be a string", "access should not be empty", "access must be one of the following values: PUBLIC, PROTECTED, PRIVATE", "access must be one of the following values: PUBLIC, PROTECTED, PRIVATE, DIRECT_MESSAGE"], "error": "Bad Request"}
+                empty_password:
+                  value: {"statusCode": 400, "message": ["password should not be empty"], "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+    get:
+      tags:
+        - rooms
+      summary: Get PUBLIC and PROTECTED rooms
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+              examples: 
+                base:
+                  value: [{"id": 1, "name": "Room 1", "access": "PUBLIC"}, { "id": 2, "name": "Room 2", "access": "PROTECTED"}, {"id": 3, "name": "Room 3", "access": "PROTECTED"}]
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+  /rooms/{id}:
+    put:
+      tags:
+        - rooms
+      summary: Edit a room
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name of the room
+                  example: Room 1
+                access:
+                  type: string
+                  description: The access level of the room
+                  example: PUBLIC
+                password:
+                  type: string
+                  description: The password of the room (PROTECTED)
+                  example: secret
+              required:
+                - name
+                - access
+      responses:
+        '200':
+          description: Room edited successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"id": 1, "name": "Room 1", "access": "PUBLIC"}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: { "statusCode": 400, "message": ["name should not be empty", "name must be a string", "access should not be empty", "access must be one of the following values: PUBLIC, PROTECTED, PRIVATE", "access must be one of the following values: PUBLIC, PROTECTED, PRIVATE, DIRECT_MESSAGE"], "error": "Bad Request"}
+                empty_password:
+                  value: {"statusCode": 400, "message": ["password should not be empty"], "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                insufficient_privileges:
+                  summary: Insufficient privileges
+                  value: {"statusCode": 403, "message": "You cannot perform this action", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+    delete:
+      tags:
+        - rooms
+      summary: Delete a room
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Room deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                insufficient_privileges:
+                  summary: Insufficient privileges
+                  value: {"statusCode": 403, "message": "You cannot perform this action", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+  /rooms/{id}/join:
+    post:
+      tags:
+        - rooms
+      summary: Join a room
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  description: The password of the room (PROTECTED)
+                  example: secret
+      responses:
+        '201':
+          description: Room joined successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"room_id": 1, "user_id": 2, "role": "MEMBER", "muted": false, "muted_until": "2042-01-01T00:00:00.000Z", "banned": false}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                empty_password:
+                  summary: Empty password
+                  value: {"statusCode": 400, "message": ["password should not be empty"], "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+                incorrect_password:
+                  summary: Incorrect password
+                  value: {"statusCode": 401, "message": "Incorrect password"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+                room_access:
+                  summary: Bad access
+                  value: {"statusCode": 403, "message": "This room is not public nor protected", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 409, "message": "You are already a member of this room", "error": "Conflict"}
+  /rooms/{id}/generate-invitation:
+    post:
+      tags:
+        - rooms
+      summary: Generate an invitation
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                  description: The Id of the user to invite
+                  example: "1"
+                expiration_date:
+                  type: string
+                  description: The expiration date of the invitation
+                  example: 2042-01-01T00:00:00.000Z
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"room_id": 1, "invitation_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOjEsInJvb21faWQiOjF9.oN_UTFY2L3VdKcOn2cTnnO-oJx333g7NfA4o8pC1PKU"}
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                user_id:
+                  summary: Bad user_id
+                  value: {"statusCode": 400, "message": ["user_id must be a number conforming to the specified constraints"], "error": "Bad Request"}
+                expiration_date:
+                  summary: Bad expiration_date
+                  value: {"statusCode": 400, "message": ["expiration_date must be a Date instance"], "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                insufficient_privileges:
+                  summary: Insufficient privileges
+                  value: {"statusCode": 403, "message": "You cannot perform this action", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+  /rooms/{id}/join/{invitationToken}:
+    post:
+      tags:
+        - rooms
+      summary: Join a room with an invitation
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+        - name: invitationToken
+          in: path
+          description: Invitation
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Room joined successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"room_id": 1, "user_id": 2, "role": "MEMBER", "muted": false, "muted_until": "2042-01-01T00:00:00.000Z", "banned": false}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+                invalid_token:
+                  summary: Invalid invitation
+                  value: {"statusCode": 401, "message": "Invalid invitation"}
+                expired_token:
+                  summary: Expired invitation
+                  value: {"statusCode": 401, "message": "Invitation has expired"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+                room_access:
+                  summary: Bad access
+                  value: {"statusCode": 403, "message": "This room is not public nor protected nor private", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 409, "message": "You are already a member of this room", "error": "Conflict"}
+  /rooms/{id}/leave:
+    delete:
+      tags:
+        - rooms
+      summary: Leave a room
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Room leaved successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+  /rooms/{id}/promote/{member_id}:
+    put:
+      tags:
+        - rooms
+      summary: Promote a member
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+        - name: member_id
+          in: path
+          description: Id of the member
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Promoted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"room_id": 1, "user_id": 2, "role": "ADMIN", "muted": false, "muted_until": "2042-01-01T00:00:00.000Z","banned": false}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                insufficient_privileges:
+                  summary: Insufficient privileges
+                  value: {"statusCode": 403, "message": "You cannot perform this action", "error": "Forbidden"}
+                self:
+                  summary: Self-promote
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+                member:
+                  summary: Member
+                  value: {"statusCode": 404, "message": "Member not found", "error": "Not found"}
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 409, "message": "This member is already an administrator", "error": "Conflict"}
+                member_banned:
+                  summary: Member banned
+                  value: {"statusCode": 409, "message": "This member is banned from this room", "error": "Conflict"}
+  /rooms/{id}/demote/{member_id}:
+    put:
+      tags:
+        - rooms
+      summary: Demote a member
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+        - name: member_id
+          in: path
+          description: Id of the member
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Demoted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"room_id": 1, "user_id": 2, "role": "MEMBER", "muted": false, "muted_until": "2042-01-01T00:00:00.000Z","banned": false}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                insufficient_privileges:
+                  summary: Insufficient privileges
+                  value: {"statusCode": 403, "message": "You cannot perform this action", "error": "Forbidden"}
+                self:
+                  summary: Self-demote
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+                member:
+                  summary: Member
+                  value: {"statusCode": 404, "message": "Member not found", "error": "Not found"}
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 409, "message": "This member is not an administrator", "error": "Conflict"}
+                member_banned:
+                  summary: Member banned
+                  value: {"statusCode": 409, "message": "This member is banned from this room", "error": "Conflict"}
+  /rooms/{id}/kick/{member_id}:
+    delete:
+      tags:
+        - rooms
+      summary: Kick a member
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+        - name: member_id
+          in: path
+          description: Id of the member
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Kicked successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                insufficient_privileges:
+                  summary: Insufficient privileges
+                  value: {"statusCode": 403, "message": "You cannot perform this action", "error": "Forbidden"}
+                self:
+                  summary: Self-kick
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+                member:
+                  summary: Member
+                  value: {"statusCode": 404, "message": "Member not found", "error": "Not found"}
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                member_banned:
+                  summary: Member banned
+                  value: {"statusCode": 409, "message": "This member is banned from this room", "error": "Conflict"}
+  /rooms/{id}/mute/{member_id}:
+    put:
+      tags:
+        - rooms
+      summary: Mute a member
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+        - name: member_id
+          in: path
+          description: Id of the member
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                muted_until:
+                  type: string
+                  description: The date until which the member is muted
+                  example: 2042-01-01T00:00:00.000Z
+      responses:
+        '200':
+          description: Muted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"room_id": 1, "user_id": 2, "role": "MEMBER", "muted": true, "muted_until": "2042-01-01T00:00:00.000Z","banned": false}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                insufficient_privileges:
+                  summary: Insufficient privileges
+                  value: {"statusCode": 403, "message": "You cannot perform this action", "error": "Forbidden"}
+                self:
+                  summary: Self-mute
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+                member:
+                  summary: Member
+                  value: {"statusCode": 404, "message": "Member not found", "error": "Not found"}
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                member_banned:
+                  summary: Member banned
+                  value: {"statusCode": 409, "message": "This member is banned from this room", "error": "Conflict"}
+  /rooms/{id}/unmute/{member_id}:
+    put:
+      tags:
+        - rooms
+      summary: Unmute a member
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+        - name: member_id
+          in: path
+          description: Id of the member
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Unmuted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"room_id": 1, "user_id": 2, "role": "MEMBER", "muted": false, "muted_until": "2042-01-01T00:00:00.000Z","banned": false}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                insufficient_privileges:
+                  summary: Insufficient privileges
+                  value: {"statusCode": 403, "message": "You cannot perform this action", "error": "Forbidden"}
+                self:
+                  summary: Self-unmute
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+                member:
+                  summary: Member
+                  value: {"statusCode": 404, "message": "Member not found", "error": "Not found"}
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 409, "message": "This member is not muted", "error": "Conflict"}
+                member_banned:
+                  summary: Member banned
+                  value: {"statusCode": 409, "message": "This member is banned from this room", "error": "Conflict"}
+  /rooms/{id}/ban/{member_id}:
+    put:
+      tags:
+        - rooms
+      summary: Ban a member
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+        - name: member_id
+          in: path
+          description: Id of the member
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Banned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"room_id": 1, "user_id": 2, "role": "MEMBER", "muted": false, "muted_until": "2042-01-01T00:00:00.000Z","banned": true}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                insufficient_privileges:
+                  summary: Insufficient privileges
+                  value: {"statusCode": 403, "message": "You cannot perform this action", "error": "Forbidden"}
+                self:
+                  summary: Self-ban
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+                member:
+                  summary: Member
+                  value: {"statusCode": 404, "message": "Member not found", "error": "Not found"}
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 409, "message": "This member is already banned", "error": "Conflict"}
+  /rooms/{id}/unban/{member_id}:
+    put:
+      tags:
+        - rooms
+      summary: Unban a member
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+        - name: member_id
+          in: path
+          description: Id of the member
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Unbanned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"room_id": 1, "user_id": 2, "role": "MEMBER", "muted": false, "muted_until": "2042-01-01T00:00:00.000Z","banned": false}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: 
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                insufficient_privileges:
+                  summary: Insufficient privileges
+                  value: {"statusCode": 403, "message": "You cannot perform this action", "error": "Forbidden"}
+                self:
+                  summary: Self-unban
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+                member:
+                  summary: Member
+                  value: {"statusCode": 404, "message": "Member not found", "error": "Not found"}
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 409, "message": "This member is not banned", "error": "Conflict"}

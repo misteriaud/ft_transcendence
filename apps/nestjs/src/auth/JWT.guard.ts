@@ -15,8 +15,7 @@ export class UnauthorizedJWTGuard implements CanActivate {
 		if (!token) throw new ForbiddenException('missing JWT');
 		try {
 			const payload: i_JWTPayload = this.jwtService.verify(token);
-			request['user'] = await this.userService.findOneById(payload.id);
-			delete request['user']['twoFactorSecret'];
+			request['user'] = await this.userService.getMe(payload.id);
 		} catch (err: any) {
 			throw new ForbiddenException('invalid JWT');
 		}
@@ -45,9 +44,7 @@ export class JWTGuard implements CanActivate {
 			throw new ForbiddenException('invalid JWT');
 		}
 
-		request['user'] = await this.userService.findOneById(payload.id);
-		// console.log(request['user']);
-		delete request['user']['twoFactorSecret'];
+		request['user'] = await this.userService.getMe(payload.id);
 
 		/*
 		unauthorized if:

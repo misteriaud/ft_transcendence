@@ -9,42 +9,38 @@ async function main() {
 	// create two dummy articles
 
 	const spayeur = await prisma.user.upsert({
-		where: { schoolId: 'spayeur' },
+		where: { login42: 'spayeur' },
 		update: {},
 		create: {
-			schoolId: 'spayeur',
-			email: 'spayeur@student.42.fr',
-			name: 'Stéphane Payeur',
+			login42: 'spayeur',
+			username: 'Stéphane Payeur',
 		},
 	});
 
 	const jvermeer = await prisma.user.upsert({
-		where: { schoolId: 'jvermeer' },
+		where: { login42: 'jvermeer' },
 		update: {},
 		create: {
-			schoolId: 'jvermeer',
-			email: 'jvermeer@student.42.fr',
-			name: 'Jean Baptiste Vermeersch',
+			login42: 'jvermeer',
+			username: 'Jean Baptiste Vermeersch',
 		},
 	});
 
 	const dpaccagn = await prisma.user.upsert({
-		where: { schoolId: 'dpaccagn' },
+		where: { login42: 'dpaccagn' },
 		update: {},
 		create: {
-			schoolId: 'dpaccagn',
-			email: 'dpaccagn@student.42.fr',
-			name: 'Dimitri Paccagnini',
+			login42: 'dpaccagn',
+			username: 'Dimitri Paccagnini',
 		},
 	});
 
 	const mriaud = await prisma.user.upsert({
-		where: { schoolId: 'mriaud' },
+		where: { login42: 'mriaud' },
 		update: {},
 		create: {
-			schoolId: 'mriaud',
-			email: 'maxime.riaud@gmail.com',
-			name: 'Maxime Riaud',
+			login42: 'mriaud',
+			username: 'Maxime Riaud',
 		},
 	});
 
