@@ -12,10 +12,11 @@ export class RoomService {
 
 	// Create a room
 	async create(user: User, dto: RoomDto) {
-		let hash: string | undefined;
+		let hash: string | null;
 
 		if (dto.access !== e_room_access.PROTECTED) {
 			delete dto.password;
+			hash = null;
 		} else {
 			hash = await argon.hash(dto.password);
 		}
@@ -36,8 +37,12 @@ export class RoomService {
 					},
 				},
 			},
+			select: {
+				id: true,
+				name: true,
+				access: true,
+			},
 		});
-		delete room.hash;
 		return room;
 	}
 
@@ -83,8 +88,12 @@ export class RoomService {
 				access: dto.access,
 				hash: hash,
 			},
+			select: {
+				id: true,
+				name: true,
+				access: true,
+			},
 		});
-		delete updatedRoom.hash;
 		return updatedRoom;
 	}
 

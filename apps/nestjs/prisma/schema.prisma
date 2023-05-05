@@ -10,26 +10,56 @@ datasource db {
 model User {
 	email String
 	hash String
-	id						Int				@id @default(autoincrement())
-	username				String			@unique
-	login42					String			@unique
+	id						Int					@id @default(autoincrement())
+	username				String				@unique
+	login42					String				@unique
 	avatar					String?
-	twoFactorAuth			Boolean			@default(false)
-	status					e_user_status	@default(ONLINE)
-	friends					User[]			@relation("Friends")
-	friendOf				User[]			@relation("Friends")
-	blocked					User[]			@relation("Blocked")
-	blockedBy				User[]			@relation("Blocked")
-	friendRequestsSent		User[]			@relation("friendRequests")
-	friendRequestsReceived	User[]			@relation("friendRequests")
-	wins					Int				@default(0)
-	losses					Int				@default(0)
+	twoFactorAuth			Boolean				@default(false)
+	status					e_user_status		@default(ONLINE)
+	friends					Friends[]			@relation("FriendsA")
+	friendOf				Friends[]			@relation("FriendsB")
+	blocked					Blocked[]			@relation("BlockedA")
+	blockedBy				Blocked[]			@relation("BlockedB")
+	friendRequestsSent		FriendRequests[]	@relation("FriendRequestsA")
+	friendRequestsReceived	FriendRequests[]	@relation("FriendRequestsB")
+	wins					Int					@default(0)
+	losses					Int					@default(0)
 	history					Match[]
 	memberOf				Member[]
-	createdAt				DateTime		@default(now())
-	updatedAt				DateTime		@updatedAt
+	createdAt				DateTime			@default(now())
+	updatedAt				DateTime			@updatedAt
 
 	@@map("users")
+}
+
+model Friends {
+	userA		User	@relation("FriendsA", fields: [userA_id], references: [id], onDelete: Cascade)
+	userA_id	Int
+	userB		User	@relation("FriendsB", fields: [userB_id], references: [id], onDelete: Cascade)
+	userB_id	Int
+
+	@@id([userA_id, userB_id])
+	@@map("_Friends")
+}
+
+model Blocked {
+	userA		User	@relation("BlockedA", fields: [userA_id], references: [id], onDelete: Cascade)
+	userA_id	Int
+	userB		User	@relation("BlockedB", fields: [userB_id], references: [id], onDelete: Cascade)
+	userB_id	Int
+
+	@@id([userA_id, userB_id])
+	@@map("_Blocked")
+}
+
+model FriendRequests {
+	userA		User	@relation("FriendRequestsA", fields: [userA_id], references: [id], onDelete: Cascade)
+	userA_id	Int
+	userB		User	@relation("FriendRequestsB", fields: [userB_id], references: [id], onDelete: Cascade)
+	userB_id	Int
+
+	@@id([userA_id, userB_id])
+	@@map("_FriendRequests")
 }
 
 model Match {
