@@ -23,7 +23,7 @@ export class AuthService {
 		}
 
 		const user = await this.userService.getMeByLogin42(req.user.username);
-		if (!user) console.log('user not found');
+		// if (!user) console.log('user not found');
 
 		return await this.signJWT({
 			id: user.id,
@@ -46,7 +46,7 @@ export class AuthService {
 		if (
 			!authenticator.verify({
 				token: totp,
-				secret: (await this.userService.getMe(userId)).twoFactorSecret,
+				secret: (await this.userService.getMe(userId, true)).twoFactorSecret,
 			})
 		)
 			throw new UnauthorizedException('totp is not good');

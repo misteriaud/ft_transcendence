@@ -19,12 +19,12 @@ export function Register(props)
 				password: password,
 			});
 			// Do something with the response, such as redirecting the user to the login page
-			console.log(response.data);
+			// console.log(response.data);
 		}
 		catch (error)
 		{
 			// Handle the error, such as displaying an error message to the user
-			console.log(error);
+			// console.log(error);
 		}
 	}
 

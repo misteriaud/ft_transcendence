@@ -8,7 +8,7 @@ export class PrismaUserService {
 	constructor(private prisma: PrismaService) {}
 
 	// Get me
-	async getMe(user_id: number, includeSecret: boolean = false) {
+	async getMe(user_id: number, includeSecret: boolean) {
 		return await this.prisma.user.findUnique({
 			where: {
 				id: user_id,

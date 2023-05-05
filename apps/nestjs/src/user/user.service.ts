@@ -8,8 +8,8 @@ export class UserService {
 	constructor(private prismaUser: PrismaUserService) {}
 
 	// Get me
-	async getMe(user_id: number) {
-		return await this.prismaUser.getMe(user_id);
+	async getMe(user_id: number, includeSecret: boolean = false ) {
+		return await this.prismaUser.getMe(user_id, includeSecret);
 	}
 
 	// Edit me

@@ -18,7 +18,7 @@ import { PrismaUserService } from 'src/user/prismaUser.service';
 		JwtModule.register({
 			global: true,
 			secret: process.env.NESTJS_JWT_SECRET,
-			signOptions: { expiresIn: '5m' }, // e.g. 30s, 7d, 24h
+			signOptions: { expiresIn: '1d' }, // e.g. 30s, 7d, 24h
 		}),
 	],
 	providers: [AuthService, FortyTwoStrategy, UserService, PrismaUserService],

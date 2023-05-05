@@ -42,7 +42,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
 		} catch (ex) {
 			reject(new Error('Failed to parse user profile'));
 		}
-		console.log(json.id);
+		// console.log(json.id);
 		resolve({
 			provider: '42',
 			id: json.id,
