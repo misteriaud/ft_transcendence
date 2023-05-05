@@ -20,6 +20,9 @@ services:
             - ${REACT_PORT}:${REACT_PORT}
         environment:
             - PORT=${REACT_PORT}
+            - REACT_APP_NESTJS_PORT=${NESTJS_PORT}
+            - REACT_APP_OAUTH_42_UID=${OAUTH_42_UID}
+            - REACT_APP_OAUTH_CALLBACK_URL=${OAUTH_CALLBACK_URL}
         networks:
             - ft_transcendence
         volumes:
@@ -37,9 +40,9 @@ services:
             - PORT=${NESTJS_PORT}
             - DATABASE_URL=postgresql://${PGSQL_USER}:${PGSQL_PASSWORD}@pgsql:${PGSQL_PORT}/${PGSQL_DATABASE}
             - NESTJS_JWT_SECRET
-            - NESTJS_OAUTH_42_UID
-            - NESTJS_OAUTH_42_SECRET
-            - NESTJS_OAUTH_CALLBACK_URL
+            - OAUTH_42_UID
+            - OAUTH_42_SECRET
+            - OAUTH_CALLBACK_URL
         networks:
             - ft_transcendence
         volumes:
