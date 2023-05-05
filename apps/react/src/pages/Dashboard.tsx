@@ -1,9 +1,13 @@
 import { Link, Navigate, Outlet } from "react-router-dom";
-import { useUserContext, useUserDispatchContext, UserState } from "../providers/userProvider"
+import {
+  useUserContext,
+  useUserDispatchContext,
+  UserState,
+} from "../providers/userProvider";
 
 export const DashboardLayout = () => {
   const user: UserState = useUserContext();
-  const dispatch = useUserDispatchContext()
+  const dispatch = useUserDispatchContext();
 
   if (!user.log) {
     return <Navigate to="/login" />;
@@ -11,12 +15,12 @@ export const DashboardLayout = () => {
 
   return (
     <>
-		{user.JWT}
+      {user.JWT}
       <nav>
-        <Link to="/settings">Settings</Link>
-        <Link to="/profile">Profile</Link>
+        <Link to="settings">Settings</Link>
+        <Link to="profile">Profile</Link>
       </nav>
       <Outlet />
     </>
-  )
+  );
 };
