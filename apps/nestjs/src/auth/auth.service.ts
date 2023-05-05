@@ -54,7 +54,7 @@ export class AuthService {
 
 		const token = await this.jwt.signAsync(payload, {
 			expiresIn: '4h',
-			secret: this.config.get('JWT_SECRET'),
+			secret: this.config.get('NESTJS_JWT_SECRET'),
 		});
 
 		return {
