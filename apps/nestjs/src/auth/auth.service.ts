@@ -12,9 +12,7 @@ export class AuthService {
 	) {}
 
 	async signJWT(payload: i_JWTPayload) {
-		return {
-			jwt: await this.jwtService.signAsync({ ...payload }),
-		};
+		return await this.jwtService.signAsync({ ...payload });
 	}
 
 	async login(req: any) {
@@ -25,11 +23,16 @@ export class AuthService {
 		const user = await this.userService.getMeByLogin42(req.user.username);
 		// if (!user) console.log('user not found');
 
-		return await this.signJWT({
+		const jwt = await this.signJWT({
 			id: user.id,
 			twoFactorEnabled: user.twoFactorEnabled,
 			authorized2fa: false,
 		});
+
+		return {
+			jwt,
+			authorized: !user.twoFactorEnabled,
+		};
 	}
 
 	async generate2fa(userId: number) {
@@ -51,10 +54,12 @@ export class AuthService {
 		)
 			throw new UnauthorizedException('totp is not good');
 
-		return await this.signJWT({
-			id: userId,
-			twoFactorEnabled: true,
-			authorized2fa: true,
-		});
+		return {
+			jwt: await this.signJWT({
+				id: userId,
+				twoFactorEnabled: true,
+				authorized2fa: true,
+			}),
+		};
 	}
 }

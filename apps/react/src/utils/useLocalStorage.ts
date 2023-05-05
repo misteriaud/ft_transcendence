@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { UserState } from "../providers/userProvider";
 
 export const useLocalStorage = (keyName: string, defaultValue: any) => {
   const [storedValue, setStoredValue] = useState(() => {
@@ -31,8 +30,8 @@ export function useLocalStorageReducer<State, Action>(keyName: string, reducer: 
       const value = window.localStorage.getItem(keyName);
       if (value) {
 		const state = JSON.parse(value);
-		// if (!(state instanceof UserState))
-			// return defaultValue
+		if (!state)
+			return {}
 		return state
       } else {
         window.localStorage.setItem(keyName, JSON.stringify(defaultValue));

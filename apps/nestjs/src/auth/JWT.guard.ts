@@ -52,7 +52,7 @@ export class JWTGuard implements CanActivate {
 			- twoFactorEnabled is marked as DISABLE in the token and ENABLE in the DB
 		*/
 		if ((request['user'].twoFactorEnabled && !payload.authorized2fa) || payload.twoFactorEnabled != request['user'].twoFactorEnabled) {
-			throw new UnauthorizedException('2fa not valid');
+			throw new ForbiddenException('2fa not valid');
 		}
 		return true;
 	}
