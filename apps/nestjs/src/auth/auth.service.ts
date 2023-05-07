@@ -3,6 +3,8 @@ import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { i_JWTPayload } from './interface/jwt';
 import { authenticator } from 'otplib';
+import { Profile } from 'passport';
+import { GetOAuthUser } from './decorator';
 
 @Injectable()
 export class AuthService {
@@ -15,13 +17,12 @@ export class AuthService {
 		return await this.jwtService.signAsync({ ...payload });
 	}
 
-	async login(req: any) {
-		if (!req.user) {
-			throw new UnauthorizedException();
-		}
+	async login(profile: Profile) {
+		let user = await this.userService.getMeByLogin42(profile.username);
 
-		const user = await this.userService.getMeByLogin42(req.user.username);
-		// if (!user) console.log('user not found');
+		if (!user) {
+			user = await this.userService.createFromOAuth2(profile);
+		}
 
 		const jwt = await this.signJWT({
 			id: user.id,

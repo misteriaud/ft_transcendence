@@ -2,8 +2,9 @@ import { Controller, Get, Post, Request, UseGuards, Body } from '@nestjs/common'
 import { AuthService } from './auth.service';
 import { FortyTwoOAuthGuard } from './42.guard';
 import { UnauthorizedJWTGuard } from './JWT.guard';
-import { GetUser } from './decorator';
+import { GetOAuthUser, GetUser } from './decorator';
 import { Validate2faDTO } from './DTO/2fa.dto';
+import { Profile } from 'passport';
 
 @Controller('auth')
 export class AuthController {
@@ -11,8 +12,8 @@ export class AuthController {
 
 	@UseGuards(FortyTwoOAuthGuard)
 	@Get('login')
-	async login(@Request() req: any) {
-		return this.authService.login(req);
+	async login(@GetOAuthUser() profile: Profile) {
+		return this.authService.login(profile);
 	}
 
 	@UseGuards(UnauthorizedJWTGuard)

@@ -2,13 +2,14 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import { User } from '@prisma/client';
 import { PrismaUserService } from './prismaUser.service';
 import { UserDto } from './dto';
+import { Profile } from 'passport';
 
 @Injectable()
 export class UserService {
 	constructor(private prismaUser: PrismaUserService) {}
 
 	// Get me
-	async getMe(user_id: number, includeSecret: boolean = false ) {
+	async getMe(user_id: number, includeSecret = false) {
 		return await this.prismaUser.getMe(user_id, includeSecret);
 	}
 
@@ -96,6 +97,13 @@ export class UserService {
 		}
 		await this.prismaUser.deleteFriend(user, other);
 		await this.prismaUser.deleteFriend(other, user);
+	}
+
+	// AUTH PART
+
+	// Auth - Get me by login42
+	async createFromOAuth2(profile: Profile) {
+		return await this.prismaUser.createFromOAuth2(profile);
 	}
 
 	// Auth - Get me by login42

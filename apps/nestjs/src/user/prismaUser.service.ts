@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserDto } from './dto';
+import { Profile } from 'passport';
 
 @Injectable()
 export class PrismaUserService {
@@ -269,6 +270,23 @@ export class PrismaUserService {
 		});
 	}
 
+	// AUTH PART
+
+	// Create a user
+	async createFromOAuth2(profile: Profile) {
+		const room = await this.prisma.user.create({
+			data: {
+				username: profile.displayName,
+				login42: profile.username,
+			},
+			// select: {
+			// 	id: true,
+			// 	twoFactorEnabled: true,
+			// },
+		});
+		return room;
+	}
+
 	// Auth - Get me by login42
 	async getMeByLogin42(login42: string) {
 		return await this.prisma.user.findUnique({
@@ -287,7 +305,7 @@ export class PrismaUserService {
 			data: {
 				twoFactorEnabled: true,
 				twoFactorSecret: secret,
-			}
+			},
 		});
 	}
 }
