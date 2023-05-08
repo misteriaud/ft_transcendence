@@ -19,7 +19,7 @@ export class UserService {
 
 	// Delete me
 	async deleteMe(user_id: number) {
-		return await this.prismaUser.deleteMe(user_id);
+		await this.prismaUser.deleteMe(user_id);
 	}
 
 	// Get user
