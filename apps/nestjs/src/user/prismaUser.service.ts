@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserDto } from './dto';
 import { Profile } from 'passport';
@@ -109,10 +108,10 @@ export class PrismaUserService {
 	}
 
 	// Edit me
-	async editMe(user: User, dto: UserDto) {
+	async editMe(user_id: number, dto: UserDto) {
 		return await this.prisma.user.update({
 			where: {
-				id: user.id,
+				id: user_id,
 			},
 			data: {
 				username: dto.username,
@@ -128,19 +127,19 @@ export class PrismaUserService {
 	}
 
 	// Delete me
-	async deleteMe(user: User) {
+	async deleteMe(user_id: number) {
 		await this.prisma.user.delete({
 			where: {
-				id: user.id,
+				id: user_id,
 			},
 		});
 	}
 
 	// Get
-	async get(user: User) {
+	async get(user_id: number) {
 		return await this.prisma.user.findUnique({
 			where: {
-				id: user.id,
+				id: user_id,
 			},
 			select: {
 				id: true,
@@ -157,17 +156,17 @@ export class PrismaUserService {
 	}
 
 	// Create blocked
-	async createBlocked(userA: User, userB: User) {
+	async createBlocked(userA_id: number, userB_id: number) {
 		return await this.prisma.blocked.create({
 			data: {
 				userA: {
 					connect: {
-						id: userA.id,
+						id: userA_id,
 					},
 				},
 				userB: {
 					connect: {
-						id: userB.id,
+						id: userB_id,
 					},
 				},
 			},
@@ -175,29 +174,29 @@ export class PrismaUserService {
 	}
 
 	// Delete blocked
-	async deleteBlocked(userA: User, userB: User) {
+	async deleteBlocked(userA_id: number, userB_id: number) {
 		await this.prisma.blocked.delete({
 			where: {
 				userA_id_userB_id: {
-					userA_id: userA.id,
-					userB_id: userB.id,
+					userA_id: userA_id,
+					userB_id: userB_id,
 				},
 			},
 		});
 	}
 
 	// Create friend request
-	async createFriendRequest(userA: User, userB: User) {
+	async createFriendRequest(userA_id: number, userB_id: number) {
 		return await this.prisma.friendRequests.create({
 			data: {
 				userA: {
 					connect: {
-						id: userA.id,
+						id: userA_id,
 					},
 				},
 				userB: {
 					connect: {
-						id: userB.id,
+						id: userB_id,
 					},
 				},
 			},
@@ -205,41 +204,41 @@ export class PrismaUserService {
 	}
 
 	// Get friend request
-	async getFriendRequest(userA: User, userB: User) {
+	async getFriendRequest(userA_id: number, userB_id: number) {
 		return await this.prisma.friendRequests.findUnique({
 			where: {
 				userA_id_userB_id: {
-					userA_id: userA.id,
-					userB_id: userB.id,
+					userA_id: userA_id,
+					userB_id: userB_id,
 				},
 			},
 		});
 	}
 
 	// Delete friend request
-	async deleteFriendRequest(userA: User, userB: User) {
+	async deleteFriendRequest(userA_id: number, userB_id: number) {
 		await this.prisma.friendRequests.delete({
 			where: {
 				userA_id_userB_id: {
-					userA_id: userA.id,
-					userB_id: userB.id,
+					userA_id: userA_id,
+					userB_id: userB_id,
 				},
 			},
 		});
 	}
 
 	// Create friend
-	async createFriend(userA: User, userB: User) {
+	async createFriend(userA_id: number, userB_id: number) {
 		return await this.prisma.friends.create({
 			data: {
 				userA: {
 					connect: {
-						id: userA.id,
+						id: userA_id,
 					},
 				},
 				userB: {
 					connect: {
-						id: userB.id,
+						id: userB_id,
 					},
 				},
 			},
@@ -247,24 +246,24 @@ export class PrismaUserService {
 	}
 
 	// Get friend
-	async getFriend(userA: User, userB: User) {
+	async getFriend(userA_id: number, userB_id: number) {
 		return await this.prisma.friends.findUnique({
 			where: {
 				userA_id_userB_id: {
-					userA_id: userA.id,
-					userB_id: userB.id,
+					userA_id: userA_id,
+					userB_id: userB_id,
 				},
 			},
 		});
 	}
 
 	// Delete friend
-	async deleteFriend(userA: User, userB: User) {
+	async deleteFriend(userA_id: number, userB_id: number) {
 		await this.prisma.friends.delete({
 			where: {
 				userA_id_userB_id: {
-					userA_id: userA.id,
-					userB_id: userB.id,
+					userA_id: userA_id,
+					userB_id: userB_id,
 				},
 			},
 		});

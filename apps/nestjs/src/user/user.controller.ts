@@ -1,5 +1,4 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Put, UseGuards } from '@nestjs/common';
-import { User } from '@prisma/client';
 import { JWTGuard } from 'src/auth/JWT.guard';
 import { UserService } from './user.service';
 import { GetUser } from 'src/auth/decorator';
@@ -20,74 +19,74 @@ export class UserController {
 
 	// Edit me
 	@Put('me')
-	editMe(@GetUser() user: User, @Body() dto: UserDto) {
-		return this.userService.editMe(user, dto);
+	editMe(@GetUser('id') user_id: number, @Body() dto: UserDto) {
+		return this.userService.editMe(user_id, dto);
 	}
 
 	// Delete me
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@Delete('me')
-	deleteMe(@GetUser() user: User) {
-		return this.userService.deleteMe(user);
+	deleteMe(@GetUser('id') user_id: number) {
+		return this.userService.deleteMe(user_id);
 	}
 
 	// Get user
 	@UseGuards(BlockedGuard, GetOtherGuard)
 	@Get(':id')
-	get(@GetOther() other: User) {
-		return this.userService.get(other);
+	get(@GetOther('id') other_id: number) {
+		return this.userService.get(other_id);
 	}
 
 	// Block user
 	@UseGuards(SelfGuard, BlockedGuard, GetOtherGuard)
 	@Post(':id/block')
-	block(@GetUser() user: User, @GetOther() other: User) {
-		return this.userService.block(user, other);
+	block(@GetUser('id') user_id: number, @GetOther('id') other_id: number) {
+		return this.userService.block(user_id, other_id);
 	}
 
 	// Unblock user
 	@UseGuards(SelfGuard, BlockedGuard, GetOtherGuard)
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@Delete(':id/block')
-	unblock(@GetUser() user: User, @GetOther() other: User) {
-		return this.userService.unblock(user, other);
+	unblock(@GetUser('id') user_id: number, @GetOther('id') other_id: number) {
+		return this.userService.unblock(user_id, other_id);
 	}
 
 	// Send friend request
 	@UseGuards(SelfGuard, BlockedGuard, GetOtherGuard)
 	@Post(':id/friend/request')
-	sendFriendRequest(@GetUser() user: User, @GetOther() other: User) {
-		return this.userService.sendFriendRequest(user, other);
+	sendFriendRequest(@GetUser('id') user_id: number, @GetOther('id') other_id: number) {
+		return this.userService.sendFriendRequest(user_id, other_id);
 	}
 
 	// Cancel friend request
 	@UseGuards(SelfGuard, BlockedGuard, GetOtherGuard)
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@Delete(':id/friend/request')
-	cancelFriendRequest(@GetUser() user: User, @GetOther() other: User) {
-		return this.userService.cancelFriendRequest(user, other);
+	cancelFriendRequest(@GetUser('id') user_id: number, @GetOther('id') other_id: number) {
+		return this.userService.cancelFriendRequest(user_id, other_id);
 	}
 
 	// Accept friend request
 	@UseGuards(SelfGuard, BlockedGuard, GetOtherGuard)
 	@Post(':id/friend/response')
-	acceptFriendRequest(@GetUser() user: User, @GetOther() other: User) {
-		return this.userService.acceptFriendRequest(user, other);
+	acceptFriendRequest(@GetUser('id') user_id: number, @GetOther('id') other_id: number) {
+		return this.userService.acceptFriendRequest(user_id, other_id);
 	}
 
 	// Reject friend request
 	@UseGuards(SelfGuard, BlockedGuard, GetOtherGuard)
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@Delete(':id/friend/response')
-	rejectFriendRequest(@GetUser() user: User, @GetOther() other: User) {
-		return this.userService.rejectFriendRequest(user, other);
+	rejectFriendRequest(@GetUser('id') user_id: number, @GetOther('id') other_id: number) {
+		return this.userService.rejectFriendRequest(user_id, other_id);
 	}
 
 	// Delete friend
 	@UseGuards(SelfGuard, BlockedGuard, GetOtherGuard)
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@Delete(':id/friend')
-	deleteFriend(@GetUser() user: User, @GetOther() other: User) {
-		return this.userService.deleteFriend(user, other);
+	deleteFriend(@GetUser('id') user_id: number, @GetOther('id') other_id: number) {
+		return this.userService.deleteFriend(user_id, other_id);
 	}
 }
