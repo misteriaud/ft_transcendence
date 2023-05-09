@@ -7,7 +7,7 @@ import {
 import { LoginPage, loader as loginLoader } from "./pages/Login";
 import { HomePage } from "./pages/Home";
 import { DashboardLayout } from "./pages/Dashboard";
-import { ProfilePage } from "./pages/Profile";
+import { SettingsPage } from "./pages/Settings";
 import { StoreProvider } from "./providers/storeProvider";
 
 export const router = createBrowserRouter(
@@ -16,7 +16,7 @@ export const router = createBrowserRouter(
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} loader={loginLoader} />
       <Route path="/dashboard" element={<DashboardLayout />}>
-        <Route path="profile" element={<ProfilePage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Route>
   )

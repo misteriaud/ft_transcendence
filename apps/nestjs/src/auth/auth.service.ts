@@ -36,15 +36,15 @@ export class AuthService {
 		};
 	}
 
-	async generate2fa(userId: number) {
-		const secret = authenticator.generateSecret();
+	// async generate2fa(userId: number) {
+	// 	const secret = authenticator.generateSecret();
 
-		await this.userService.set2faSecret(secret, userId);
+	// 	await this.userService.set2faSecret(secret, userId);
 
-		return {
-			secret,
-		};
-	}
+	// 	return {
+	// 		secret,
+	// 	};
+	// }
 
 	async validate2fa(userId: number, totp: string) {
 		if (

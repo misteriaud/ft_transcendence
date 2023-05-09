@@ -16,11 +16,11 @@ export class AuthController {
 		return this.authService.login(profile);
 	}
 
-	@UseGuards(UnauthorizedJWTGuard)
-	@Get('activate_2fa')
-	async activate_2fa(@GetUser('id') userId: number) {
-		return this.authService.generate2fa(userId);
-	}
+	// @UseGuards(UnauthorizedJWTGuard)
+	// @Get('activate_2fa')
+	// async activate_2fa(@GetUser('id') userId: number) {
+	// 	return this.authService.generate2fa(userId);
+	// }
 
 	@UseGuards(UnauthorizedJWTGuard)
 	@Post('2fa')

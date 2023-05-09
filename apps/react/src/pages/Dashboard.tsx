@@ -1,10 +1,13 @@
 import { Link, Outlet } from "react-router-dom";
-import { useUser } from "../dataHooks/useUser";
+import { useMe, useUser } from "../dataHooks/useUser";
 import { Spinner } from "../components/Spinner";
-import { useStoreDispatchContext, StoreActionType } from "../providers/storeProvider";
+import {
+  useStoreDispatchContext,
+  StoreActionType,
+} from "../providers/storeProvider";
 
 export const DashboardLayout = () => {
-  const { loading, loggedOut } = useUser();
+  const { loading, loggedOut } = useMe();
   const dispatch = useStoreDispatchContext();
 
   if (loading) return <Spinner />;
@@ -19,18 +22,17 @@ export const DashboardLayout = () => {
   }
 
   function logout() {
-	dispatch({
-		type: StoreActionType.LOGOUT
-	})
-	window.location.reload();
+    dispatch({
+      type: StoreActionType.LOGOUT,
+    });
+    window.location.reload();
   }
 
   return (
     <>
       <nav>
         <Link to="settings">Settings</Link>
-        <Link to="profile">Profile</Link>
-		<button onClick={logout} >Logout</button>
+        <button onClick={logout}>Logout</button>
       </nav>
       <Outlet />
     </>

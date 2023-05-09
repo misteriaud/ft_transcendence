@@ -10,7 +10,7 @@ import {
   StoreActionType,
 } from "../providers/storeProvider";
 import { apiProvider } from "../dataHooks/axiosFetcher";
-import { useUser } from "../dataHooks/useUser";
+import { useMe, useUser } from "../dataHooks/useUser";
 import { Spinner } from "../components/Spinner";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -36,13 +36,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return response;
 };
 
-function TwoFactor({jwt}: {jwt: string}) {
+function TwoFactor({ jwt }: { jwt: string }) {
   const [totp, setTotp] = useState("");
   const dispatch = useStoreDispatchContext();
   const [isError, setIsError] = useState(false);
 
   async function submitTotp(e: any) {
-	setIsError(false)
+    setIsError(false);
     e.preventDefault();
     if (!totp) return;
     await apiProvider(jwt)
@@ -77,7 +77,7 @@ function TwoFactor({jwt}: {jwt: string}) {
 }
 
 export const LoginPage = () => {
-  const { loading, loggedOut } = useUser();
+  const { loading, loggedOut } = useMe();
   const dispatch = useStoreDispatchContext();
   const payload: any = useLoaderData() as any;
 
@@ -95,7 +95,7 @@ export const LoginPage = () => {
     return <Navigate to="/dashboard" />;
   }
 
-  if (!payload.authorized) return <TwoFactor jwt={payload.jwt}/>;
+  if (!payload.authorized) return <TwoFactor jwt={payload.jwt} />;
 
   return (
     <div>

@@ -3,6 +3,7 @@ import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserDto } from './dto';
 import { Profile } from 'passport';
+import { authenticator } from 'otplib';
 
 @Injectable()
 export class PrismaUserService {
@@ -110,6 +111,11 @@ export class PrismaUserService {
 
 	// Edit me
 	async editMe(user: User, dto: UserDto) {
+		let secret: string | null;
+		if (!user.twoFactorEnabled && dto.twoFactorEnabled) {
+			secret = authenticator.generateSecret();
+		}
+
 		return await this.prisma.user.update({
 			where: {
 				id: user.id,
@@ -117,12 +123,14 @@ export class PrismaUserService {
 			data: {
 				username: dto.username,
 				twoFactorEnabled: dto.twoFactorEnabled,
+				twoFactorSecret: secret,
 			},
 			select: {
 				id: true,
 				username: true,
 				avatar: true,
 				twoFactorEnabled: true,
+				twoFactorSecret: !!secret,
 			},
 		});
 	}
