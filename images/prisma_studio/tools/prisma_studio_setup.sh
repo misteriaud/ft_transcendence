@@ -16,14 +16,16 @@ do
 	sleep 1;
 done
 
-# Initialize the Prisma shema and its datasource.
-prisma init --url=$DATABASE_URL >/dev/null
+cd app
 
-# Perform the pull once the database has been initialized.
-while ! prisma db pull >/dev/null 2>&1
-do
-	sleep 1;
-done
+# # Initialize the Prisma shema and its datasource.
+# prisma init --url=$DATABASE_URL >/dev/null
+
+# # Perform the pull once the database has been initialized.
+# while ! prisma db pull >/dev/null 2>&1
+# do
+# 	sleep 1;
+# don
 
 # Start the Prisma studio application.
 exec prisma studio --port $PORT --browser none

@@ -16,7 +16,7 @@ ARG  CODE_VERSION=3.17
 FROM alpine:${CODE_VERSION}
 
 # Set the working directory for the subsequent instructions.                   #
-WORKDIR /app
+# WORKDIR /app
 
 # Update package list from repositories then install npm, nodejs,              #
 # postgresql-client and prisma.                                                #

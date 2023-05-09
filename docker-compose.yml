@@ -75,6 +75,8 @@ services:
         networks:
             - ft_transcendence
         restart: unless-stopped
+        volumes:
+            - nestjs_app:/app
 
 volumes:
   nestjs_app:
