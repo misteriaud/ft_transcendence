@@ -5,6 +5,7 @@ import {
 } from "react-router-dom";
 
 import { LoginPage, loader as loginLoader } from "./pages/Login";
+import { LoginFakePage } from "./pages/LoginFake";
 import { HomePage } from "./pages/Home";
 import { DashboardLayout } from "./pages/Dashboard";
 import { SettingsPage } from "./pages/Settings";
@@ -15,37 +16,10 @@ export const router = createBrowserRouter(
     <Route element={<StoreProvider />}>
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} loader={loginLoader} />
+      <Route path="/login_fake" element={<LoginFakePage />} />
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Route>
   )
 );
-
-//   {
-//     element: <UserProvider />,
-//     children: [
-//       {
-//         path: "/",
-//         element: <HomePage />,
-//       },
-//       {
-//         path: "/login",
-//         element: <LoginPage />,
-//       },
-//       {
-//         path: "/2fa",
-//         element: <TwoFactorPage />,
-//       },
-//       {
-//         path: "/dashboard",
-//         element: <DashboardLayout />,
-//         children: [
-//           {
-//             path: "profile",
-//             element: <ProfilePage />,
-//           },
-//         ],
-//       },
-//     ],
-//   },
