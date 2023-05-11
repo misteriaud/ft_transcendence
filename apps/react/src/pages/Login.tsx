@@ -10,7 +10,7 @@ import {
   StoreActionType,
 } from "../providers/storeProvider";
 import { apiProvider } from "../dataHooks/axiosFetcher";
-import { useMe, useUser } from "../dataHooks/useUser";
+import { useMe } from "../dataHooks/useUser";
 import { Spinner } from "../components/Spinner";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -87,7 +87,7 @@ export const LoginPage = () => {
         type: StoreActionType.LOGIN,
         content: payload.jwt,
       });
-  }, [payload, dispatch]);
+  });
 
   if (loading) return <Spinner />;
 

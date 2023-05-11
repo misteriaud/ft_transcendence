@@ -8,9 +8,9 @@ import { UserService } from 'src/user/user.service';
 
 @WebSocketGateway()
 export class WebsocketGateway {
-	// @WebSocketServer()
-	// server: Server;
-	constructor(private jwtService: JwtService, private userService: UserService) {}
+	@WebSocketServer()
+	server: Server;
+	constructor(private jwtService: JwtService, private userService: UserService) { }
 
 	@UseGuards(WSJWTGuard)
 	async handleConnection(client: Socket) {
@@ -48,9 +48,15 @@ export class WebsocketGateway {
 	// }
 
 	@SubscribeMessage('message')
-	handleMessage(@ConnectedSocket() client: Socket, @MessageBody() data: string): string {
+	handleMessage(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
 		// console.log(client.data.user)
 		console.log(data)
-		return 'Hello world!';
+		this.server.emit("room-" + data.id, data.content)
+		// this.server.to("room-" + data.id).emit(data.content)
+		// this.server.to("room-" + data.id).emit({
+		// 	user: client.data.user,
+		// 	message: data.content
+		// })
+		client.emit("room-", data.content)
 	}
 }

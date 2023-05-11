@@ -54,7 +54,7 @@ export const SettingsPage = () => {
               ? "Desactiver la 2FA"
               : "Activer la 2FA"
           }
-          onClick={() =>
+          onChange={() =>
             setUserSettings({
               ...userSettings,
               twoFactorEnabled: !userSettings.twoFactorEnabled,

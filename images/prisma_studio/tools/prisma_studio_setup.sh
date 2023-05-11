@@ -25,7 +25,7 @@ cd app
 # while ! prisma db pull >/dev/null 2>&1
 # do
 # 	sleep 1;
-# don
+# done
 
 # Start the Prisma studio application.
 exec prisma studio --port $PORT --browser none
