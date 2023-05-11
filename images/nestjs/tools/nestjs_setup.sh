@@ -22,12 +22,7 @@ do
 done
 
 # # Perform the initial migration if the database has not been initialized yet.
-# if ! npx prisma db push >/dev/null 2>&1
-# then
-npx prisma migrate dev --name init >/dev/null
-npx prisma generate >/dev/null
-# npx prisma db push
-# fi
+npx prisma db push --accept-data-loss
 
 # Start the NestJS application.
 exec npm run start:dev

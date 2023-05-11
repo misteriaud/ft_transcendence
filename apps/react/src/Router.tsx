@@ -5,7 +5,7 @@ import {
 } from "react-router-dom";
 
 import { LoginPage, loader as loginLoader } from "./pages/Login";
-import { HomePage } from "./pages/Home";
+import  Home  from "./pages/Home";
 import { DashboardLayout } from "./pages/Dashboard";
 import { ProfilePage } from "./pages/Profile";
 import { StoreProvider } from "./providers/storeProvider";
@@ -13,7 +13,7 @@ import { StoreProvider } from "./providers/storeProvider";
 export const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<StoreProvider />}>
-      <Route path="/" element={<HomePage />} />
+      <Route path="/" element={<Home/>} />
       <Route path="/login" element={<LoginPage />} loader={loginLoader} />
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route path="profile" element={<ProfilePage />} />

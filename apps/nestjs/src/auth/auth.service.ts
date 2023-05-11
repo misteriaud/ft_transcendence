@@ -4,7 +4,6 @@ import { JwtService } from '@nestjs/jwt';
 import { i_JWTPayload } from './interface/jwt';
 import { authenticator } from 'otplib';
 import { Profile } from 'passport';
-import { GetOAuthUser } from './decorator';
 
 @Injectable()
 export class AuthService {
