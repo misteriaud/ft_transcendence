@@ -3,6 +3,7 @@ import { Spinner } from "../../components/Spinner";
 import { useApi, useCustomSWR } from "../../dataHooks/axiosFetcher";
 import { useSocketContext } from "../../providers/storeProvider";
 import { useMe } from "../../dataHooks/useUser";
+import { ImmerReducer, useImmer, useImmerReducer } from "use-immer";
 
 function CreateRoom({ action }: { action: any }) {
   const [name, setName] = useState("");
@@ -169,9 +170,44 @@ function RoomDesc({
   );
 }
 
+enum ActionType {
+  Init,
+  AddMessage,
+}
+
+interface RoomsAction {
+  type: ActionType;
+  content: any;
+}
+
+function reducer(rooms: Room[], action: RoomsAction): Room[] {
+  switch (action.type) {
+    case ActionType.Init:
+      action.content.forEach((room: Room) => {
+        let tmp_room = rooms.find((localRoom: Room) => room.id == localRoom.id);
+        if (tmp_room) room.messages = tmp_room.messages;
+        else room.messages = [];
+      });
+      return action.content;
+
+    case ActionType.AddMessage:
+      rooms.find((room: Room) => room.id === action.content.roomId)
+        ?.messages.push({
+          id: action.content.id,
+          sendBy: action.content.sendBy,
+          content: action.content.content,
+        });
+      return rooms
+    // case "increment":
+    //   return void draft.count++;
+    // case "decrement":
+    //   return void draft.count--;
+  }
+}
+
 export function ChatPanel() {
+  const [rooms, dispatch] = useImmerReducer<any, any>(reducer, []);
   const { loading, data, error, mutate } = useCustomSWR("/rooms");
-  const [rooms, setRooms] = useState<Room[]>([]);
   const [openedChat, setOpenedChat] = useState<Room[]>([]);
   const { isConnected, socket } = useSocketContext();
   const { me } = useMe();
@@ -179,30 +215,23 @@ export function ChatPanel() {
 
   useEffect(() => {
     if (!data) return;
-    let temp = data.map((room: Room) => {
-      return {
-        ...room,
-        messages: [],
-      };
+    dispatch({
+      type: ActionType.Init,
+      content: data,
     });
-    temp.forEach((room: Room) => {
-      let tmp_room = rooms.find((localRoom: Room) => room.id == localRoom.id);
-      if (tmp_room) room.messages = tmp_room.messages;
-      else room.messages = [];
-    });
-    setRooms(temp);
   }, [data]);
   useEffect(() => {
     if (!isConnected) return;
-    socket.on("message", ({ id, roomId, sendBy, content }) => {
-      addMessage(id, roomId, sendBy, content);
+    socket.on("message", (newMessage) => {
+      dispatch({
+        type: ActionType.AddMessage,
+        content: newMessage,
+      });
     });
     return () => {
       socket.off("message");
     };
   }, [isConnected]);
-
-  console.log(rooms);
 
   if (loading) return null;
   // return (<Spinner />)
@@ -236,8 +265,6 @@ export function ChatPanel() {
   function openChat(roomToOpen: Room) {
     if (openedChat.findIndex((room: Room) => room.id === roomToOpen.id) == -1)
       setOpenedChat([...openedChat, roomToOpen]);
-    // else
-    // 	closeChat(roomToOpen)
   }
 
   function closeChat(roomToClose: Room) {
@@ -250,24 +277,6 @@ export function ChatPanel() {
       roomId: roomToSend.id,
       content: message,
     });
-  }
-
-  function addMessage(
-    id: number,
-    roomId: number,
-    sendBy: number,
-    content: string
-  ) {
-    let tmp = [...rooms];
-
-    tmp
-      .find((room: Room) => room.id === roomId)
-      ?.messages.push({
-        id,
-        sendBy,
-        content,
-      });
-    setRooms(tmp);
   }
 
   return (
