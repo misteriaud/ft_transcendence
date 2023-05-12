@@ -1,17 +1,16 @@
 // Home.jsx
-import { ChangeEvent, useState } from "react";
-import { useMe, useUser } from "../dataHooks/useUser";
-import { apiProvider } from "../dataHooks/axiosFetcher";
-import { useStoreContext } from "../providers/storeProvider";
+import { useState } from "react";
+import { useMe } from "../dataHooks/useUser";
+import { useApi } from "../dataHooks/axiosFetcher";
 
 export const SettingsPage = () => {
-  const { user, mutate } = useMe();
+  const { me, mutate } = useMe();
   const [userSettings, setUserSettings] = useState({
-    username: user.username,
-    twoFactorEnabled: user.twoFactorEnabled,
+    username: me.username,
+    twoFactorEnabled: me.twoFactorEnabled,
   });
-  const { JWT } = useStoreContext();
   const [error, setError] = useState("");
+  const api = useApi()
 
   function handleInput(e: any) {
     setUserSettings({
@@ -23,11 +22,10 @@ export const SettingsPage = () => {
   async function submitSettings(e: any) {
     e.preventDefault();
     setError("");
-    await apiProvider(JWT)
-      .put("users/me", userSettings)
+      api.put("users/me", userSettings)
       .then((result) => {
         mutate({
-          ...user,
+          ...me,
           ...userSettings,
         });
         if (result.data.twoFactorSecret)
@@ -41,7 +39,7 @@ export const SettingsPage = () => {
 
   return (
     <div>
-      <h1>Bonjour {user.username}</h1>
+      <h1>Bonjour {me.username}</h1>
       {error && <h1>An error happened: {error}</h1>}
       <form onSubmit={submitSettings}>
         <input value={userSettings.username} onChange={handleInput}></input>

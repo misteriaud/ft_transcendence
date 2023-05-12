@@ -16,6 +16,12 @@ export const fetcherWithJWT = ([url, jwt]: [url: string, jwt: string]) => {
 	return apiProvider(jwt).get(url).then(res => res.data)
 }
 
+export function useApi() {
+	const { JWT } = useStoreContext();
+
+	return apiProvider(JWT)
+}
+
 export function useCustomSWR(path: string) {
 	const store = useStoreContext();
 	const { data, mutate, error } = useSWR([path, store.JWT], fetcherWithJWT);

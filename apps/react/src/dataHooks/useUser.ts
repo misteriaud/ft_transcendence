@@ -12,7 +12,7 @@ export function useMe() {
   return {
     loading,
     loggedOut,
-    user: data,
+    me: data,
     mutate
   };
 }

@@ -9,7 +9,7 @@ import {
   useStoreDispatchContext,
   StoreActionType,
 } from "../providers/storeProvider";
-import { apiProvider } from "../dataHooks/axiosFetcher";
+import { apiProvider, useApi } from "../dataHooks/axiosFetcher";
 import { useMe } from "../dataHooks/useUser";
 import { Spinner } from "../components/Spinner";
 
@@ -36,17 +36,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return response;
 };
 
-function TwoFactor({ jwt }: { jwt: string }) {
+function TwoFactor() {
   const [totp, setTotp] = useState("");
   const dispatch = useStoreDispatchContext();
   const [isError, setIsError] = useState(false);
+  const api = useApi()
 
   async function submitTotp(e: any) {
     setIsError(false);
     e.preventDefault();
     if (!totp) return;
-    await apiProvider(jwt)
-      .post("auth/2fa", {
+    await api.post("auth/2fa", {
         totp,
       })
       .then((result) => {
@@ -95,7 +95,7 @@ export const LoginPage = () => {
     return <Navigate to="/dashboard" />;
   }
 
-  if (!payload.authorized) return <TwoFactor jwt={payload.jwt} />;
+  if (!payload.authorized) return <TwoFactor />;
 
   return (
     <div>

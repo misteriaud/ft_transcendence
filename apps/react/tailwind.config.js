@@ -7,5 +7,15 @@ module.exports = {
 		extend: {},
 	},
 	plugins: [],
+	safelist: [
+	{
+		pattern: /bg-*/,
+		variants: ['lg', 'hover', 'focus', 'lg:hover'],
+	},
+	{
+		pattern: /self-*/,
+		variants: ['lg', 'hover', 'focus', 'lg:hover'],
+	},]
+
 }
 
