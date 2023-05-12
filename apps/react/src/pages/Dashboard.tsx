@@ -11,7 +11,7 @@ import { ChatPanel } from "./Chat/ChatPanel";
 export const DashboardLayout = () => {
 	const { loading, loggedOut } = useMe();
 	const dispatch = useStoreDispatchContext();
-	const {isConnected, socket} = useSocketContext()
+	const { isConnected, socket } = useSocketContext()
 
 	if (loading) return <Spinner />;
 
@@ -31,20 +31,15 @@ export const DashboardLayout = () => {
 		window.location.reload();
 	}
 
-	function sendMessage() {
-		if (isConnected)
-			socket.emit("message", "hfuowehfuowe")
-	}
-
 	return (
-		<>
-			<nav>
+		<div className="absolute inset-0 bg-orange-400 flex flex-col">
+			<nav className="h-12 bg-green-300 flex flex-row">
 				<Link to="settings">Settings</Link>
-				<button onClick={logout}>Logout</button>
-				<button onClick={sendMessage}>Send Message</button>
+				<button  onClick={logout}>Logout</button>
 			</nav>
-			<ChatPanel />
 			<Outlet />
-		</>
+			<ChatPanel />
+
+		</div>
 	);
 };

@@ -16,12 +16,4 @@ module.exports = function (app) {
 			logLevel: 'debug',
 		})
 	);
-	// app.use(
-	// 	createProxyMiddleware({
-	// 		target: `ws://nestjs:${process.env.REACT_APP_NESTJS_PORT}`,
-	// 		pathRewrite: { "^/ws": "" },
-	// 		ws: true,
-	// 		changeOrigin: true,
-	// 	})
-	// );
 };
