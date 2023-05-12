@@ -29,7 +29,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
 		// You can also call your AuthService or any other service to perform authentication
 		return new Promise<Profile>((resolve, reject) => {
 			this._oauth2.get(this._profileURL, accessToken, (err, body) => {
-				this.parse42payload(err, body, resolve, reject);
+				parse42payload(err, body, resolve, reject);
 			});
 		});
 	}
