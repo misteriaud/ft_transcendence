@@ -93,6 +93,7 @@ model Member {
 	muted_until	DateTime		@default(now())
 	banned		Boolean			@default(false)
 	messages	Message[]
+	invitations	Invitation[]
 
 	@@id([room_id, user_id])
 	@@map("members")
@@ -107,6 +108,16 @@ model Message {
 	createdAt	DateTime	@default(now())
 
 	@@map("messages")
+}
+
+model Invitation {
+	id			Int		@id @default(autoincrement())
+	iss			Member	@relation(fields: [room_id, user_id], references: [room_id, user_id])
+	room_id		Int
+	user_id		Int
+	token		String	@unique
+
+	@@map("invitations")
 }
 
 enum e_user_status {

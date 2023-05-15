@@ -2,15 +2,17 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Put, UseGuar
 import { Member, e_room_access } from '@prisma/client';
 import { JWTGuard } from 'src/auth/JWT.guard';
 import { GetUser } from 'src/auth/decorator';
-import { RoomDto, RoomInviteDto, RoomJoinDto, RoomMuteDto } from './dto';
+import { InvitationDto, RoomDto, RoomJoinDto, RoomMuteDto } from './dto';
 import { RoomService } from './room.service';
-import { GetInvitationToken, GetMember, GetRoom } from './decorator';
-import { GetInvitationTokenGuard, GetMemberGuard, GetRoomGuard, HierarchyGuard, RoomAdminGuard, RoomMemberGuard, RoomOwnerGuard } from './guard';
+import { GetInvitation, GetMember, GetRoom } from './decorator';
+import { GetInvitationGuard, GetMemberGuard, GetRoomGuard, HierarchyGuard, RoomAdminGuard, RoomMemberGuard, RoomOwnerGuard } from './guard';
 
 @UseGuards(JWTGuard)
 @Controller('rooms')
 export class RoomController {
 	constructor(private roomService: RoomService) {}
+
+	// ROOM
 
 	// Create a room
 	@Post()
@@ -53,19 +55,11 @@ export class RoomController {
 		return this.roomService.join(user_id, room_id, room_access, room_hash, dto);
 	}
 
-	// Generate invitation
-	@UseGuards(RoomMemberGuard, GetRoomGuard)
-	@HttpCode(HttpStatus.OK)
-	@Post(':id/generate-invitation')
-	generateInvitation(@GetUser('id') user_id: number, @GetRoom('id') room_id: number, @Body() dto: RoomInviteDto) {
-		return this.roomService.generateInvitation(user_id, room_id, dto);
-	}
-
 	// Join with invitation
-	@UseGuards(GetRoomGuard, GetInvitationTokenGuard)
-	@Post(':id/join/:invitationToken')
-	joinWithInvitation(@GetUser('id') user_id: number, @GetRoom('id') room_id: number, @GetRoom('access') room_access: e_room_access, @GetInvitationToken() invitationToken: string) {
-		return this.roomService.joinWithInvitation(user_id, room_id, room_access, invitationToken);
+	@UseGuards(GetRoomGuard, GetInvitationGuard)
+	@Post(':id/join/:invitation_token')
+	joinWithInvitation(@GetUser('id') user_id: number, @GetRoom('id') room_id: number, @GetRoom('access') room_access: e_room_access, @GetInvitation('token') invitation_token: string) {
+		return this.roomService.joinWithInvitation(user_id, room_id, room_access, invitation_token);
 	}
 
 	// Leave a room
@@ -75,6 +69,8 @@ export class RoomController {
 	leave(@GetUser('id') user_id: number, @GetRoom('id') room_id: number) {
 		return this.roomService.leave(user_id, room_id);
 	}
+
+	// MEMBER
 
 	// Promote a member
 	@UseGuards(RoomOwnerGuard, HierarchyGuard, GetMemberGuard)
@@ -124,5 +120,29 @@ export class RoomController {
 	@Put(':id/unban/:member_id')
 	unban(@GetMember() member: Member) {
 		return this.roomService.unban(member);
+	}
+
+	// INVITATION
+
+	// Create an invitation
+	@UseGuards(RoomAdminGuard, GetRoomGuard)
+	@Post(':id/invitation')
+	createInvitation(@GetUser('id') user_id: number, @GetRoom('id') room_id: number, @Body() dto: InvitationDto) {
+		return this.roomService.createInvitation(user_id, room_id, dto);
+	}
+
+	// Get all invitations
+	@UseGuards(RoomAdminGuard, GetRoomGuard)
+	@Get(':id/invitation')
+	getAllInvitations(@GetRoom('id') room_id: number) {
+		return this.roomService.getAllInvitations(room_id);
+	}
+
+	// Delete an invitation
+	@UseGuards(RoomAdminGuard, GetInvitationGuard)
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@Delete(':id/invitation/:invitation_token')
+	deleteInvitation(@GetInvitation('token') invitation_token: string) {
+		return this.roomService.deleteInvitation(invitation_token);
 	}
 }

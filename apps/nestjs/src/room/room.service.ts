@@ -4,12 +4,14 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as argon from 'argon2';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { RoomDto, RoomInviteDto, RoomJoinDto, RoomMuteDto } from './dto';
+import { InvitationDto, RoomDto, RoomJoinDto, RoomMuteDto } from './dto';
 import { PrismaRoomService } from './prismaRoom.service';
 
 @Injectable()
 export class RoomService {
 	constructor(private prismaRoom: PrismaRoomService, private prisma: PrismaService, private jwt: JwtService, private config: ConfigService) {}
+
+	// ROOM
 
 	// Create a room
 	async create(user_id: number, dto: RoomDto) {
@@ -75,30 +77,6 @@ export class RoomService {
 		return await this.prismaRoom.createMember(room_id, user_id);
 	}
 
-	// Generate invitation
-	async generateInvitation(user_id: number, room_id: number, dto: RoomInviteDto) {
-		const payload = {
-			sub: dto.user_id,
-			iss: user_id,
-			room_id: room_id,
-			exp: dto.expiration_date?.getTime() / 1000,
-		};
-
-		if (!dto.expiration_date) {
-			delete payload.exp;
-		}
-
-		const token = await this.jwt.signAsync(payload, {
-			secret: this.config.get('JWT_SECRET'),
-			noTimestamp: !dto.expiration_date,
-		});
-
-		return {
-			room_id: room_id,
-			invitation_token: token,
-		};
-	}
-
 	// Join with invitation
 	async joinWithInvitation(user_id: number, room_id: number, room_access: e_room_access, invitation: string) {
 		let payload;
@@ -127,6 +105,12 @@ export class RoomService {
 		if (!iss) {
 			throw new UnauthorizedException('The issuer of this invitation is no longer a member of the room');
 		}
+		if (iss.banned) {
+			throw new UnauthorizedException('The issuer of this invitation is banned from the room');
+		}
+		if (iss.role !== 'ADMIN' && iss.role !== 'OWNER') {
+			throw new UnauthorizedException('The issuer of this invitation is no longer an admin of the room');
+		}
 
 		const member = await this.prismaRoom.getMember(room_id, user_id);
 
@@ -147,6 +131,8 @@ export class RoomService {
 	async leave(user_id: number, room_id: number) {
 		await this.prismaRoom.deleteMember(room_id, user_id);
 	}
+
+	// MEMBER
 
 	// Promote a member
 	async promote(member: Member) {
@@ -196,5 +182,46 @@ export class RoomService {
 			throw new ConflictException('This member is not banned');
 		}
 		return await this.prismaRoom.editMember(member.room_id, member.user_id, null, null, null, false);
+	}
+
+	// INVITATION
+
+	// Create an invitation
+	async createInvitation(user_id: number, room_id: number, dto: InvitationDto) {
+		const payload = {
+			iss: user_id,
+			room_id: room_id,
+			sub: dto.sub,
+			exp: dto.exp?.getTime() / 1000,
+		};
+
+		if (!dto.sub) {
+			delete payload.sub;
+		}
+		if (!dto.exp) {
+			delete payload.exp;
+		}
+
+		const token = await this.jwt.signAsync(payload, {
+			secret: this.config.get('JWT_SECRET'),
+			noTimestamp: !dto.exp,
+		});
+
+		const invitation = await this.prismaRoom.getInvitation(token);
+
+		if (invitation) {
+			throw new ConflictException('This invitation already exists');
+		}
+		return await this.prismaRoom.createInvitation(room_id, user_id, token);
+	}
+
+	// Get all invitations
+	async getAllInvitations(room_id: number) {
+		return await this.prismaRoom.getAllInvitations(room_id);
+	}
+
+	// Delete an invitation
+	async deleteInvitation(token: string) {
+		await this.prismaRoom.deleteInvitation(token);
 	}
 }

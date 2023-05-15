@@ -84,8 +84,6 @@ export class PrismaUserService {
 						},
 					},
 				},
-				wins: true,
-				losses: true,
 				history: true,
 				memberOf: {
 					where: {
@@ -147,8 +145,6 @@ export class PrismaUserService {
 				login42: true,
 				avatar: true,
 				status: true,
-				wins: true,
-				losses: true,
 				history: true,
 				createdAt: true,
 			},

@@ -179,4 +179,82 @@ export class PrismaRoomService {
 			},
 		});
 	}
+
+	// INVITATION
+
+	// Create an invitation
+	async createInvitation(room_id: number, user_id: number, token: string) {
+		return await this.prisma.invitation.create({
+			data: {
+				iss: {
+					connect: {
+						room_id_user_id: {
+							room_id: room_id,
+							user_id: user_id,
+						},
+					},
+				},
+				token: token,
+			},
+			select: {
+				id: true,
+				iss: {
+					select: {
+						user: {
+							select: {
+								id: true,
+								username: true,
+								login42: true,
+								avatar: true,
+							},
+						},
+					},
+				},
+				token: true,
+			},
+		});
+	}
+
+	// Get all invitations
+	async getAllInvitations(room_id: number) {
+		return await this.prisma.invitation.findMany({
+			where: {
+				room_id: room_id,
+			},
+			select: {
+				id: true,
+				iss: {
+					select: {
+						user: {
+							select: {
+								id: true,
+								username: true,
+								login42: true,
+								avatar: true,
+							},
+						},
+					},
+				},
+				token: true,
+			},
+		});
+	}
+
+	// Get an invitation
+	async getInvitation(token: string) {
+		return await this.prisma.invitation.findUnique({
+			where: {
+				token: token,
+			},
+		});
+	}
+
+	// Delete an invitation
+	async deleteInvitation(token: string) {
+		await this.prisma.invitation.delete({
+			where: {
+				token: token,
+			},
+		});
+	}
 }
