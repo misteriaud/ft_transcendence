@@ -25,8 +25,13 @@ export class RoomService {
 	}
 
 	// Get PUBLIC and PROTECTED rooms
-	async get(user_id: number) {
-		return await this.prismaRoom.get(user_id);
+	async getPublicOrProtected(user_id: number) {
+		return await this.prismaRoom.getPublicOrProtected(user_id);
+	}
+
+	// Get a room
+	async get(room_id: number) {
+		return await this.prismaRoom.get(room_id);
 	}
 
 	// Edit a room

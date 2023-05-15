@@ -37,7 +37,7 @@ export class PrismaRoomService {
 	}
 
 	// Get PUBLIC and PROTECTED rooms
-	async get(user_id: number) {
+	async getPublicOrProtected(user_id: number) {
 		return await this.prisma.room.findMany({
 			where: {
 				access: {
@@ -54,6 +54,38 @@ export class PrismaRoomService {
 				id: true,
 				name: true,
 				access: true,
+			},
+		});
+	}
+
+	// Get a room
+	async get(room_id: number) {
+		return await this.prisma.room.findUnique({
+			where: {
+				id: room_id,
+			},
+			select: {
+				id: true,
+				name: true,
+				access: true,
+				members: {
+					where: {
+						banned: false,
+					},
+					select: {
+						user: {
+							select: {
+								id: true,
+								username: true,
+								login42: true,
+								avatar: true,
+							},
+						},
+						muted: true,
+						muted_until: true,
+						messages: true,
+					},
+				},
 			},
 		});
 	}

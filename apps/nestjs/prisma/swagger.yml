@@ -663,6 +663,54 @@ paths:
                 base:
                   value: {"statusCode": 401, "message": "Unauthorized"}
   /rooms/{id}:
+    get:
+      tags:
+        - rooms
+      summary: Get a room
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+              examples:
+                base:
+                  value: {"id": 1, "name": "Room 1", "access": "PUBLIC"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
     put:
       tags:
         - rooms

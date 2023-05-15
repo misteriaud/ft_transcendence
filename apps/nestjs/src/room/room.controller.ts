@@ -20,8 +20,15 @@ export class RoomController {
 
 	// Get PUBLIC and PROTECTED rooms
 	@Get()
-	get(@GetUser('id') user_id: number) {
-		return this.roomService.get(user_id);
+	getPublicOrProtected(@GetUser('id') user_id: number) {
+		return this.roomService.getPublicOrProtected(user_id);
+	}
+
+	// Get a room
+	@UseGuards(RoomMemberGuard, GetRoomGuard)
+	@Get(':id')
+	get(@GetRoom('id') room_id: number) {
+		return this.roomService.get(room_id);
 	}
 
 	// Edit a room
