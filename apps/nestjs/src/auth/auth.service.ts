@@ -8,12 +8,13 @@ import { Profile } from 'passport';
 @Injectable()
 export class AuthService {
 	constructor(
-		private userService: UserService,
-		private jwtService: JwtService, // private mailService: MailService
+		private readonly userService: UserService,
+		private readonly jwtService: JwtService,
+		// private mailService: MailService
 	) {}
 
 	async signJWT(payload: i_JWTPayload) {
-		return await this.jwtService.signAsync({ ...payload });
+		return this.jwtService.signAsync({ ...payload });
 	}
 
 	async login(profile: Profile) {
@@ -46,13 +47,12 @@ export class AuthService {
 	}
 
 	async validate2fa(userId: number, totp: string) {
-		if (
-			!authenticator.verify({
-				token: totp,
-				secret: (await this.userService.getMe(userId, true)).twoFactorSecret,
-			})
-		)
+		const user = await this.userService.getMe(userId, true);
+		const { twoFactorSecret } = user;
+
+		if (!authenticator.verify({ token: totp, secret : twoFactorSecret })) {
 			throw new UnauthorizedException('totp is not good');
+		}
 
 		return {
 			jwt: await this.signJWT({

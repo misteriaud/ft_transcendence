@@ -6,14 +6,11 @@ export const parse42payload = (err: any, json: any, resolve: (value: Profile) =>
 		if (err.data) {
 			try {
 				json = JSON.parse(err.data);
-			} catch (_) {
-				// nothing
-			}
+			} catch (_) {}
 		}
-		if (json && json.message) {
-			reject(new InternalOAuthError(json.message, err));
-		}
-		reject(new InternalOAuthError('Failed to fetch user profile', err));
+
+		const errorMessage = (json && json.message) ? json.message : 'Failed to fetch user profile';
+		reject(new InternalOAuthError(errorMessage, err));
 	}
 
 	try {
@@ -21,28 +18,23 @@ export const parse42payload = (err: any, json: any, resolve: (value: Profile) =>
 	} catch (ex) {
 		reject(new Error('Failed to parse user profile'));
 	}
-	// console.log(json.id);
-	resolve({
+
+	const { id, login, displayname, last_name, first_name, email, image } = json;
+
+	const profile: Profile = {
 		provider: '42',
-		id: json.id,
-		username: json.login,
-		displayName: json.displayname,
+		id,
+		username: login,
+		displayName: displayname,
 		name: {
-			familyName: json.last_name,
-			givenName: json.first_name,
+			familyName: last_name,
+			givenName: first_name,
 			middleName: '',
 		},
-		emails: [
-			{
-				value: json.email,
-				type: 'default',
-			},
-		],
-		photos: [
-			{
-				value: json.image.link,
-			},
-		],
-	});
+		emails: [{ value: email, type: 'default' }],
+		photos: [{ value: image.link }],
+	};
+
+	resolve(profile);
 }
 
