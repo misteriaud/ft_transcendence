@@ -1,14 +1,6 @@
 import { useEffect, useState } from "react";
-import {
-  useLoaderData,
-  Navigate,
-  LoaderFunctionArgs,
-  redirect,
-} from "react-router-dom";
-import {
-  useStoreDispatchContext,
-  StoreActionType,
-} from "../providers/storeProvider";
+import { useLoaderData, Navigate, LoaderFunctionArgs, redirect } from "react-router-dom";
+import { useStoreDispatchContext, StoreActionType } from "../providers/storeProvider";
 import { apiProvider } from "../dataHooks/axiosFetcher";
 import { useUser } from "../dataHooks/useUser";
 import { Spinner } from "../components/Spinner";
@@ -16,24 +8,19 @@ import { Spinner } from "../components/Spinner";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const intra_url = "https://api.intra.42.fr/oauth/authorize";
-  const redirect_url = `${intra_url}?response_type=code&redirect_uri=${process.env.REACT_APP_OAUTH_CALLBACK_URL}&client_id=${process.env.REACT_APP_OAUTH_42_UID}`;
+  const intraUrl = "https://api.intra.42.fr/oauth/authorize";
+  const redirectUrl = `${intraUrl}?response_type=code&redirect_uri=${process.env.REACT_APP_OAUTH_CALLBACK_URL}&client_id=${process.env.REACT_APP_OAUTH_42_UID}`;
 
   if (!code) {
-    return redirect(redirect_url);
+    return redirect(redirectUrl);
   }
 
-  const response = await apiProvider()
-    .get("auth/login", {
-      params: { code },
-    })
-    .then((result) => {
-      return result.data;
-    })
-    .catch((error) => {
-      return redirect(redirect_url);
-    });
-  return response;
+  try {
+    const response = await apiProvider().get("auth/login", { params: { code } })
+    return response.data;
+  } catch (error) {
+      return redirect(redirectUrl);
+  }
 };
 
 function TwoFactor({jwt}: {jwt: string}) {
@@ -41,24 +28,19 @@ function TwoFactor({jwt}: {jwt: string}) {
   const dispatch = useStoreDispatchContext();
   const [isError, setIsError] = useState(false);
 
-  async function submitTotp(e: any) {
-	setIsError(false)
+  async function submitTotp(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!totp) return;
-    await apiProvider(jwt)
-      .post("auth/2fa", {
-        totp,
-      })
-      .then((result) => {
-        dispatch({
-          type: StoreActionType.LOGIN,
-          content: result.data.jwt,
-        });
-      })
-      .catch(() => {
-        setTotp("");
-        setIsError(true);
+
+    try {
+      const result = await apiProvider().post("auth/2fa", { totp });
+      dispatch({
+        type: StoreActionType.LOGIN,
+        content: result.data.jwt,
       });
+    } catch {
+      setIsError(true);
+    }
   }
 
   return (
@@ -82,7 +64,7 @@ export const LoginPage = () => {
   const payload: any = useLoaderData() as any;
 
   useEffect(() => {
-    if (payload.authorized)
+    if (payload?.authorized)
       dispatch({
         type: StoreActionType.LOGIN,
         content: payload.jwt,
@@ -95,7 +77,7 @@ export const LoginPage = () => {
     return <Navigate to="/dashboard" />;
   }
 
-  if (!payload.authorized) return <TwoFactor jwt={payload.jwt}/>;
+  if (!payload?.authorized) return <TwoFactor jwt={payload.jwt}/>;
 
   return (
     <div>
