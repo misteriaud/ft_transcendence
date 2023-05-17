@@ -2,7 +2,7 @@
 set -e
 
 cd app;
-npm install --silent;
+npm install;
 
 # Start the NestJS application.
 exec npm run start
