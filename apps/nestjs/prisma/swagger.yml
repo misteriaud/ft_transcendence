@@ -34,7 +34,7 @@ paths:
                 type: object
               examples:
                 base:
-                  value: {"id": 1, "username": "new username", "login42": "login42", "avatar": null, "status": "ONLINE", "twoFactorEnabled": false, "friends": [], "blocked": [], "blockedBy": [], "friendRequestsSent": [], "friendRequestsReceived": [], "history": [], "memberOf": [{"room": {"id": 1, "name": "name", "access": "PUBLIC"}}, {"room": {"id": 3, "name": "name", "access": "PROTECTED"}}, {"room": {"id": 4, "name": "name", "access": "PRIVATE"}}], "createdAt": "2023-05-03T10:57:04.381Z", "updatedAt": "2023-05-03T11:56:56.913Z"}
+                  value: {"id": 1, "username": "username", "login42": "login42", "avatar": null, "status": "ONLINE", "twoFactorEnabled": false, "friends": [], "blocked": [], "blockedBy": [], "friendRequestsSent": [], "friendRequestsReceived": [], "history": [], "memberOf": [{"room": {"id": 1, "name": "name", "access": "PUBLIC"}}, {"room": {"id": 3, "name": "name", "access": "PROTECTED"}}, {"room": {"id": 4, "name": "name", "access": "PRIVATE"}}], "createdAt": "2023-05-03T10:57:04.381Z", "updatedAt": "2023-05-03T11:56:56.913Z"}
         '401':
           description: Unauthorized
           content:
@@ -667,15 +667,20 @@ paths:
       tags:
         - rooms
       summary: Get a room
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
+                type: object
               examples:
                 base:
                   value: {TODO}
