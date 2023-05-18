@@ -13,7 +13,7 @@ set -e
 
 cd app;
 
-npm install --silent;
+npm install --silent --force;
 
 # Wait until the database is up.
 while ! pg_isready --dbname=$DATABASE_URL --quiet
