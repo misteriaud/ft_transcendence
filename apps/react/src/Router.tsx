@@ -10,6 +10,7 @@ import { HomePage } from "./pages/Home";
 import { DashboardLayout } from "./pages/Dashboard";
 import { SettingsPage } from "./pages/Settings";
 import { StoreProvider } from "./context/storeProvider";
+import { ProfilePage } from "./pages/Profile";
 
 export const router = createBrowserRouter(
 	createRoutesFromElements(
@@ -19,6 +20,7 @@ export const router = createBrowserRouter(
 			<Route path="/login_fake" element={<LoginFakePage />} />
 			<Route path="/dashboard" element={<DashboardLayout />}>
 				<Route path="settings" element={<SettingsPage />} />
+				<Route path="users/:username" element={<ProfilePage />} />
 			</Route>
 		</Route>
 	)
