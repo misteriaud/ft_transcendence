@@ -5,15 +5,15 @@ module.exports = function (app) {
 		createProxyMiddleware("/api", {
 			target: `http://nestjs:${process.env.REACT_APP_NESTJS_PORT}`,
 			pathRewrite: { "^/api": "" },
-			changeOrigin: true,
+			changeOrigin: true
 		})
 	);
 	app.use(
-		createProxyMiddleware('/socket.io', {
+		createProxyMiddleware("/socket.io", {
 			target: `http://nestjs:${process.env.REACT_APP_NESTJS_PORT}`,
 			changeOrigin: true,
 			ws: true,
-			logLevel: 'debug',
+			logLevel: "debug"
 		})
 	);
 };

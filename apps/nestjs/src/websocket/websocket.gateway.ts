@@ -15,20 +15,19 @@ export class WebsocketGateway {
 	tmpId: number = 10;
 	constructor(private jwtService: JwtService, private userService: UserService, private prisma: PrismaService) { }
 
-	@UseGuards(WSJWTGuard)
+	// @UseGuards(WSJWTGuard)
 	async handleConnection(client: Socket) {
-		const token = client.handshake.headers.authorization
+		const token = client.handshake.auth.token
 		let payload: i_JWTPayload;
 
-		if (!token) client.conn.close();
+		if (!token)
+			return client.conn.close();
 		try {
 			payload = this.jwtService.verify(token);
 		} catch (err: any) {
-			client.conn.close();
+			return client.disconnect()
 		}
 
-		if (!payload.id)
-			client.conn.close()
 		client.data['user'] = await this.userService.getMe(payload.id);
 
 		/*
@@ -37,7 +36,7 @@ export class WebsocketGateway {
 			- twoFactorEnabled is marked as DISABLE in the token and ENABLE in the DB
 		*/
 		if (!client.data['user'] || (client.data['user'].twoFactorEnabled && !payload.authorized2fa) || payload.twoFactorEnabled != client.data['user'].twoFactorEnabled) {
-			client.conn.close();
+			return client.disconnect();
 		}
 		client.join(payload.id.toString())
 	}
@@ -79,6 +78,7 @@ export class WebsocketGateway {
 		if (userAsMember.banned) {
 			throw new WsException('You are banned from this room');
 		}
+		// save message in DB
 		this.server.to(room.members.map(member => member.user_id.toString())).emit("message", {
 			id: this.tmpId++,
 			roomId: data.roomId,

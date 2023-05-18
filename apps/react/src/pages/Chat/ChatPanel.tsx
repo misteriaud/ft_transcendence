@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Spinner } from "../../components/Spinner";
-import { useApi, useCustomSWR } from "../../dataHooks/axiosFetcher";
-import { useSocketContext } from "../../providers/storeProvider";
-import { useMe } from "../../dataHooks/useUser";
+import { useApi, useCustomSWR } from "../../hooks/useApi";
+import { useSocketContext } from "../../hooks/useContext";
+import { useMe } from "../../hooks/useUser";
 import { ImmerReducer, useImmer, useImmerReducer } from "use-immer";
 
 function CreateRoom({ action }: { action: any }) {
@@ -43,14 +43,17 @@ function Chat({ room, sendMessage }: any) {
 	const [chatInput, setChatInput] = useState("");
 	const { me } = useMe();
 
+	console.log(room);
+
 	return (
 		<>
 			<ul className="overflow-scroll flex flex-col">
 				{room.messages.map((message: Message) => (
 					<li
 						key={message.id}
-						className={`flex-shrink min-w-0 self-${message.sendBy == me.id ? "end" : "start"
-							} rounded-md bg-white bg-opacity-90 px-1 py-0.5 m-1`}
+						className={`flex-shrink min-w-0 self-${
+							message.sendBy == me.id ? "end" : "start"
+						} rounded-md bg-white bg-opacity-90 px-1 py-0.5 m-1`}
 					>
 						{message.content}
 					</li>
@@ -117,10 +120,10 @@ interface Room {
 
 function RoomDesc({
 	room,
-	openChat,
+	openChat
 }: {
 	room: Room;
-	openChat: (room: Room) => void;
+	openChat: (roomId: number) => void;
 }) {
 	const api = useApi();
 	const { me, mutate } = useMe();
@@ -137,10 +140,10 @@ function RoomDesc({
 							room: {
 								id: room.id,
 								name: room.name,
-								access: room.access,
-							},
-						},
-					],
+								access: room.access
+							}
+						}
+					]
 				});
 			})
 			.catch((error) => {
@@ -156,7 +159,7 @@ function RoomDesc({
 
 	return (
 		<div className="bg-black bg-opacity-20 even:bg-opacity-10 flex justify-between">
-			<button key={room.id} onClick={() => openChat(room)}>
+			<button key={room.id} onClick={() => openChat(room.id)}>
 				{room.name}
 			</button>
 			<button
@@ -171,7 +174,7 @@ function RoomDesc({
 
 enum ActionType {
 	Init,
-	AddMessage,
+	AddMessage
 }
 
 interface RoomsAction {
@@ -179,25 +182,36 @@ interface RoomsAction {
 	content: any;
 }
 
+interface NewMessage {
+	id: number;
+	roomId: number;
+	sendBy: number;
+	content: string;
+}
+
 function reducer(draft: Room[], action: RoomsAction): void {
 	switch (action.type) {
 		case ActionType.Init:
-			draft = action.content.forEach((room: Room) => {
-				let tmp_room = draft.find((localRoom: Room) => room.id == localRoom.id);
-				if (tmp_room) room.messages = tmp_room.messages;
-				else room.messages = [];
+			(action.content as Room[]).forEach((room: Room) => {
+				if (!draft.some((room2) => room2.id === room.id))
+					draft.push({
+						...room,
+						messages: []
+					});
 			});
 			break;
 
 		case ActionType.AddMessage:
-
-			const room = draft.find((room: Room) => room.id === action.content.roomId)
+			const room = draft.find(
+				(room: Room) => room.id === action.content.roomId
+			);
 			if (room)
 				room.messages.push({
 					id: action.content.id,
 					sendBy: action.content.sendBy,
-					content: action.content.content,
+					content: action.content.content
 				});
+			break;
 		// case "increment":
 		//   return void draft.count++;
 		// case "decrement":
@@ -207,8 +221,8 @@ function reducer(draft: Room[], action: RoomsAction): void {
 
 export function ChatPanel() {
 	const [rooms, dispatch] = useImmerReducer<any, any>(reducer, []);
-	const { loading, data, error, mutate } = useCustomSWR("/rooms");
-	const [openedChat, setOpenedChat] = useState<Room[]>([]);
+	const { isLoading, data, error, mutate } = useCustomSWR("/rooms");
+	const [openedChatIds, setOpenedChat] = useState<number[]>([]);
 	const { isConnected, socket } = useSocketContext();
 	const { me } = useMe();
 	const api = useApi();
@@ -217,7 +231,7 @@ export function ChatPanel() {
 		if (!data) return;
 		dispatch({
 			type: ActionType.Init,
-			content: data,
+			content: data
 		});
 	}, [data]);
 	useEffect(() => {
@@ -225,7 +239,7 @@ export function ChatPanel() {
 		socket.on("message", (newMessage) => {
 			dispatch({
 				type: ActionType.AddMessage,
-				content: newMessage,
+				content: newMessage
 			});
 		});
 		return () => {
@@ -233,7 +247,7 @@ export function ChatPanel() {
 		};
 	}, [isConnected]);
 
-	if (loading) return null;
+	if (isLoading) return null;
 	// return (<Spinner />)
 
 	if (error) return <h1>Error</h1>;
@@ -243,7 +257,7 @@ export function ChatPanel() {
 			.post("rooms", {
 				name,
 				access,
-				password,
+				password
 			})
 			.then((result) => {
 				if (access != "PRIVATE")
@@ -252,8 +266,8 @@ export function ChatPanel() {
 						{
 							id: data.length + 1,
 							name,
-							access,
-						},
+							access
+						}
 					]);
 			})
 			.catch(() => {
@@ -262,22 +276,32 @@ export function ChatPanel() {
 			});
 	}
 
-	function openChat(roomToOpen: Room) {
-		if (openedChat.findIndex((room: Room) => room.id === roomToOpen.id) == -1)
-			setOpenedChat([...openedChat, roomToOpen]);
+	function openChat(roomIdToOpen: number) {
+		if (
+			openedChatIds.findIndex(
+				(roomId: number) => roomId === roomIdToOpen
+			) == -1
+		)
+			setOpenedChat([...openedChatIds, roomIdToOpen]);
 	}
 
-	function closeChat(roomToClose: Room) {
-		setOpenedChat(openedChat.filter((room: Room) => room.id != roomToClose.id));
+	function closeChat(roomIdToClose: number) {
+		setOpenedChat(
+			openedChatIds.filter((roomId: number) => roomId != roomIdToClose)
+		);
 	}
 
 	async function sendMessage(roomToSend: Room, message: string) {
 		if (!isConnected) return;
 		socket.emit("message", {
 			roomId: roomToSend.id,
-			content: message,
+			content: message
 		});
 	}
+
+	const openedChat = rooms.filter((room: Room) =>
+		openedChatIds.some((roomId) => roomId === room.id)
+	);
 
 	return (
 		<ul className="absolute bottom-0 right-0 flex flex-row">
@@ -286,7 +310,7 @@ export function ChatPanel() {
 					<Box
 						title={room.name}
 						color="green"
-						close={() => closeChat(room)}
+						close={() => closeChat(room.id)}
 						key={room.id}
 					>
 						<Chat room={room} sendMessage={sendMessage} />
@@ -296,7 +320,13 @@ export function ChatPanel() {
 			<Box title="Chat" color="blue" key="main">
 				<CreateRoom action={createRoom} />
 				{rooms.map((room: Room) => {
-					return <RoomDesc room={room} openChat={openChat} key={room.id} />;
+					return (
+						<RoomDesc
+							room={room}
+							openChat={openChat}
+							key={room.id}
+						/>
+					);
 				})}
 			</Box>
 		</ul>
