@@ -13,8 +13,8 @@ export class UserService {
 	}
 
 	// Edit me
-	async editMe(user_id: number, dto: UserDto) {
-		return await this.prismaUser.editMe(user_id, dto);
+	async editMe(user_id: number, twoFactorEnabled: boolean, dto: UserDto) {
+		return await this.prismaUser.editMe(user_id, twoFactorEnabled, dto);
 	}
 
 	// Delete me
