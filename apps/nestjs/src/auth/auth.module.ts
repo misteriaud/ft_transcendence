@@ -3,13 +3,10 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-// import { PrismaModule } from 'src/prisma/prisma.module';
-// import { ConfigService } from '@nestjs/config';
 import { FortyTwoStrategy } from './42.strategy';
 import { UserModule } from 'src/user/user.module';
 import { UserService } from 'src/user/user.service';
 import { PrismaUserService } from 'src/user/prismaUser.service';
-// import { MailModule } from 'src/mail/mail.module';
 
 @Module({
 	imports: [

@@ -1,0 +1,44 @@
+.Home {
+	text-align: center;
+  }
+
+  .background-img {
+	background-image: url('https://media1.ledevoir.com/images_galerie/nwd_132675_102056/image.jpg');
+	background-size: cover;
+	background-position: center;
+	height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+  }
+
+  .title-container {
+	color: white;
+	font-size: 4rem;
+	text-shadow: 2px 2px black;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+  }
+
+  .login-button {
+	font-size: 2rem;
+	margin-top: 2rem;
+	background-color: white;
+	padding: 1rem 2rem;
+	border-radius: 1rem;
+	text-decoration: none;
+	color: black;
+  }
+
+  @media (max-width: 768px) {
+	.title-container {
+	  font-size: 2rem;
+	}
+
+	.login-button {
+	  font-size: 1.5rem;
+	  padding: 0.5rem 1rem;
+	  margin-top: 1rem;
+	}
+  }

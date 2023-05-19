@@ -6,7 +6,7 @@ import {
 
 import { LoginPage, loader as loginLoader } from "./pages/Login";
 import { LoginFakePage } from "./pages/LoginFake";
-import { HomePage } from "./pages/Home";
+import  HomePage  from "./pages/Home";
 import { DashboardLayout } from "./pages/Dashboard";
 import { SettingsPage } from "./pages/Settings";
 import { StoreProvider } from "./context/storeProvider";

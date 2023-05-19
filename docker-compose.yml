@@ -74,9 +74,12 @@ services:
             - DATABASE_URL=postgresql://${PGSQL_USER}:${PGSQL_PASSWORD}@pgsql:${PGSQL_PORT}/${PGSQL_DATABASE}
         networks:
             - ft_transcendence
+        volumes:
+            - nestjs_app:/app
         restart: unless-stopped
         volumes:
             - nestjs_app:/app
+
 
 volumes:
   nestjs_app:
