@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, ExecutionContext, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Member, Room, User } from '@prisma/client';
+import { Invitation, Member, Room, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -28,19 +28,6 @@ export class RoomGetService {
 		}
 		request.room = room;
 		return room;
-	}
-
-	getInvitationToken(context: ExecutionContext): Promise<Room> {
-		const request = context.switchToHttp().getRequest();
-
-		if (request.invitationToken) {
-			return request.invitationToken;
-		}
-
-		const invitationToken = request.params.invitationToken;
-
-		request.invitationToken = invitationToken;
-		return invitationToken;
 	}
 
 	async getMember(context: ExecutionContext): Promise<Member> {
@@ -105,5 +92,29 @@ export class RoomGetService {
 		}
 		request.userAsMember = userAsMember;
 		return userAsMember;
+	}
+
+	async getInvitation(context: ExecutionContext): Promise<Invitation> {
+		const request = context.switchToHttp().getRequest();
+
+		if (request.invitation) {
+			return request.invitation;
+		}
+
+		const room: Room = await this.getRoom(context);
+		const invitation_token = request.params.invitation_token;
+
+		const invitation = await this.prisma.invitation.findFirst({
+			where: {
+				room_id: room.id,
+				token: invitation_token,
+			},
+		});
+
+		if (!invitation) {
+			throw new NotFoundException('Invitation not found');
+		}
+		request.invitation = invitation;
+		return invitation;
 	}
 }

@@ -1,17 +1,20 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { Member, Room, User, e_member_role, e_room_access } from '@prisma/client';
+import { Member, e_member_role, e_room_access } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as argon from 'argon2';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { RoomDto, RoomInviteDto, RoomJoinDto, RoomMuteDto } from './dto';
+import { InvitationDto, RoomDto, RoomJoinDto, RoomMuteDto } from './dto';
+import { PrismaRoomService } from './prismaRoom.service';
 
 @Injectable()
 export class RoomService {
-	constructor(private prisma: PrismaService, private jwt: JwtService, private config: ConfigService) {}
+	constructor(private prismaRoom: PrismaRoomService, private prisma: PrismaService, private jwt: JwtService, private config: ConfigService) {}
+
+	// ROOM
 
 	// Create a room
-	async create(user: User, dto: RoomDto) {
+	async create(user_id: number, dto: RoomDto) {
 		let hash: string | null;
 
 		if (dto.access !== e_room_access.PROTECTED) {
@@ -20,56 +23,21 @@ export class RoomService {
 		} else {
 			hash = await argon.hash(dto.password);
 		}
-
-		const room = await this.prisma.room.create({
-			data: {
-				name: dto.name,
-				access: dto.access,
-				hash: hash,
-				members: {
-					create: {
-						user: {
-							connect: {
-								id: user.id,
-							},
-						},
-						role: e_member_role.OWNER,
-					},
-				},
-			},
-			select: {
-				id: true,
-				name: true,
-				access: true,
-			},
-		});
-		return room;
+		return await this.prismaRoom.create(user_id, dto.name, dto.access, hash);
 	}
 
 	// Get PUBLIC and PROTECTED rooms
-	async get(user: User) {
-		return await this.prisma.room.findMany({
-			where: {
-				access: {
-					in: ['PUBLIC', 'PROTECTED'],
-				},
-				members: {
-					none: {
-						user_id: user.id,
-						banned: true,
-					},
-				},
-			},
-			select: {
-				id: true,
-				name: true,
-				access: true,
-			},
-		});
+	async getPublicOrProtected(user_id: number) {
+		return await this.prismaRoom.getPublicOrProtected(user_id);
+	}
+
+	// Get a room
+	async get(room_id: number) {
+		return await this.prismaRoom.get(room_id);
 	}
 
 	// Edit a room
-	async edit(room: Room, dto: RoomDto) {
+	async edit(room_id: number, dto: RoomDto) {
 		let hash: string | null;
 
 		if (dto.access !== e_room_access.PROTECTED) {
@@ -78,44 +46,17 @@ export class RoomService {
 		} else {
 			hash = await argon.hash(dto.password);
 		}
-
-		const updatedRoom = await this.prisma.room.update({
-			where: {
-				id: room.id,
-			},
-			data: {
-				name: dto.name,
-				access: dto.access,
-				hash: hash,
-			},
-			select: {
-				id: true,
-				name: true,
-				access: true,
-			},
-		});
-		return updatedRoom;
+		return await this.prismaRoom.edit(room_id, dto.name, dto.access, hash);
 	}
 
 	// Delete a room
-	async delete(room: Room) {
-		await this.prisma.room.delete({
-			where: {
-				id: room.id,
-			},
-		});
+	async delete(room_id: number) {
+		await this.prismaRoom.delete(room_id);
 	}
 
 	// Join a room
-	async join(user: User, room: Room, dto: RoomJoinDto) {
-		const member = await this.prisma.member.findUnique({
-			where: {
-				room_id_user_id: {
-					room_id: room.id,
-					user_id: user.id,
-				},
-			},
-		});
+	async join(user_id: number, room_id: number, room_access: e_room_access, room_hash: string | null, dto: RoomJoinDto) {
+		const member = await this.prismaRoom.getMember(room_id, user_id);
 
 		if (member) {
 			if (member.banned) {
@@ -124,57 +65,20 @@ export class RoomService {
 				throw new ConflictException('You are already a member of this room');
 			}
 		}
-		if (room.access !== 'PUBLIC' && room.access !== 'PROTECTED') {
+		if (room_access !== 'PUBLIC' && room_access !== 'PROTECTED') {
 			throw new ForbiddenException('This room is not public nor protected');
 		}
-		if (room.access === 'PROTECTED' && (!dto || !dto.password)) {
+		if (room_access === 'PROTECTED' && (!dto || !dto.password)) {
 			throw new BadRequestException('Missing password');
 		}
-		if (room.access === 'PROTECTED' && !(await argon.verify(room.hash, dto.password))) {
+		if (room_access === 'PROTECTED' && !(await argon.verify(room_hash, dto.password))) {
 			throw new UnauthorizedException('Incorrect password');
 		}
-		return await this.prisma.member.create({
-			data: {
-				room: {
-					connect: {
-						id: room.id,
-					},
-				},
-				user: {
-					connect: {
-						id: user.id,
-					},
-				},
-			},
-		});
-	}
-
-	// Generate invitation
-	async generateInvitation(user: User, room: Room, dto: RoomInviteDto) {
-		const payload = {
-			sub: dto.user_id,
-			iss: user.id,
-			room_id: room.id,
-			exp: dto.expiration_date?.getTime() / 1000,
-		};
-
-		if (!dto.expiration_date) {
-			delete payload.exp;
-		}
-
-		const token = await this.jwt.signAsync(payload, {
-			secret: this.config.get('JWT_SECRET'),
-			noTimestamp: !dto.expiration_date,
-		});
-
-		return {
-			room_id: room.id,
-			invitation_token: token,
-		};
+		return await this.prismaRoom.createMember(room_id, user_id);
 	}
 
 	// Join with invitation
-	async joinWithInvitation(user: User, room: Room, invitation: string) {
+	async joinWithInvitation(user_id: number, room_id: number, room_access: e_room_access, invitation: string) {
 		let payload;
 
 		try {
@@ -189,34 +93,26 @@ export class RoomService {
 			}
 		}
 
-		if (payload.room_id !== room.id) {
+		if (payload.room_id !== room_id) {
 			throw new UnauthorizedException('The invitation and the room do not match');
 		}
-		if (payload.sub && payload.sub !== user.id) {
+		if (payload.sub && payload.sub !== user_id) {
 			throw new UnauthorizedException('You are not the subject of this invitation');
 		}
 
-		const iss = await this.prisma.member.findUnique({
-			where: {
-				room_id_user_id: {
-					room_id: room.id,
-					user_id: payload.iss,
-				},
-			},
-		});
+		const iss = await this.prismaRoom.getMember(room_id, payload.iss);
 
 		if (!iss) {
 			throw new UnauthorizedException('The issuer of this invitation is no longer a member of the room');
 		}
+		if (iss.banned) {
+			throw new UnauthorizedException('The issuer of this invitation is banned from the room');
+		}
+		if (iss.role !== 'ADMIN' && iss.role !== 'OWNER') {
+			throw new UnauthorizedException('The issuer of this invitation is no longer an admin of the room');
+		}
 
-		const member = await this.prisma.member.findUnique({
-			where: {
-				room_id_user_id: {
-					room_id: room.id,
-					user_id: user.id,
-				},
-			},
-		});
+		const member = await this.prismaRoom.getMember(room_id, user_id);
 
 		if (member) {
 			if (member.banned) {
@@ -225,55 +121,25 @@ export class RoomService {
 				throw new ConflictException('You are already a member of this room');
 			}
 		}
-		if (room.access !== 'PUBLIC' && room.access !== 'PROTECTED' && room.access !== 'PRIVATE') {
+		if (room_access !== 'PUBLIC' && room_access !== 'PROTECTED' && room_access !== 'PRIVATE') {
 			throw new ForbiddenException('This room is not public nor protected nor private');
 		}
-
-		return await this.prisma.member.create({
-			data: {
-				room: {
-					connect: {
-						id: room.id,
-					},
-				},
-				user: {
-					connect: {
-						id: user.id,
-					},
-				},
-			},
-		});
+		return await this.prismaRoom.createMember(room_id, user_id);
 	}
 
 	// Leave a room
-	async leave(user: User, room: Room) {
-		await this.prisma.member.delete({
-			where: {
-				room_id_user_id: {
-					room_id: room.id,
-					user_id: user.id,
-				},
-			},
-		});
+	async leave(user_id: number, room_id: number) {
+		await this.prismaRoom.deleteMember(room_id, user_id);
 	}
+
+	// MEMBER
 
 	// Promote a member
 	async promote(member: Member) {
 		if (member.role === e_member_role.ADMIN) {
 			throw new ConflictException('This member is already an administrator');
 		}
-		const updatedMember = await this.prisma.member.update({
-			where: {
-				room_id_user_id: {
-					room_id: member.room_id,
-					user_id: member.user_id,
-				},
-			},
-			data: {
-				role: 'ADMIN',
-			},
-		});
-		return updatedMember;
+		return await this.prismaRoom.editMember(member.room_id, member.user_id, 'ADMIN', null, null, null);
 	}
 
 	// Demote a member
@@ -281,48 +147,17 @@ export class RoomService {
 		if (member.role !== e_member_role.ADMIN) {
 			throw new ConflictException('This member is not an administrator');
 		}
-		const updatedMember = await this.prisma.member.update({
-			where: {
-				room_id_user_id: {
-					room_id: member.room_id,
-					user_id: member.user_id,
-				},
-			},
-			data: {
-				role: 'MEMBER',
-			},
-		});
-		return updatedMember;
+		return await this.prismaRoom.editMember(member.room_id, member.user_id, 'MEMBER', null, null, null);
 	}
 
 	// Kick a member
 	async kick(member: Member) {
-		await this.prisma.member.delete({
-			where: {
-				room_id_user_id: {
-					room_id: member.room_id,
-					user_id: member.user_id,
-				},
-			},
-		});
+		await this.prismaRoom.deleteMember(member.room_id, member.user_id);
 	}
 
 	// Mute member
 	async mute(member: Member, dto: RoomMuteDto) {
-		const muteUntil = new Date(dto.muted_until);
-		const updatedMember = await this.prisma.member.update({
-			where: {
-				room_id_user_id: {
-					room_id: member.room_id,
-					user_id: member.user_id,
-				},
-			},
-			data: {
-				muted: true,
-				muted_until: muteUntil,
-			},
-		});
-		return updatedMember;
+		return await this.prismaRoom.editMember(member.room_id, member.user_id, null, true, new Date(dto.muted_until), null);
 	}
 
 	// Unmute member
@@ -330,19 +165,7 @@ export class RoomService {
 		if (!member.muted) {
 			throw new ConflictException('This member is not muted');
 		}
-		const updatedMember = await this.prisma.member.update({
-			where: {
-				room_id_user_id: {
-					room_id: member.room_id,
-					user_id: member.user_id,
-				},
-			},
-			data: {
-				muted: false,
-				muted_until: new Date(Date.now()),
-			},
-		});
-		return updatedMember;
+		return await this.prismaRoom.editMember(member.room_id, member.user_id, null, false, new Date(Date.now()), null);
 	}
 
 	// Ban member
@@ -350,18 +173,7 @@ export class RoomService {
 		if (member.banned) {
 			throw new ConflictException('This member is already banned');
 		}
-		const bannedMember = await this.prisma.member.update({
-			where: {
-				room_id_user_id: {
-					room_id: member.room_id,
-					user_id: member.user_id,
-				},
-			},
-			data: {
-				banned: true,
-			},
-		});
-		return bannedMember;
+		return await this.prismaRoom.editMember(member.room_id, member.user_id, null, null, null, true);
 	}
 
 	// Unban member
@@ -369,17 +181,47 @@ export class RoomService {
 		if (!member.banned) {
 			throw new ConflictException('This member is not banned');
 		}
-		const bannedMember = await this.prisma.member.update({
-			where: {
-				room_id_user_id: {
-					room_id: member.room_id,
-					user_id: member.user_id,
-				},
-			},
-			data: {
-				banned: false,
-			},
+		return await this.prismaRoom.editMember(member.room_id, member.user_id, null, null, null, false);
+	}
+
+	// INVITATION
+
+	// Create an invitation
+	async createInvitation(user_id: number, room_id: number, dto: InvitationDto) {
+		const payload = {
+			iss: user_id,
+			room_id: room_id,
+			sub: dto.sub,
+			exp: dto.exp?.getTime() / 1000,
+		};
+
+		if (!dto.sub) {
+			delete payload.sub;
+		}
+		if (!dto.exp) {
+			delete payload.exp;
+		}
+
+		const token = await this.jwt.signAsync(payload, {
+			secret: this.config.get('JWT_SECRET'),
+			noTimestamp: !dto.exp,
 		});
-		return bannedMember;
+
+		const invitation = await this.prismaRoom.getInvitation(token);
+
+		if (invitation) {
+			throw new ConflictException('This invitation already exists');
+		}
+		return await this.prismaRoom.createInvitation(room_id, user_id, token);
+	}
+
+	// Get all invitations
+	async getAllInvitations(room_id: number) {
+		return await this.prismaRoom.getAllInvitations(room_id);
+	}
+
+	// Delete an invitation
+	async deleteInvitation(token: string) {
+		await this.prismaRoom.deleteInvitation(token);
 	}
 }

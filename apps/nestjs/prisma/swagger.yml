@@ -34,7 +34,7 @@ paths:
                 type: object
               examples:
                 base:
-                  value: {"id": 1, "username": "new username", "login42": "login42", "avatar": null, "status": "ONLINE", "twoFactorEnabled": false, "friends": [], "blocked": [], "blockedBy": [], "friendRequestsSent": [], "friendRequestsReceived": [], "wins": 0, "losses": 0, "history": [], "memberOf": [{"room": {"id": 1, "name": "name", "access": "PUBLIC"}}, {"room": {"id": 3, "name": "name", "access": "PROTECTED"}}, {"room": {"id": 4, "name": "name", "access": "PRIVATE"}}], "createdAt": "2023-05-03T10:57:04.381Z", "updatedAt": "2023-05-03T11:56:56.913Z"}
+                  value: {"id": 1, "username": "username", "login42": "login42", "avatar": null, "status": "ONLINE", "twoFactorEnabled": false, "friends": [], "blocked": [], "blockedBy": [], "friendRequestsSent": [], "friendRequestsReceived": [], "history": [], "memberOf": [{"room": {"id": 1, "name": "name", "access": "PUBLIC"}}, {"room": {"id": 3, "name": "name", "access": "PROTECTED"}}, {"room": {"id": 4, "name": "name", "access": "PRIVATE"}}], "createdAt": "2023-05-03T10:57:04.381Z", "updatedAt": "2023-05-03T11:56:56.913Z"}
         '401':
           description: Unauthorized
           content:
@@ -127,7 +127,7 @@ paths:
                 type: object
               examples:
                 base:
-                  value: {"id": 1, "username": "username", "login42": "login42", "avatar": null, "status": "ONLINE", "wins": 0, "losses": 0, "history": [], "createdAt": "2023-05-03T10:57:04.381Z"}
+                  value: {"id": 1, "username": "username", "login42": "login42", "avatar": null, "status": "ONLINE", "history": [], "createdAt": "2023-05-03T10:57:04.381Z"}
         '400':
           description: Bad Request
           content:
@@ -663,6 +663,59 @@ paths:
                 base:
                   value: {"statusCode": 401, "message": "Unauthorized"}
   /rooms/{id}:
+    get:
+      tags:
+        - rooms
+      summary: Get a room
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {TODO}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
     put:
       tags:
         - rooms
@@ -886,91 +939,7 @@ paths:
               examples:
                 base:
                   value: {"statusCode": 409, "message": "You are already a member of this room", "error": "Conflict"}
-  /rooms/{id}/generate-invitation:
-    post:
-      tags:
-        - rooms
-      summary: Generate an invitation
-      parameters:
-        - name: id
-          in: path
-          description: Id of the room
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                user_id:
-                  type: string
-                  description: The Id of the user to invite
-                  example: "1"
-                expiration_date:
-                  type: string
-                  description: The expiration date of the invitation
-                  example: 2042-01-01T00:00:00.000Z
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                base:
-                  value: {"room_id": 1, "invitation_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOjEsInJvb21faWQiOjF9.oN_UTFY2L3VdKcOn2cTnnO-oJx333g7NfA4o8pC1PKU"}
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                user_id:
-                  summary: Bad user_id
-                  value: {"statusCode": 400, "message": ["user_id must be a number conforming to the specified constraints"], "error": "Bad Request"}
-                expiration_date:
-                  summary: Bad expiration_date
-                  value: {"statusCode": 400, "message": ["expiration_date must be a Date instance"], "error": "Bad Request"}
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                base:
-                  value: {"statusCode": 401, "message": "Unauthorized"}
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                not_member:
-                  summary: Not a member
-                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
-                insufficient_privileges:
-                  summary: Insufficient privileges
-                  value: {"statusCode": 403, "message": "You cannot perform this action", "error": "Forbidden"}
-                banned:
-                  summary: Banned
-                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
-        '404':
-          description: Not found
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                room:
-                  summary: Room
-                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
-  /rooms/{id}/join/{invitationToken}:
+  /rooms/{id}/join/{invitation_token}:
     post:
       tags:
         - rooms
@@ -982,7 +951,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: invitationToken
+        - name: invitation_token
           in: path
           description: Invitation
           required: true
@@ -1013,6 +982,21 @@ paths:
                 expired_token:
                   summary: Expired invitation
                   value: {"statusCode": 401, "message": "Invitation has expired"}
+                bad_room_id:
+                  summary: Bad room id
+                  value: {"statusCode": 401, "message": "The invitation and the room do not match"}
+                bad_issuer:
+                  summary: Bad issuer
+                  value: {"statusCode": 401, "message": "You are not the subject of this invitation"}
+                issuer_not_member:
+                  summary: Issuer not member
+                  value: {"statusCode": 401, "message": "The issuer of this invitation is no longer a member of the room"}
+                issuer_not_admin:
+                  summary: Issuer not admin
+                  value: {"statusCode": 401, "message": "The issuer of this invitation is no longer an admin of the room"}
+                issuer_banned:
+                  summary: Issuer banned
+                  value: {"statusCode": 401, "message": "The issuer of this invitation is banned from the room"}
         '403':
           description: Forbidden
           content:
@@ -1652,3 +1636,202 @@ paths:
               examples:
                 base:
                   value: {"statusCode": 409, "message": "This member is not banned", "error": "Conflict"}
+  /rooms/{id}/invitation:
+    post:
+      tags:
+        - rooms
+      summary: Create an invitation
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                sub:
+                  type: string
+                  description: The Id of the user to invite
+                  example: "1"
+                exp:
+                  type: string
+                  description: The expiration date of the invitation
+                  example: 2042-01-01T00:00:00.000Z
+      responses:
+        '201':
+          description: Invitation created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {TODO}
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                sub:
+                  summary: Bad sub
+                  value: {"statusCode": 400, "message": ["sub must be a number conforming to the specified constraints"], "error": "Bad Request"}
+                exp:
+                  summary: Bad exp
+                  value: {"statusCode": 400, "message": ["exp must be a Date instance"], "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                insufficient_privileges:
+                  summary: Insufficient privileges
+                  value: {"statusCode": 403, "message": "You cannot perform this action", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+    get:
+      tags:
+        - rooms
+      summary: Get all invitations
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {TODO}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                insufficient_privileges:
+                  summary: Insufficient privileges
+                  value: {"statusCode": 403, "message": "You cannot perform this action", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+  /rooms/{id}/invitation/{invitation_token}:
+    delete:
+      tags:
+        - rooms
+      summary: Delete an invitation
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+        - name: invitation_token
+          in: path
+          description: Token of the invitation
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Invitation deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                insufficient_privileges:
+                  summary: Insufficient privileges
+                  value: {"statusCode": 403, "message": "You cannot perform this action", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+                invitation:
+                  summary: Invitation
+                  value: {"statusCode": 404, "message": "Invitation not found", "error": "Not found"}
