@@ -1,4 +1,4 @@
-import { BadRequestException, ExecutionContext, Injectable, NotFoundException } from '@nestjs/common';
+import { ExecutionContext, Injectable, NotFoundException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -14,17 +14,21 @@ export class UserGetService {
 		}
 
 		const other_id = parseInt(request.params.id);
+		let other;
 
 		if (isNaN(other_id)) {
-			throw new BadRequestException('Invalid user id');
+			other = await this.prisma.user.findUnique({
+				where: {
+					login42: request.params.id,
+				},
+			});
+		} else {
+			other = await this.prisma.user.findUnique({
+				where: {
+					id: other_id,
+				},
+			});
 		}
-
-		const other = await this.prisma.user.findUnique({
-			where: {
-				id: other_id,
-			},
-		});
-
 		if (!other) {
 			throw new NotFoundException('User not found');
 		}

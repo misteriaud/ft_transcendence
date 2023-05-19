@@ -7,6 +7,7 @@ import { DashboardLayout } from './pages/Dashboard';
 import { SettingsPage } from './pages/Settings';
 import { StoreProvider } from './context/storeProvider';
 import Pong from './pages/Pong';
+import { ProfilePage } from './pages/Profile';
 
 export const router = createBrowserRouter(
 	createRoutesFromElements(
@@ -17,6 +18,7 @@ export const router = createBrowserRouter(
 			<Route path="/pong" element={<Pong />} />
 			<Route path="/dashboard" element={<DashboardLayout />}>
 				<Route path="settings" element={<SettingsPage />} />
+				<Route path="users/:username" element={<ProfilePage />} />
 			</Route>
 		</Route>
 	)
