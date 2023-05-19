@@ -1,9 +1,9 @@
 import { Controller, Get, Post, UseGuards, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { JWTGuard } from './JWT.guard';
+import { JWTGuard } from './guard/JWT.guard';
 import { GetOAuthUser, GetUser } from './decorator';
 import { Validate2faDTO } from './DTO/2fa.dto';
-import { FortyTwoOAuthGuard } from './42.guard';
+import { FortyTwoOAuthGuard } from './guard/42.guard';
 import { Profile } from 'passport';
 
 @Controller('auth')

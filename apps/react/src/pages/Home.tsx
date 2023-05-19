@@ -1,11 +1,3 @@
-// Home.jsx
-//export const HomePage = () => (
-//	<div>
-//	  <h1>This is the Home Page</h1>
-//	</div>
-//  );
-
-import React from 'react';
 import '../styles/Home.css';
 import { Link } from 'react-router-dom';
 

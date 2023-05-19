@@ -2,7 +2,7 @@ import { CanActivate, Injectable, ExecutionContext, UnauthorizedException, Forbi
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { UserService } from 'src/user/user.service';
-import { i_JWTPayload } from './interface/jwt';
+import { i_JWTPayload } from '../interface/jwt';
 
 @Injectable()
 export class JWTGuard implements CanActivate {
@@ -25,7 +25,7 @@ export class JWTGuard implements CanActivate {
 		request['user'] = await this.userService.getMe(payload.id);
 
 		const { twoFactorEnabled, authorized2fa } = payload;
-		const { twoFactorEnabled: userTwoFactorEnabled } = request['user'];
+		const { twoFactorEnabled: userTwoFactorEnabled } = request['user'] || {};
 
 		if (userTwoFactorEnabled && !authorized2fa || twoFactorEnabled !== userTwoFactorEnabled) {
 			throw new UnauthorizedException('Invalid 2FA');

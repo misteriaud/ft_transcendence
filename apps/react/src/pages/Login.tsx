@@ -8,10 +8,10 @@ import { Spinner } from "../components/Spinner";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const intraUrl = "https://api.intra.42.fr/oauth/authorize";
-  const redirectUrl = `${intraUrl}?response_type=code&redirect_uri=${process.env.REACT_APP_OAUTH_CALLBACK_URL}&client_id=${process.env.REACT_APP_OAUTH_42_UID}`;
 
   if (!code) {
+    const intraUrl = "https://api.intra.42.fr/oauth/authorize";
+    const redirectUrl = `${intraUrl}?response_type=code&redirect_uri=${process.env.REACT_APP_OAUTH_CALLBACK_URL}&client_id=${process.env.REACT_APP_OAUTH_42_UID}`;
     return redirect(redirectUrl);
   }
 
@@ -19,11 +19,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const response = await apiProvider().get("auth/login", { params: { code } })
     return response.data;
   } catch (error) {
+    const intraUrl = "https://api.intra.42.fr/oauth/authorize";
+    const redirectUrl = `${intraUrl}?response_type=code&redirect_uri=${process.env.REACT_APP_OAUTH_CALLBACK_URL}&client_id=${process.env.REACT_APP_OAUTH_42_UID}`;
       return redirect(redirectUrl);
   }
 };
 
-function TwoFactor({jwt}: {jwt: string}) {
+function TwoFactor() {
   const [totp, setTotp] = useState("");
   const dispatch = useStoreDispatchContext();
   const [isError, setIsError] = useState(false);
@@ -58,10 +60,15 @@ function TwoFactor({jwt}: {jwt: string}) {
   );
 }
 
+interface Payload {
+  jwt: string;
+  authorized: boolean;
+}
+
 export const LoginPage = () => {
   const { loading, loggedOut } = useUser();
   const dispatch = useStoreDispatchContext();
-  const payload: any = useLoaderData() as any;
+  const payload = useLoaderData() as Payload;
 
   useEffect(() => {
     if (payload?.authorized)
@@ -77,7 +84,7 @@ export const LoginPage = () => {
     return <Navigate to="/dashboard" />;
   }
 
-  if (!payload?.authorized) return <TwoFactor jwt={payload.jwt}/>;
+  if (!payload?.authorized) return <TwoFactor />;
 
   return (
     <div>
