@@ -1,15 +1,11 @@
-import {
-	createBrowserRouter,
-	createRoutesFromElements,
-	Route
-} from "react-router-dom";
+import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
 
-import { LoginPage, loader as loginLoader } from "./pages/Login";
-import { LoginFakePage } from "./pages/LoginFake";
-import  HomePage  from "./pages/Home";
-import { DashboardLayout } from "./pages/Dashboard";
-import { SettingsPage } from "./pages/Settings";
-import { StoreProvider } from "./context/storeProvider";
+import { LoginPage, loader as loginLoader } from './pages/Login';
+import { LoginFakePage } from './pages/LoginFake';
+import HomePage from './pages/Home';
+import { DashboardLayout } from './pages/Dashboard';
+import { SettingsPage } from './pages/Settings';
+import { StoreProvider } from './context/storeProvider';
 
 export const router = createBrowserRouter(
 	createRoutesFromElements(

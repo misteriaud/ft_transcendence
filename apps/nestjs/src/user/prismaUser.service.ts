@@ -108,8 +108,8 @@ export class PrismaUserService {
 
 	// Edit me
 	async editMe(user_id: number, twoFactorEnabled: boolean, dto: UserDto) {
-		let secret: string | null;
-		if (twoFactorEnabled && dto.twoFactorEnabled) {
+		let secret: string | null = null;
+		if (!twoFactorEnabled && dto.twoFactorEnabled) {
 			secret = authenticator.generateSecret();
 		}
 

@@ -77,9 +77,6 @@ services:
         volumes:
             - nestjs_app:/app
         restart: unless-stopped
-        volumes:
-            - nestjs_app:/app
-
 
 volumes:
   nestjs_app:

@@ -19,7 +19,7 @@ export class UserController {
 
 	// Edit me
 	@Put('me')
-	editMe(@GetUser('id') user_id: number, @GetUser('TwoFactorEnabled') twoFactorEnabled: boolean,  @Body() dto: UserDto) {
+	editMe(@GetUser('id') user_id: number, @GetUser('twoFactorEnabled') twoFactorEnabled: boolean, @Body() dto: UserDto) {
 		return this.userService.editMe(user_id, twoFactorEnabled, dto);
 	}
 
