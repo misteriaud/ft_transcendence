@@ -1,11 +1,11 @@
-import { CanActivate, Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { UserService } from 'src/user/user.service';
 import { i_JWTPayload } from '../interface/jwt';
 
 @Injectable()
-export class UnauthorizedJWTGuard implements CanActivate {
+export class UnauthorizedJWTGuard {
 	constructor(private readonly jwtService: JwtService, private readonly userService: UserService) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -23,6 +23,7 @@ export class UnauthorizedJWTGuard implements CanActivate {
 		}
 
 		request['user'] = await this.userService.getMe(payload.id);
+		request['jwtPayload'] = payload;
 
 		return true;
 	}
@@ -34,26 +35,16 @@ export class UnauthorizedJWTGuard implements CanActivate {
 }
 
 @Injectable()
-export class JWTGuard implements CanActivate {
-	constructor(private readonly jwtService: JwtService, private readonly userService: UserService) {}
+export class JWTGuard extends UnauthorizedJWTGuard {
+	constructor(jwtService: JwtService, userService: UserService) {
+		super(jwtService, userService);
+	}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
+		await super.canActivate(context);
 		const request = context.switchToHttp().getRequest();
-		const token = this.extractTokenFromHeader(request);
 
-		let payload: i_JWTPayload;
-
-		if (!token) throw new UnauthorizedException('missing JWT');
-
-		try {
-			payload = this.jwtService.verify(token);
-		} catch (err: any) {
-			throw new UnauthorizedException('invalid JWT');
-		}
-
-		request['user'] = await this.userService.getMe(payload.id);
-
-		const { twoFactorEnabled, authorized2fa } = payload;
+		const { twoFactorEnabled, authorized2fa } = request['jwtPayload'];
 		const { twoFactorEnabled: userTwoFactorEnabled } = request['user'] || {};
 
 		/*
@@ -66,10 +57,5 @@ export class JWTGuard implements CanActivate {
 		}
 
 		return true;
-	}
-
-	private extractTokenFromHeader(request: Request): string | undefined {
-		const [type, token] = request.headers.authorization?.split(' ') ?? [];
-		return type === 'Bearer' ? token : undefined;
 	}
 }

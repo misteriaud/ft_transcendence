@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
-import { PongGateway } from './pongGateway';
+import { PongWebsocketGateway } from './pongGateway';
 import { UserModule } from '../user/user.module';
+import { UserService } from 'src/user/user.service';
+import { PrismaUserService } from 'src/user/prismaUser.service';
 
 @Module({
 	imports: [UserModule],
-	providers: [PongGateway],
+	providers: [PongWebsocketGateway, UserService, PrismaUserService],
 })
 export class PongModule {}

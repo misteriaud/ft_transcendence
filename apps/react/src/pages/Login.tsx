@@ -88,7 +88,7 @@ export const LoginPage = () => {
 			});
 	}, [payload]);
 
-	const inside = (
+	let inside = (
 		<>
 			<h1>Login failed</h1>
 			<button>Retry</button>
@@ -99,7 +99,7 @@ export const LoginPage = () => {
 		return <Navigate to="/dashboard" />;
 	}
 
-	if (!payload?.authorized) return <TwoFactor />;
+	if (payload && !payload.authorized) inside = <TwoFactor />;
 
 	return <div className="absolute inset-0 bg-gray-400 flex justify-center items-center">{inside}</div>;
 };

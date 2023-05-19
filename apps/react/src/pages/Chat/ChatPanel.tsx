@@ -247,7 +247,7 @@ export function ChatPanel() {
 
 	async function sendMessage(roomToSend: Room, message: string) {
 		if (!isConnected) return;
-		socket.emit('message', {
+		socket.emit('chat/message', {
 			roomId: roomToSend.id,
 			content: message
 		});

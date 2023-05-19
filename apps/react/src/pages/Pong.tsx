@@ -143,7 +143,7 @@ const Pong = () => {
 			<canvas ref={canvasRef} width={500} height={500} />
 			<button
 				onClick={() => {
-					socket.emit('pongReady');
+					socket.emit('pong/ready');
 				}}
 			>
 				Player 1 Ready
