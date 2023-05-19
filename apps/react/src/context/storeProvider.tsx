@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useRef } from "react";
-import { useOutlet } from "react-router-dom";
-import { useLocalStorageReducer } from "../hooks/useLocalStorage";
-import { io, Socket } from "socket.io-client";
+import { createContext, useContext, useEffect, useRef } from 'react';
+import { useOutlet } from 'react-router-dom';
+import { useLocalStorageReducer } from '../hooks/useLocalStorage';
+import { io, Socket } from 'socket.io-client';
 
 export interface StoreState {
 	JWT?: string;
@@ -19,11 +19,8 @@ export type StoreAction = { type: StoreActionType; content?: any };
  * Context initialization
  */
 export const StoreContext = createContext({} as StoreState);
-export const StoreDispatchContext = createContext<
-	React.Dispatch<StoreAction> | undefined
->(undefined);
-export const SocketContext =
-	createContext<React.MutableRefObject<Socket> | null>(null);
+export const StoreDispatchContext = createContext<React.Dispatch<StoreAction> | undefined>(undefined);
+export const SocketContext = createContext<React.MutableRefObject<Socket> | null>(null);
 
 /**
  * React component to serve the context, storing and retreiving this context in LocalStorage
@@ -31,19 +28,18 @@ export const SocketContext =
  */
 export function StoreProvider() {
 	const outlet = useOutlet();
-	const [store, dispatch] = useLocalStorageReducer("store", storeReducer, {});
-	const socketRef: React.MutableRefObject<Socket> =
-		useRef() as React.MutableRefObject<Socket>;
+	const [store, dispatch] = useLocalStorageReducer('store', storeReducer, {});
+	const socketRef: React.MutableRefObject<Socket> = useRef() as React.MutableRefObject<Socket>;
 
 	useEffect(() => {
 		if (!store.JWT) return;
-		console.log("set socket");
-		socketRef.current = io("ws://localhost:8080/", {
+		console.log('set socket');
+		socketRef.current = io('ws://localhost:8080/', {
 			auth: {
 				token: store.JWT
 			}
 		});
-		socketRef.current.on("connect_error", (event: any) => {
+		socketRef.current.on('connect_error', (event: any) => {
 			dispatch({
 				type: StoreActionType.SOCKET_ERROR,
 				content: event.data
@@ -57,9 +53,7 @@ export function StoreProvider() {
 	return (
 		<StoreContext.Provider value={store}>
 			<StoreDispatchContext.Provider value={dispatch}>
-				<SocketContext.Provider value={socketRef}>
-					{outlet}
-				</SocketContext.Provider>
+				<SocketContext.Provider value={socketRef}>{outlet}</SocketContext.Provider>
 			</StoreDispatchContext.Provider>
 		</StoreContext.Provider>
 	);
@@ -86,11 +80,11 @@ function storeReducer(state: StoreState, action: StoreAction): StoreState {
 			return state;
 		}
 		case StoreActionType.SOCKET_ERROR: {
-			console.log("socket error");
+			console.log('socket error');
 			return state;
 		}
 		default: {
-			throw Error("Unknown action: " + action.type);
+			throw Error('Unknown action: ' + action.type);
 		}
 	}
 }

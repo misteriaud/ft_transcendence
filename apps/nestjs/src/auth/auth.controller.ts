@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Request, UseGuards, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards, Body, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { FortyTwoOAuthGuard } from './42.guard';
-import { UnauthorizedJWTGuard } from './JWT.guard';
 import { GetOAuthUser, GetUser } from './decorator';
 import { Validate2faDTO } from './DTO/2fa.dto';
+import { FortyTwoOAuthGuard } from './guard/42.guard';
 import { Profile } from 'passport';
+import { UnauthorizedJWTGuard } from './guard/JWT.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -16,17 +16,16 @@ export class AuthController {
 		return this.authService.login(profile);
 	}
 
-
 	// CONNECT WITH FAKE PROFILE
 	@Get('login_fake')
 	async loginFake(@Query('name') name: string) {
-		console.log(name)
+		console.log(name);
 		const fakeProfile: Profile = {
-			id: "0",
+			id: '0',
 			username: name,
 			displayName: name,
-			provider: "Fake"
-		}
+			provider: 'Fake',
+		};
 		return this.authService.login(fakeProfile);
 	}
 

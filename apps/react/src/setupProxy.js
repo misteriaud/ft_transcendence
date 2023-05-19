@@ -1,19 +1,19 @@
-const { createProxyMiddleware } = require("http-proxy-middleware");
+const { createProxyMiddleware } = require('http-proxy-middleware');
 
 module.exports = function (app) {
 	app.use(
-		createProxyMiddleware("/api", {
+		createProxyMiddleware('/api', {
 			target: `http://nestjs:${process.env.REACT_APP_NESTJS_PORT}`,
-			pathRewrite: { "^/api": "" },
+			pathRewrite: { '^/api': '' },
 			changeOrigin: true
 		})
 	);
 	app.use(
-		createProxyMiddleware("/socket.io", {
+		createProxyMiddleware('/socket.io', {
 			target: `http://nestjs:${process.env.REACT_APP_NESTJS_PORT}`,
 			changeOrigin: true,
 			ws: true,
-			logLevel: "debug"
+			logLevel: 'debug'
 		})
 	);
 };

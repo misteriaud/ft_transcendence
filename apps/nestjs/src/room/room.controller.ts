@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Put, UseGuards } from '@nestjs/common';
 import { Member, e_room_access } from '@prisma/client';
-import { JWTGuard } from 'src/auth/JWT.guard';
+import { JWTGuard } from 'src/auth/guard/JWT.guard';
 import { GetUser } from 'src/auth/decorator';
 import { InvitationDto, RoomDto, RoomJoinDto, RoomMuteDto } from './dto';
 import { RoomService } from './room.service';

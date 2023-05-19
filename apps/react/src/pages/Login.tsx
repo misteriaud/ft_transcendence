@@ -1,20 +1,14 @@
-import { useEffect, useState } from "react";
-import {
-	useLoaderData,
-	Navigate,
-	LoaderFunctionArgs,
-	redirect
-} from "react-router-dom";
-import { useStoreDispatchContext } from "../hooks/useContext";
-import { StoreActionType } from "../context/storeProvider";
-import { apiProvider, useApi } from "../hooks/useApi";
-import { useMe } from "../hooks/useUser";
-import { Spinner } from "../components/Spinner";
+import { useEffect, useState } from 'react';
+import { useLoaderData, Navigate, LoaderFunctionArgs, redirect } from 'react-router-dom';
+import { useStoreDispatchContext } from '../hooks/useContext';
+import { StoreActionType } from '../context/storeProvider';
+import { apiProvider, useApi } from '../hooks/useApi';
+import { useMe } from '../hooks/useUser';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const url = new URL(request.url);
-	const code = url.searchParams.get("code");
-	const intra_url = "https://api.intra.42.fr/oauth/authorize";
+	const code = url.searchParams.get('code');
+	const intra_url = 'https://api.intra.42.fr/oauth/authorize';
 	const redirect_url = `${intra_url}?response_type=code&redirect_uri=${process.env.REACT_APP_OAUTH_CALLBACK_URL}&client_id=${process.env.REACT_APP_OAUTH_42_UID}`;
 
 	if (!code) {
@@ -22,20 +16,21 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	}
 
 	const response = await apiProvider()
-		.get("auth/login", {
+		.get('auth/login', {
 			params: { code }
 		})
 		.then((result) => {
 			return result.data;
 		})
 		.catch((error) => {
+			console.log(error);
 			return null;
 		});
 	return response;
 };
 
 function TwoFactor() {
-	const [totp, setTotp] = useState("");
+	const [totp, setTotp] = useState('');
 	const dispatch = useStoreDispatchContext();
 	const [isError, setIsError] = useState(false);
 	const api = useApi();
@@ -45,7 +40,7 @@ function TwoFactor() {
 		e.preventDefault();
 		if (!totp) return;
 		await api
-			.post("auth/2fa", {
+			.post('auth/2fa', {
 				totp
 			})
 			.then((result) => {
@@ -55,7 +50,7 @@ function TwoFactor() {
 				});
 			})
 			.catch(() => {
-				setTotp("");
+				setTotp('');
 				setIsError(true);
 			});
 	}
@@ -75,13 +70,15 @@ function TwoFactor() {
 	);
 }
 
+interface Payload {
+	jwt: string;
+	authorized: boolean;
+}
+
 export const LoginPage = () => {
 	const { loggedIn } = useMe();
 	const dispatch = useStoreDispatchContext();
-	const payload = useLoaderData() as {
-		jwt: string;
-		authorized: boolean;
-	} | null;
+	const payload = useLoaderData() as Payload | null;
 
 	useEffect(() => {
 		if (payload)
@@ -91,7 +88,7 @@ export const LoginPage = () => {
 			});
 	}, [payload]);
 
-	let inside = (
+	const inside = (
 		<>
 			<h1>Login failed</h1>
 			<button>Retry</button>
@@ -102,11 +99,7 @@ export const LoginPage = () => {
 		return <Navigate to="/dashboard" />;
 	}
 
-	if (payload && !payload.authorized) inside = <TwoFactor />;
+	if (!payload?.authorized) return <TwoFactor />;
 
-	return (
-		<div className="absolute inset-0 bg-gray-400 flex justify-center items-center">
-			{inside}
-		</div>
-	);
+	return <div className="absolute inset-0 bg-gray-400 flex justify-center items-center">{inside}</div>;
 };

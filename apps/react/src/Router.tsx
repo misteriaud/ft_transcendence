@@ -6,6 +6,7 @@ import HomePage from './pages/Home';
 import { DashboardLayout } from './pages/Dashboard';
 import { SettingsPage } from './pages/Settings';
 import { StoreProvider } from './context/storeProvider';
+import Pong from './pages/Pong';
 
 export const router = createBrowserRouter(
 	createRoutesFromElements(
@@ -13,6 +14,7 @@ export const router = createBrowserRouter(
 			<Route path="/" element={<HomePage />} />
 			<Route path="/login" element={<LoginPage />} loader={loginLoader} />
 			<Route path="/login_fake" element={<LoginFakePage />} />
+			<Route path="/pong" element={<Pong />} />
 			<Route path="/dashboard" element={<DashboardLayout />}>
 				<Route path="settings" element={<SettingsPage />} />
 			</Route>

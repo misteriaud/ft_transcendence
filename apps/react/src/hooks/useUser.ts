@@ -1,9 +1,9 @@
-import useSWR from "swr";
-import { useStoreContext } from "./useContext";
-import { useCustomSWR } from "./useApi";
+import useSWR from 'swr';
+import { useStoreContext } from './useContext';
+import { useCustomSWR } from './useApi';
 
 export function useMe() {
-	const { data, mutate, error, isLoading } = useCustomSWR("/users/me");
+	const { data, mutate, error, isLoading } = useCustomSWR('/users/me');
 
 	const loggedIn = error === undefined && data !== undefined;
 

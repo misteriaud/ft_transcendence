@@ -1,9 +1,9 @@
-import { Link, Outlet } from "react-router-dom";
-import { useMe, useUser } from "../hooks/useUser";
-import { Spinner } from "../components/Spinner";
-import { useStoreDispatchContext, useSocketContext } from "../hooks/useContext";
-import { StoreActionType } from "../context/storeProvider";
-import { ChatPanel } from "./Chat/ChatPanel";
+import { Link, Outlet } from 'react-router-dom';
+import { useMe, useUser } from '../hooks/useUser';
+import { Spinner } from '../components/Spinner';
+import { useStoreDispatchContext, useSocketContext } from '../hooks/useContext';
+import { StoreActionType } from '../context/storeProvider';
+import { ChatPanel } from './Chat/ChatPanel';
 
 export const DashboardLayout = () => {
 	const { isLoading, loggedIn } = useMe();

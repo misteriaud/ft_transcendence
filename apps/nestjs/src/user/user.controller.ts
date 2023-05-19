@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Put, UseGuards } from '@nestjs/common';
-import { JWTGuard } from 'src/auth/JWT.guard';
+import { JWTGuard } from 'src/auth/guard/JWT.guard';
 import { UserService } from './user.service';
 import { GetUser } from 'src/auth/decorator';
 import { BlockedGuard, GetOtherGuard, SelfGuard } from './guard';

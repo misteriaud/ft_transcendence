@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 export const useLocalStorage = (keyName: string, defaultValue: any) => {
 	const [storedValue, setStoredValue] = useState(() => {
@@ -7,10 +7,7 @@ export const useLocalStorage = (keyName: string, defaultValue: any) => {
 			if (value) {
 				return JSON.parse(value);
 			} else {
-				window.localStorage.setItem(
-					keyName,
-					JSON.stringify(defaultValue)
-				);
+				window.localStorage.setItem(keyName, JSON.stringify(defaultValue));
 				return defaultValue;
 			}
 		} catch (err) {
@@ -39,10 +36,7 @@ export function useLocalStorageReducer<State, Action>(
 				if (!state) return {};
 				return state;
 			} else {
-				window.localStorage.setItem(
-					keyName,
-					JSON.stringify(defaultValue)
-				);
+				window.localStorage.setItem(keyName, JSON.stringify(defaultValue));
 				return defaultValue;
 			}
 		} catch (err) {

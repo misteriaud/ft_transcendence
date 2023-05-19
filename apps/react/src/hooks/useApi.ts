@@ -1,10 +1,10 @@
-import axios from "axios";
-import useSWR from "swr";
-import { useStoreContext } from "./useContext";
+import axios from 'axios';
+import useSWR from 'swr';
+import { useStoreContext } from './useContext';
 
 export const apiProvider = (JWT: string | null = null) =>
 	axios.create({
-		baseURL: "/api",
+		baseURL: '/api',
 		headers: JWT
 			? {
 					Authorization: `Bearer ${JWT}`

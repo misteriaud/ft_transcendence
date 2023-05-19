@@ -1,7 +1,6 @@
 import { UseGuards } from '@nestjs/common';
 import { SubscribeMessage, WebSocketGateway, ConnectedSocket, MessageBody, WebSocketServer, WsException } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
-import { WSJWTGuard } from 'src/auth/JWT.guard';
 import { i_JWTPayload } from 'src/auth/interface/jwt';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
@@ -12,20 +11,19 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class WebsocketGateway {
 	@WebSocketServer()
 	server: Server;
-	tmpId: number = 10;
-	constructor(private jwtService: JwtService, private userService: UserService, private prisma: PrismaService) { }
+	tmpId = 10;
+	constructor(private jwtService: JwtService, private userService: UserService, private prisma: PrismaService) {}
 
 	// @UseGuards(WSJWTGuard)
 	async handleConnection(client: Socket) {
-		const token = client.handshake.auth.token
+		const token = client.handshake.auth.token;
 		let payload: i_JWTPayload;
 
-		if (!token)
-			return client.conn.close();
+		if (!token) return client.conn.close();
 		try {
 			payload = this.jwtService.verify(token);
 		} catch (err: any) {
-			return client.disconnect()
+			return client.disconnect();
 		}
 
 		client.data['user'] = await this.userService.getMe(payload.id);
@@ -38,7 +36,7 @@ export class WebsocketGateway {
 		if (!client.data['user'] || (client.data['user'].twoFactorEnabled && !payload.authorized2fa) || payload.twoFactorEnabled != client.data['user'].twoFactorEnabled) {
 			return client.disconnect();
 		}
-		client.join(payload.id.toString())
+		client.join(payload.id.toString());
 	}
 
 	// async handleDisconnect() {
@@ -58,10 +56,10 @@ export class WebsocketGateway {
 				id: true,
 				members: {
 					select: {
-						user_id: true
-					}
-				}
-			}
+						user_id: true,
+					},
+				},
+			},
 		});
 		const userAsMember = await this.prisma.member.findUnique({
 			where: {
@@ -79,12 +77,12 @@ export class WebsocketGateway {
 			throw new WsException('You are banned from this room');
 		}
 		// save message in DB
-		this.server.to(room.members.map(member => member.user_id.toString())).emit("message", {
+		this.server.to(room.members.map((member) => member.user_id.toString())).emit('message', {
 			id: this.tmpId++,
 			roomId: data.roomId,
 			sendBy: client.data.user.id,
-			content: data.content
-		})
+			content: data.content,
+		});
 		// client.emit("room-", data.content)
 	}
 }
