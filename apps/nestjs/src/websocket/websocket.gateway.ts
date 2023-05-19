@@ -7,10 +7,31 @@ import { UserService } from 'src/user/user.service';
 import { MessagePayload } from './interface/Room';
 import { PrismaService } from 'src/prisma/prisma.service';
 
+class GameState {
+	ball: { x: number; y: number; dx: number; dy: number };
+	player1: { paddleY: number; score: number };
+	player2: { paddleY: number; score: number };
+	paddleHeight: number;
+	paddleWidth: number;
+	ballRadius: number;
+	playersIds: number[];
+
+	constructor() {
+		this.ball = { x: 250, y: 250, dx: 2, dy: 2 };
+		this.player1 = { paddleY: 200, score: 0 };
+		this.player2 = { paddleY: 200, score: 0 };
+		this.paddleHeight = 80;
+		this.paddleWidth = 10;
+		this.ballRadius = 10;
+		this.playersIds = [];
+	}
+}
+
 @WebSocketGateway()
 export class WebsocketGateway {
 	@WebSocketServer()
 	server: Server;
+	currentGame: GameState[] = [];
 	tmpId = 10;
 	constructor(private jwtService: JwtService, private userService: UserService, private prisma: PrismaService) {}
 
@@ -39,16 +60,38 @@ export class WebsocketGateway {
 		client.join(payload.id.toString());
 	}
 
-	// async handleDisconnect() {
-	// 	// // A client has disconnected
-	// 	// this.users--;
+	@SubscribeMessage('pongReady')
+	handlePongReady(client: Socket) {
+		console.log('readyyyyy');
+		this.currentGame.push(new GameState());
+		const gameIndex = this.currentGame.length - 1;
+		this.currentGame[gameIndex].playersIds.push(client.data.user.id);
+		client.data.gameIndex = this.currentGame.length - 1;
+		client.data.playerIndex = 0;
+		this.sendGameState(this.currentGame[gameIndex]);
+	}
 
-	// 	// // Notify connected clients of current users
-	// 	// this.server.emit('users', this.users);
-	// 	console.log("user diconnect")
-	// }
+	@SubscribeMessage('pong/movePaddle')
+	handlePaddleMove(client: Socket, direction: 'up' | 'down') {
+		const speed = 5;
 
-	@SubscribeMessage('message')
+		const currentGame = this.currentGame[client.data.gameIndex];
+
+		if (direction === 'up') {
+			currentGame['player1'].paddleY -= speed;
+		} else {
+			currentGame['player1'].paddleY += speed;
+		}
+
+		this.sendGameState(currentGame);
+	}
+
+	sendGameState(currentGame: GameState) {
+		this.server.to(currentGame.playersIds.map((id) => id.toString())).emit('pong/gameState', currentGame);
+		console.log(currentGame);
+	}
+
+	@SubscribeMessage('chat/message')
 	async handleMessage(@ConnectedSocket() client: Socket, @MessageBody() data: MessagePayload) {
 		const room = await this.prisma.room.findUnique({
 			where: { id: data.roomId },

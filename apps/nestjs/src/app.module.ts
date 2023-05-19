@@ -8,6 +8,6 @@ import { WebsocketModule } from './websocket/websocket.module';
 import { PongModule } from './game/pong.module';
 
 @Module({
-	imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, UserModule, RoomModule, WebsocketModule, PongModule],
+	imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, UserModule, RoomModule, WebsocketModule],
 })
 export class AppModule {}
