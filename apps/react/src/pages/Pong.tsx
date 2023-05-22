@@ -87,19 +87,26 @@ const Pong = () => {
 			context.fillRect(0, 0, canvas.width, canvas.height);
 		};
 
+		const drawBall = (x: number, y: number, radius: number) => {
+			context.beginPath();
+			context.arc(x, y, radius, 0, Math.PI * 2, false);
+			context.fillStyle = 'white';
+			context.fill();
+			context.closePath();
+		};
+
 		const render = () => {
 			drawField();
 			if (gameState) {
 				drawPaddle(10, gameState.player1.paddleY, gameState.paddleWidth, gameState.paddleHeight);
 				drawPaddle(canvas.width - gameState.paddleWidth - 10, gameState.player2.paddleY, gameState.paddleWidth, gameState.paddleHeight);
+				drawBall(gameState.ball.x, gameState.ball.y, gameState.ballRadius);
 			}
 
 			requestAnimationFrame(render);
 		};
 
 		render();
-
-		//return () => {};
 	}, [gameState]);
 
 	// Ready Click Handler
