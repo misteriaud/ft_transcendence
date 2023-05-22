@@ -106,6 +106,7 @@ model Message {
 	user_id		Int
 	content		String
 	createdAt	DateTime	@default(now())
+	updatedAt	DateTime	@updatedAt
 
 	@@map("messages")
 }

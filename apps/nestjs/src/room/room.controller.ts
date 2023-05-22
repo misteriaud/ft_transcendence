@@ -2,10 +2,10 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Put, UseGuar
 import { Member, e_room_access } from '@prisma/client';
 import { JWTGuard } from 'src/auth/guard/JWT.guard';
 import { GetUser } from 'src/auth/decorator';
-import { InvitationDto, RoomDto, RoomJoinDto, RoomMuteDto } from './dto';
+import { InvitationDto, MessageDto, RoomDto, RoomJoinDto, RoomMuteDto } from './dto';
 import { RoomService } from './room.service';
-import { GetInvitation, GetMember, GetRoom } from './decorator';
-import { GetInvitationGuard, GetMemberGuard, GetRoomGuard, HierarchyGuard, RoomAdminGuard, RoomMemberGuard, RoomOwnerGuard } from './guard';
+import { GetInvitation, GetMember, GetMessage, GetRoom } from './decorator';
+import { GetInvitationGuard, GetMemberGuard, GetMessageGuard, GetRoomGuard, HierarchyGuard, MessageAuthorGuard, RoomAdminGuard, RoomAdminOrMessageAuthorGuard, RoomMemberGuard, RoomOwnerGuard } from './guard';
 
 @UseGuards(JWTGuard)
 @Controller('rooms')
@@ -120,6 +120,37 @@ export class RoomController {
 	@Put(':id/unban/:member_id')
 	unban(@GetMember() member: Member) {
 		return this.roomService.unban(member);
+	}
+
+	// MESSAGES
+
+	// Create a message
+	@UseGuards(RoomMemberGuard, GetRoomGuard)
+	@Post(':id/message')
+	createMessage(@GetUser('id') user_id: number, @GetRoom('id') room_id: number, @Body() dto: MessageDto) {
+		return this.roomService.createMessage(user_id, room_id, dto);
+	}
+
+	// Get all messages
+	@UseGuards(RoomMemberGuard, GetRoomGuard)
+	@Get(':id/message')
+	getAllMessages(@GetRoom('id') room_id: number) {
+		return this.roomService.getAllMessages(room_id);
+	}
+
+	// Edit a message
+	@UseGuards(RoomMemberGuard, MessageAuthorGuard, GetMessageGuard)
+	@Put(':id/message/:message_id')
+	editMessage(@GetMessage('id') message_id: number, @Body() dto: MessageDto) {
+		return this.roomService.editMessage(message_id, dto);
+	}
+
+	// Delete a message
+	@UseGuards(RoomMemberGuard, RoomAdminOrMessageAuthorGuard, GetMessageGuard)
+	@Delete(':id/message/:message_id')
+	@HttpCode(HttpStatus.NO_CONTENT)
+	deleteMessage(@GetMessage('id') message_id: number) {
+		return this.roomService.deleteMessage(message_id);
 	}
 
 	// INVITATION

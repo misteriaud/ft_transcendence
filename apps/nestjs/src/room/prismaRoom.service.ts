@@ -83,7 +83,20 @@ export class PrismaRoomService {
 						},
 						muted: true,
 						muted_until: true,
-						messages: true,
+						messages: {
+							select: {
+								id: true,
+								content: true,
+								createdAt: true,
+								updatedAt: true,
+							},
+						},
+						invitations: {
+							select: {
+								id: true,
+								token: true,
+							},
+						},
 					},
 				},
 			},
@@ -176,6 +189,136 @@ export class PrismaRoomService {
 					room_id: room_id,
 					user_id: user_id,
 				},
+			},
+		});
+	}
+
+	// MESSAGE
+
+	// Create a message
+	async createMessage(room_id: number, user_id: number, content: string) {
+		return await this.prisma.message.create({
+			data: {
+				author: {
+					connect: {
+						room_id_user_id: {
+							room_id: room_id,
+							user_id: user_id,
+						},
+					},
+				},
+				content: content,
+			},
+			select: {
+				id: true,
+				author: {
+					select: {
+						user: {
+							select: {
+								id: true,
+								username: true,
+								login42: true,
+								avatar: true,
+							},
+						},
+					},
+				},
+				content: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+	}
+
+	// Get all messages
+	async getAllMessages(room_id: number) {
+		return await this.prisma.message.findMany({
+			where: {
+				room_id: room_id,
+			},
+			select: {
+				id: true,
+				author: {
+					select: {
+						user: {
+							select: {
+								id: true,
+								username: true,
+								login42: true,
+								avatar: true,
+							},
+						},
+					},
+				},
+				content: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+	}
+
+	// Get a message
+	async getMessage(message_id: number) {
+		return await this.prisma.message.findUnique({
+			where: {
+				id: message_id,
+			},
+			select: {
+				id: true,
+				author: {
+					select: {
+						user: {
+							select: {
+								id: true,
+								username: true,
+								login42: true,
+								avatar: true,
+							},
+						},
+					},
+				},
+				content: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+	}
+
+	// Edit a message
+	async editMessage(message_id: number, content: string) {
+		return await this.prisma.message.update({
+			where: {
+				id: message_id,
+			},
+			data: {
+				content: content,
+			},
+			select: {
+				id: true,
+				author: {
+					select: {
+						user: {
+							select: {
+								id: true,
+								username: true,
+								login42: true,
+								avatar: true,
+							},
+						},
+					},
+				},
+				content: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+	}
+
+	// Delete a message
+	async deleteMessage(message_id: number) {
+		return await this.prisma.message.delete({
+			where: {
+				id: message_id,
 			},
 		});
 	}
