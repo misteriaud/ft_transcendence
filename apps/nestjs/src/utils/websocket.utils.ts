@@ -8,7 +8,6 @@ import { UserService } from 'src/user/user.service';
 export class BaseWebsocketGateway {
 	@WebSocketServer()
 	server: Server;
-	tmpId = 10;
 
 	constructor(private jwtService: JwtService, private userService: UserService) {}
 

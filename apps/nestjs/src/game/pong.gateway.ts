@@ -1,6 +1,4 @@
-// import { SubscribeMessage, WebSocketGateway, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
-// import { Socket } from 'socket.io';
-
+import { WsException } from '@nestjs/websockets';
 import { BaseWebsocketGateway } from 'src/utils/websocket.utils';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
@@ -15,6 +13,7 @@ class GameState {
 	paddleWidth: number;
 	ballRadius: number;
 	playersIds: number[];
+	playersReady: boolean[];
 
 	constructor() {
 		this.ball = { x: 250, y: 250, dx: 2, dy: 2 };
@@ -24,6 +23,7 @@ class GameState {
 		this.paddleWidth = 10;
 		this.ballRadius = 10;
 		this.playersIds = [];
+		this.playersReady = [false, false];
 	}
 }
 
@@ -36,30 +36,63 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 
 	@SubscribeMessage('pong/ready')
 	handlePongReady(client: Socket) {
-		console.log('readyyyyy');
-		this.currentGame.push(new GameState());
-		const gameIndex = this.currentGame.length - 1;
-		this.currentGame[gameIndex].playersIds.push(client.data.user.id);
-		client.data.gameIndex = this.currentGame.length - 1;
-		client.data.playerIndex = 0;
-		this.sendGameState(this.currentGame[gameIndex]);
+		console.log('Player ready');
+		const gameIndex = this.currentGame.findIndex((game) => game.playersIds.length < 2);
+
+		if (gameIndex !== -1 && this.currentGame[gameIndex].playersIds.includes(client.data.user.id)) {
+			console.log('Player already in game');
+			throw new WsException('Player already in game');
+			//return;
+		}
+		if (gameIndex === -1) {
+			const newGame = new GameState();
+			this.currentGame.push(newGame);
+			newGame.playersIds.push(client.data.user.id);
+			newGame.playersReady[0] = true;
+			client.data.gameIndex = this.currentGame.length - 1;
+			client.data.playerIndex = 0;
+		} else {
+			this.currentGame[gameIndex].playersIds.push(client.data.user.id);
+			this.currentGame[gameIndex].playersReady[1] = true;
+			client.data.gameIndex = gameIndex;
+			client.data.playerIndex = 1;
+		}
+		this.sendGameState(this.currentGame[client.data.gameIndex]);
 	}
 
 	@SubscribeMessage('pong/movePaddle')
-	handlePaddleMove(client: Socket, direction: 'up' | 'down') {
+	handlePaddleMove(client: Socket, direction: 'up' | 'down' | 'stop') {
 		const speed = 5;
-
 		const currentGame = this.currentGame[client.data.gameIndex];
 
-		if (direction === 'up') {
-			currentGame['player1'].paddleY -= speed;
-		} else {
-			currentGame['player1'].paddleY += speed;
+		if (!currentGame.playersReady.every(Boolean)) {
+			console.log('Not all players are ready');
+			return;
+		}
+		// Check if players are moving paddles
+		if (client.data.playerIndex === 0) {
+			//player1
+			if (direction === 'up') {
+				currentGame.player1.paddleY -= speed;
+			} else if (direction === 'down') {
+				currentGame.player1.paddleY += speed;
+			} else if (direction === 'stop') {
+				currentGame.player1.paddleY = currentGame.player1.paddleY;
+			}
+		} else if (client.data.playerIndex === 1) {
+			//player2
+			if (direction === 'up') {
+				currentGame.player2.paddleY -= speed;
+			} else if (direction === 'down') {
+				currentGame.player2.paddleY += speed;
+			} else if (direction === 'stop') {
+				currentGame.player2.paddleY = currentGame.player2.paddleY;
+			}
 		}
 
 		this.sendGameState(currentGame);
 	}
-
+	@SubscribeMessage('pong/stop')
 	sendGameState(currentGame: GameState) {
 		this.server.to(currentGame.playersIds.map((id) => id.toString())).emit('pong/gameState', currentGame);
 		console.log(currentGame);

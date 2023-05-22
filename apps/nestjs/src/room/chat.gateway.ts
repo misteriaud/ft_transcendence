@@ -41,8 +41,9 @@ export class ChatWebsocketGateway extends BaseWebsocketGateway {
 			throw new WsException('You are banned from this room');
 		}
 		// save message in DB
+		let tmpId = 10;
 		this.server.to(room.members.map((member) => member.user_id.toString())).emit('message', {
-			id: this.tmpId++,
+			id: tmpId++,
 			roomId: data.roomId,
 			sendBy: client.data.user.id,
 			content: data.content,
