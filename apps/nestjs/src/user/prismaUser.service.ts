@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserDto } from './dto';
 import { Profile } from 'passport';
@@ -6,7 +7,7 @@ import { authenticator } from 'otplib';
 
 @Injectable()
 export class PrismaUserService {
-	constructor(private prisma: PrismaService) {}
+	constructor(private config: ConfigService, private prisma: PrismaService) {}
 
 	// Get me
 	async getMe(user_id: number, includeSecret: boolean) {
@@ -98,6 +99,7 @@ export class PrismaUserService {
 								access: true,
 							},
 						},
+						role: true,
 					},
 				},
 				createdAt: true,
@@ -107,8 +109,9 @@ export class PrismaUserService {
 	}
 
 	// Edit me
-	async editMe(user_id: number, twoFactorEnabled: boolean, dto: UserDto) {
+	async editMe(user_id: number, twoFactorEnabled: boolean, dto: UserDto, avatarURL: string | null) {
 		let secret: string | null = null;
+
 		if (!twoFactorEnabled && dto.twoFactorEnabled) {
 			secret = authenticator.generateSecret();
 		}
@@ -119,6 +122,7 @@ export class PrismaUserService {
 			},
 			data: {
 				username: dto.username,
+				avatar: avatarURL,
 				twoFactorEnabled: dto.twoFactorEnabled,
 				twoFactorSecret: secret,
 			},
@@ -281,6 +285,7 @@ export class PrismaUserService {
 			data: {
 				username: profile.displayName,
 				login42: profile.username,
+				avatar: `http://localhost:${this.config.get('PORT')}/static/uploads/avatar/default.jpg`,
 			},
 			// select: {
 			// 	id: true,

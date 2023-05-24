@@ -1,11 +1,16 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { PrismaUserService } from './prismaUser.service';
 import { UserDto } from './dto';
 import { Profile } from 'passport';
+import { join } from 'path';
 
 @Injectable()
 export class UserService {
-	constructor(private prismaUser: PrismaUserService) {}
+	constructor(private config: ConfigService, private jwt: JwtService, private prismaUser: PrismaUserService) {}
+
+	// USER
 
 	// Get me
 	async getMe(user_id: number, includeSecret = false) {
@@ -13,8 +18,22 @@ export class UserService {
 	}
 
 	// Edit me
-	async editMe(user_id: number, twoFactorEnabled: boolean, dto: UserDto) {
-		return await this.prismaUser.editMe(user_id, twoFactorEnabled, dto);
+	async editMe(user_id: number, twoFactorEnabled: boolean, dto: UserDto, file?: Express.Multer.File) {
+		let avatarURL: string | null;
+
+		if (!file) {
+			avatarURL = null;
+		} else {
+			avatarURL = `http://localhost:${this.config.get('PORT')}` + join(`/static/uploads/avatar`, file.filename);
+		}
+		return {
+			me: await this.prismaUser.editMe(user_id, twoFactorEnabled, dto, avatarURL),
+			jwt: await this.jwt.signAsync({
+				id: user_id,
+				twoFactorEnabled: twoFactorEnabled,
+				authorized2fa: twoFactorEnabled,
+			}),
+		};
 	}
 
 	// Delete me
@@ -26,6 +45,8 @@ export class UserService {
 	async get(other_id: number) {
 		return await this.prismaUser.get(other_id);
 	}
+
+	// SOCIAL
 
 	// Block user
 	async block(user_id: number, other_id: number) {
@@ -98,7 +119,7 @@ export class UserService {
 		await this.prismaUser.deleteFriend(other_id, user_id);
 	}
 
-	// AUTH PART
+	// AUTH
 
 	// Auth - Get me by login42
 	async createFromOAuth2(profile: Profile) {

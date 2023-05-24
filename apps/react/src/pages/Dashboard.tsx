@@ -1,13 +1,12 @@
 import { Link, Outlet } from 'react-router-dom';
-import { useMe, useUser } from '../hooks/useUser';
+import { useMe } from '../hooks/useUser';
 import { Spinner } from '../components/Spinner';
-import { useStoreDispatchContext, useSocketContext } from '../hooks/useContext';
-import { StoreActionType } from '../context/storeProvider';
+import { useSocketContext } from '../hooks/useContext';
 import { ChatPanel } from './Chat/ChatPanel';
+import { Me } from '../components/me';
 
 export const DashboardLayout = () => {
 	const { isLoading, loggedIn } = useMe();
-	const dispatch = useStoreDispatchContext();
 	const { isConnected, socket } = useSocketContext();
 
 	if (isLoading) return <Spinner />;
@@ -21,18 +20,11 @@ export const DashboardLayout = () => {
 		);
 	}
 
-	function logout() {
-		dispatch({
-			type: StoreActionType.LOGOUT
-		});
-		window.location.reload();
-	}
-
 	return (
 		<div className="absolute inset-0 bg-orange-400 flex flex-col">
 			<nav className="h-12 bg-green-300 flex flex-row justify-between">
 				<Link to="settings">Settings</Link>
-				<button onClick={logout}>Logout</button>
+				<Me></Me>
 			</nav>
 			<Outlet />
 			<ChatPanel />

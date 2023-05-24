@@ -1,15 +1,21 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, FileTypeValidator, Get, HttpCode, HttpStatus, MaxFileSizeValidator, ParseFilePipe, Post, Put, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { JWTGuard } from 'src/auth/guard/JWT.guard';
 import { UserService } from './user.service';
 import { GetUser } from 'src/auth/decorator';
 import { BlockedGuard, GetOtherGuard, SelfGuard } from './guard';
 import { GetOther } from './decorator';
 import { UserDto } from './dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname, join } from 'path';
+import { existsSync, mkdirSync, unlinkSync } from 'fs';
 
 @UseGuards(JWTGuard)
 @Controller('users')
 export class UserController {
 	constructor(private userService: UserService) {}
+
+	// USER
 
 	// Get me
 	@Get('me')
@@ -19,8 +25,45 @@ export class UserController {
 
 	// Edit me
 	@Put('me')
-	editMe(@GetUser('id') user_id: number, @GetUser('twoFactorEnabled') twoFactorEnabled: boolean, @Body() dto: UserDto) {
-		return this.userService.editMe(user_id, twoFactorEnabled, dto);
+	@UseInterceptors(
+		FileInterceptor('avatar', {
+			storage: diskStorage({
+				destination: function (req, file, callback) {
+					const destination = 'static/uploads/avatar';
+
+					if (!existsSync(destination)) {
+						mkdirSync(destination, { recursive: true });
+					}
+					if (existsSync(join(destination, `${req.user['login42']}.png`))) {
+						unlinkSync(join(destination, `${req.user['login42']}.png`));
+					} else if (existsSync(join(destination, `${req.user['login42']}.jpg`))) {
+						unlinkSync(join(destination, `${req.user['login42']}.jpg`));
+					} else if (existsSync(join(destination, `${req.user['login42']}.jpeg`))) {
+						unlinkSync(join(destination, `${req.user['login42']}.jpeg`));
+					} else if (existsSync(join(destination, `${req.user['login42']}.gif`))) {
+						unlinkSync(join(destination, `${req.user['login42']}.gif`));
+					}
+					callback(null, destination);
+				},
+				filename: function (req, file, callback) {
+					callback(null, `${req.user['login42']}${extname(file.originalname)}`);
+				},
+			}),
+		}),
+	)
+	editMe(
+		@GetUser('id') user_id: number,
+		@GetUser('twoFactorEnabled') twoFactorEnabled: boolean,
+		@Body() dto: UserDto,
+		@UploadedFile(
+			new ParseFilePipe({
+				validators: [new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 8 }), new FileTypeValidator({ fileType: '.(png|jpg|jpeg|gif)' })],
+				fileIsRequired: false,
+			}),
+		)
+		file?: Express.Multer.File,
+	) {
+		return this.userService.editMe(user_id, twoFactorEnabled, dto, file);
 	}
 
 	// Delete me
@@ -36,6 +79,8 @@ export class UserController {
 	get(@GetOther('id') other_id: number) {
 		return this.userService.get(other_id);
 	}
+
+	// SOCIAL
 
 	// Block user
 	@UseGuards(SelfGuard, BlockedGuard, GetOtherGuard)

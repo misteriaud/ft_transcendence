@@ -1,6 +1,9 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-	content: ["./src/**/*.{js,jsx,ts,tsx}"],
+
+const withMT = require('@material-tailwind/react/utils/withMT');
+
+module.exports = withMT({
+	content: ['./src/**/*.{js,jsx,ts,tsx}'],
 	theme: {
 		extend: {}
 	},
@@ -8,11 +11,11 @@ module.exports = {
 	safelist: [
 		{
 			pattern: /bg-*/,
-			variants: ["lg", "hover", "focus", "lg:hover"]
+			variants: ['lg', 'hover', 'focus', 'lg:hover']
 		},
 		{
 			pattern: /self-*/,
-			variants: ["lg", "hover", "focus", "lg:hover"]
+			variants: ['lg', 'hover', 'focus', 'lg:hover']
 		}
 	]
-};
+});
