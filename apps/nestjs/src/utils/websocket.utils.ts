@@ -1,4 +1,5 @@
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import { i_JWTPayload } from 'src/auth/interface/jwt';
 import { JwtService } from '@nestjs/jwt';
@@ -8,6 +9,8 @@ import { UserService } from 'src/user/user.service';
 export class BaseWebsocketGateway {
 	@WebSocketServer()
 	server: Server;
+
+	private readonly logger = new Logger(BaseWebsocketGateway.name);
 
 	constructor(private jwtService: JwtService, private userService: UserService) {}
 
@@ -33,5 +36,9 @@ export class BaseWebsocketGateway {
 			return client.disconnect();
 		}
 		client.join(payload.id.toString());
+	}
+
+	async handleDisconnect(client: Socket) {
+		this.logger.log('Client disconnected: ' + client.id);
 	}
 }
