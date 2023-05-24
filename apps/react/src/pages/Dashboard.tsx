@@ -1,12 +1,13 @@
 import { Link, Outlet } from 'react-router-dom';
 import { useMe, useUser } from '../hooks/useUser';
-import { Spinner } from '../components/Spinner';
+import { Spinner } from '@material-tailwind/react';
 import { useStoreDispatchContext, useSocketContext } from '../hooks/useContext';
 import { StoreActionType } from '../context/storeProvider';
 import { ChatPanel } from './Chat/ChatPanel';
+import { User } from '../components/User';
 
 export const DashboardLayout = () => {
-	const { isLoading, loggedIn } = useMe();
+	const { isLoading, loggedIn, me } = useMe();
 	const dispatch = useStoreDispatchContext();
 	const { isConnected, socket } = useSocketContext();
 
@@ -36,6 +37,7 @@ export const DashboardLayout = () => {
 			</nav>
 			<Outlet />
 			<ChatPanel />
+			<User userId={me.id} />
 		</div>
 	);
 };

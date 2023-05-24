@@ -103,6 +103,29 @@ export class PrismaRoomService {
 		});
 	}
 
+	// Get all members of room
+	async getRoomMembers(room_id: number) {
+		return await this.prisma.room.findUnique({
+			where: {
+				id: room_id,
+			},
+			select: {
+				members: {
+					where: {
+						banned: false,
+					},
+					select: {
+						user: {
+							select: {
+								id: true,
+							},
+						},
+					},
+				},
+			},
+		});
+	}
+
 	// Edit a room
 	async edit(room_id: number, name: string, access: e_room_access, hash: string | null) {
 		return await this.prisma.room.update({

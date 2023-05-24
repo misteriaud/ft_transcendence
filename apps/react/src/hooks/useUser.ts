@@ -16,7 +16,7 @@ export function useMe() {
 	};
 }
 
-export function useUser(id: string) {
+export function useUser(id: number) {
 	const { data, mutate, error, isLoading } = useCustomSWR(`/users/${id}`);
 
 	const forbiden = error && error.response.status === 403;

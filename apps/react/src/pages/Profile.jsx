@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useUser } from '../hooks/useUser';
-import { Spinner } from '../components/Spinner';
+import { Spinner } from '@material-tailwind/react';
 
 export const ProfilePage = () => {
 	const { username } = useParams();

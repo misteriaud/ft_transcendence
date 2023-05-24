@@ -3,50 +3,21 @@ import { Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { MessagePayload } from './interface/Room';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { BaseWebsocketGateway } from 'src/utils/websocket.utils';
+import { PrismaRoomService } from './prismaRoom.service';
 
 @WebSocketGateway()
 export class ChatWebsocketGateway extends BaseWebsocketGateway {
-	constructor(jwtService: JwtService, userService: UserService, private prisma: PrismaService) {
+	constructor(jwtService: JwtService, userService: UserService, private prismaRoom: PrismaRoomService) {
 		super(jwtService, userService);
 	}
 
-	@SubscribeMessage('chat/message')
+	@SubscribeMessage('chat/postMessage')
 	async handleMessage(@ConnectedSocket() client: Socket, @MessageBody() data: MessagePayload) {
-		const room = await this.prisma.room.findUnique({
-			where: { id: data.roomId },
-			select: {
-				id: true,
-				members: {
-					select: {
-						user_id: true,
-					},
-				},
-			},
-		});
-		const userAsMember = await this.prisma.member.findUnique({
-			where: {
-				room_id_user_id: {
-					room_id: room.id,
-					user_id: client.data.user.id,
-				},
-			},
-		});
+		const newMessage = await this.prismaRoom.createMessage(data.roomId, client.data.user.id, data.content);
+		const roomMembers = await this.prismaRoom.getRoomMembers(data.roomId);
 
-		if (!userAsMember) {
-			throw new WsException('You are not a member of this room');
-		}
-		if (userAsMember.banned) {
-			throw new WsException('You are banned from this room');
-		}
 		// save message in DB
-		this.server.to(room.members.map((member) => member.user_id.toString())).emit('message', {
-			id: this.tmpId++,
-			roomId: data.roomId,
-			sendBy: client.data.user.id,
-			content: data.content,
-		});
-		// client.emit("room-", data.content)
+		this.server.to(roomMembers.members.map((member) => member.user.id.toString())).emit(`chat/newMessage/${data.roomId}`, newMessage);
 	}
 }
