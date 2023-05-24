@@ -7,6 +7,12 @@ datasource db {
 	url = env("DATABASE_URL")
 }
 
+generator prismaClassGenerator {
+    provider = "prisma-class-generator"
+	dryRun = false
+	useSwagger = true
+}
+
 model User {
 	id						Int					@id @default(autoincrement())
 	username				String				@unique
