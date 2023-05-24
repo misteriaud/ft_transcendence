@@ -1,7 +1,7 @@
 import { Room } from './Chat.interface';
 import { useMe } from '../../hooks/useUser';
 import { useApi, useCustomSWR } from '../../hooks/useApi';
-import { Menu, MenuHandler, MenuList, MenuItem, Button, Spinner } from '@material-tailwind/react';
+import { Menu, MenuHandler, MenuList, MenuItem, Spinner } from '@material-tailwind/react';
 import { User } from '../../components/User';
 
 function RoomMembers({ room }: { room: Room }) {

@@ -19,4 +19,7 @@ export class Message {
 
 	@ApiProperty({ type: Date })
 	createdAt: Date;
+
+	@ApiProperty({ type: Date })
+	updatedAt: Date;
 }
