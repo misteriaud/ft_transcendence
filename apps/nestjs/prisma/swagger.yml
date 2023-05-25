@@ -581,7 +581,7 @@ paths:
                 type: object
               examples:
                 base:
-                  value: {"statusCode": 409, "message": "This user is not blocked", "error":"Conflict"}
+                  value: {"statusCode": 409, "message": "This user is already blocked", "error":"Conflict"}
     delete:
       tags:
         - users
@@ -635,15 +635,9 @@ paths:
                 user:
                   summary: User
                   value: {"statusCode": 404, "message": "User not found", "error": "Not found"}
-        '409':
-          description: Conflict
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                base:
-                  value: {"statusCode": 409, "message": "This user is already blocked", "error":"Conflict"}
+                blocked_user:
+                  summary: Blocked user
+                  value: {"statusCode": 404, "message": "Blocked user not found", "error": "Not found"}
   /rooms:
     post:
       tags:

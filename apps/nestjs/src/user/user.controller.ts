@@ -111,7 +111,7 @@ export class UserController {
 	@ApiUnauthorizedResponse({ description: 'Unauthorized' })
 	@ApiForbiddenResponse({ description: 'You cannot perform this action on yourself' })
 	@ApiNotFoundResponse({ description: 'User not found' })
-	@ApiConflictResponse({ description: 'This user is not blocked' })
+	@ApiConflictResponse({ description: 'This user is already blocked' })
 	@UseGuards(SelfGuard, BlockedGuard, GetOtherGuard)
 	@Post(':id/block')
 	block(@GetUser('id') user_id: number, @GetOther('id') other_id: number) {

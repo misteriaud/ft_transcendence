@@ -1,4 +1,4 @@
-import { CanActivate, ConflictException, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
+import { CanActivate, ConflictException, ExecutionContext, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { UserGetService } from './userGet.service';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -32,7 +32,7 @@ export class BlockedGuard implements CanActivate {
 				throw new ConflictException('This user is already blocked');
 			}
 			if (unblockRequest && !userBlockOther) {
-				throw new ConflictException('This user is not blocked');
+				throw new NotFoundException('Blocked user not found');
 			}
 		}
 
