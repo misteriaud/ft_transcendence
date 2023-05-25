@@ -159,36 +159,6 @@ export class PrismaUserService {
 		});
 	}
 
-	// Create blocked
-	async createBlocked(userA_id: number, userB_id: number) {
-		return await this.prisma.blocked.create({
-			data: {
-				userA: {
-					connect: {
-						id: userA_id,
-					},
-				},
-				userB: {
-					connect: {
-						id: userB_id,
-					},
-				},
-			},
-		});
-	}
-
-	// Delete blocked
-	async deleteBlocked(userA_id: number, userB_id: number) {
-		await this.prisma.blocked.delete({
-			where: {
-				userA_id_userB_id: {
-					userA_id: userA_id,
-					userB_id: userB_id,
-				},
-			},
-		});
-	}
-
 	// Create friend request
 	async createFriendRequest(userA_id: number, userB_id: number) {
 		return await this.prisma.friendRequests.create({
@@ -264,6 +234,36 @@ export class PrismaUserService {
 	// Delete friend
 	async deleteFriend(userA_id: number, userB_id: number) {
 		await this.prisma.friends.delete({
+			where: {
+				userA_id_userB_id: {
+					userA_id: userA_id,
+					userB_id: userB_id,
+				},
+			},
+		});
+	}
+
+	// Create blocked
+	async createBlocked(userA_id: number, userB_id: number) {
+		return await this.prisma.blocked.create({
+			data: {
+				userA: {
+					connect: {
+						id: userA_id,
+					},
+				},
+				userB: {
+					connect: {
+						id: userB_id,
+					},
+				},
+			},
+		});
+	}
+
+	// Delete blocked
+	async deleteBlocked(userA_id: number, userB_id: number) {
+		await this.prisma.blocked.delete({
 			where: {
 				userA_id_userB_id: {
 					userA_id: userA_id,

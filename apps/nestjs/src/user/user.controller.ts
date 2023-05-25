@@ -57,30 +57,6 @@ export class UserController {
 	}
 
 	/**
-	 * Block user
-	 */
-	@ApiBadRequestResponse({ description: 'Invalid user id' })
-	@ApiUnauthorizedResponse({ description: 'Unauthorized' })
-	@ApiForbiddenResponse({ description: 'You cannot perform this action on yourself' })
-	@ApiNotFoundResponse({ description: 'User not found' })
-	@ApiConflictResponse({ description: 'This user is not blocked' })
-	@UseGuards(SelfGuard, BlockedGuard, GetOtherGuard)
-	@Post(':id/block')
-	block(@GetUser('id') user_id: number, @GetOther('id') other_id: number) {
-		return this.userService.block(user_id, other_id);
-	}
-
-	/**
-	 * Unblock user
-	 */
-	@UseGuards(SelfGuard, BlockedGuard, GetOtherGuard)
-	@HttpCode(HttpStatus.NO_CONTENT)
-	@Delete(':id/block')
-	unblock(@GetUser('id') user_id: number, @GetOther('id') other_id: number) {
-		return this.userService.unblock(user_id, other_id);
-	}
-
-	/**
 	 * Send friend request
 	 */
 	@UseGuards(SelfGuard, BlockedGuard, GetOtherGuard)
@@ -126,5 +102,29 @@ export class UserController {
 	@Delete(':id/friend')
 	deleteFriend(@GetUser('id') user_id: number, @GetOther('id') other_id: number) {
 		return this.userService.deleteFriend(user_id, other_id);
+	}
+
+	/**
+	 * Block user
+	 */
+	@ApiBadRequestResponse({ description: 'Invalid user id' })
+	@ApiUnauthorizedResponse({ description: 'Unauthorized' })
+	@ApiForbiddenResponse({ description: 'You cannot perform this action on yourself' })
+	@ApiNotFoundResponse({ description: 'User not found' })
+	@ApiConflictResponse({ description: 'This user is not blocked' })
+	@UseGuards(SelfGuard, BlockedGuard, GetOtherGuard)
+	@Post(':id/block')
+	block(@GetUser('id') user_id: number, @GetOther('id') other_id: number) {
+		return this.userService.block(user_id, other_id);
+	}
+
+	/**
+	 * Unblock user
+	 */
+	@UseGuards(SelfGuard, BlockedGuard, GetOtherGuard)
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@Delete(':id/block')
+	unblock(@GetUser('id') user_id: number, @GetOther('id') other_id: number) {
+		return this.userService.unblock(user_id, other_id);
 	}
 }

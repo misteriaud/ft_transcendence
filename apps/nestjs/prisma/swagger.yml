@@ -170,138 +170,6 @@ paths:
                 user:
                   summary: User
                   value: {"statusCode": 404, "message": "User not found", "error": "Not found"}
-  /users/{id}/block:
-    post:
-      tags:
-        - users
-      summary: Block user
-      parameters:
-        - name: id
-          in: path
-          description: Id of the user
-          required: true
-          schema:
-            type: string
-      responses:
-        '201':
-          description: User blocked successfully
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                base:
-                  value: {"userA_id": 1, "userB_id": 2}
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                invalid_user_id:
-                  summary: Invalid user id
-                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                base:
-                  value: {"statusCode": 401, "message": "Unauthorized"}
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                self:
-                  summary: Self-block
-                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
-        '404':
-          description: Not found
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                user:
-                  summary: User
-                  value: {"statusCode": 404, "message": "User not found", "error": "Not found"}
-        '409':
-          description: Conflict
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                base:
-                  value: {"statusCode": 409, "message": "This user is not blocked", "error":"Conflict"}
-    delete:
-      tags:
-        - users
-      summary: Unblock user
-      parameters:
-        - name: id
-          in: path
-          description: Id of the user
-          required: true
-          schema:
-            type: string
-      responses:
-        '204':
-          description: User unblocked successfully
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                invalid_user_id:
-                  summary: Invalid user id
-                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                base:
-                  value: {"statusCode": 401, "message": "Unauthorized"}
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                self:
-                  summary: Self-unblock
-                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
-        '404':
-          description: Not found
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                user:
-                  summary: User
-                  value: {"statusCode": 404, "message": "User not found", "error": "Not found"}
-        '409':
-          description: Conflict
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                base:
-                  value: {"statusCode": 409, "message": "This user is already blocked", "error":"Conflict"}
   /users/{id}/friend/request:
     post:
       tags:
@@ -581,6 +449,201 @@ paths:
                 friend_request:
                   summary: Friend request
                   value: {"statusCode": 404, "message": "Friend request not found", "error": "Not found"}
+  /users/{id}/friend:
+    delete:
+      tags:
+        - users
+      summary: Delete friend
+      parameters:
+        - name: id
+          in: path
+          description: Id of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Friend deleted successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_user_id:
+                  summary: Invalid user id
+                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                self:
+                  summary: Delete yourself as friend
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+                user_blocked:
+                  summary: User blocked
+                  value: {"statusCode": 403, "message": "You have blocked this user", "error": "Forbidden"}
+                blocked_by_this_user:
+                  summary: Blocked by this user
+                  value: {"statusCode": 403, "message": "You have been blocked by this user", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                user:
+                  summary: User
+                  value: {"statusCode": 404, "message": "User not found", "error": "Not found"}
+                friend:
+                  summary: Friend request
+                  value: {"statusCode": 404, "message": "Friend not found", "error": "Not found"}
+  /users/{id}/block:
+    post:
+      tags:
+        - users
+      summary: Block user
+      parameters:
+        - name: id
+          in: path
+          description: Id of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: User blocked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"userA_id": 1, "userB_id": 2}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_user_id:
+                  summary: Invalid user id
+                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                self:
+                  summary: Self-block
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                user:
+                  summary: User
+                  value: {"statusCode": 404, "message": "User not found", "error": "Not found"}
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 409, "message": "This user is not blocked", "error":"Conflict"}
+    delete:
+      tags:
+        - users
+      summary: Unblock user
+      parameters:
+        - name: id
+          in: path
+          description: Id of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: User unblocked successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_user_id:
+                  summary: Invalid user id
+                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                self:
+                  summary: Self-unblock
+                  value: {"statusCode": 403, "message": "You cannot perform this action on yourself", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                user:
+                  summary: User
+                  value: {"statusCode": 404, "message": "User not found", "error": "Not found"}
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 409, "message": "This user is already blocked", "error":"Conflict"}
   /rooms:
     post:
       tags:

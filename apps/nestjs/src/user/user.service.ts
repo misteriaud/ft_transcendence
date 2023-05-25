@@ -27,26 +27,6 @@ export class UserService {
 		return await this.prismaUser.get(other_id);
 	}
 
-	// Block user
-	async block(user_id: number, other_id: number) {
-		if (await this.prismaUser.getFriendRequest(user_id, other_id)) {
-			await this.prismaUser.deleteFriendRequest(user_id, other_id);
-		}
-		if (await this.prismaUser.getFriendRequest(other_id, user_id)) {
-			await this.prismaUser.deleteFriendRequest(other_id, user_id);
-		}
-		if (await this.prismaUser.getFriend(user_id, other_id)) {
-			await this.prismaUser.deleteFriend(user_id, other_id);
-			await this.prismaUser.deleteFriend(other_id, user_id);
-		}
-		return await this.prismaUser.createBlocked(user_id, other_id);
-	}
-
-	// Unblock user
-	async unblock(user_id: number, other_id: number) {
-		await this.prismaUser.deleteBlocked(user_id, other_id);
-	}
-
 	// Send friend request
 	async sendFriendRequest(user_id: number, other_id: number) {
 		if (await this.prismaUser.getFriend(user_id, other_id)) {
@@ -96,6 +76,26 @@ export class UserService {
 		}
 		await this.prismaUser.deleteFriend(user_id, other_id);
 		await this.prismaUser.deleteFriend(other_id, user_id);
+	}
+
+	// Block user
+	async block(user_id: number, other_id: number) {
+		if (await this.prismaUser.getFriendRequest(user_id, other_id)) {
+			await this.prismaUser.deleteFriendRequest(user_id, other_id);
+		}
+		if (await this.prismaUser.getFriendRequest(other_id, user_id)) {
+			await this.prismaUser.deleteFriendRequest(other_id, user_id);
+		}
+		if (await this.prismaUser.getFriend(user_id, other_id)) {
+			await this.prismaUser.deleteFriend(user_id, other_id);
+			await this.prismaUser.deleteFriend(other_id, user_id);
+		}
+		return await this.prismaUser.createBlocked(user_id, other_id);
+	}
+
+	// Unblock user
+	async unblock(user_id: number, other_id: number) {
+		await this.prismaUser.deleteBlocked(user_id, other_id);
 	}
 
 	// AUTH PART
