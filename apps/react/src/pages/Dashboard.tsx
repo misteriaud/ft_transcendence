@@ -5,6 +5,7 @@ import { useStoreDispatchContext, useSocketContext } from '../hooks/useContext';
 import { StoreActionType } from '../context/storeProvider';
 import { ChatPanel } from './Chat/ChatPanel';
 import { User } from '../components/User';
+import { Navbar } from '../components/Navbar';
 
 export const DashboardLayout = () => {
 	const { isLoading, loggedIn, me } = useMe();
@@ -31,13 +32,12 @@ export const DashboardLayout = () => {
 
 	return (
 		<div className="absolute inset-0 bg-orange-400 flex flex-col">
-			<nav className="h-12 bg-green-300 flex flex-row justify-between">
-				<Link to="settings">Settings</Link>
-				<button onClick={logout}>Logout</button>
-			</nav>
-			<Outlet />
-			<ChatPanel />
-			<User userId={me.id} />
+			<Navbar />
+			<div className="flex flex-row-reverse h-full">
+				<ChatPanel />
+				<Outlet />
+				<User userId={me.id} />
+			</div>
 		</div>
 	);
 };

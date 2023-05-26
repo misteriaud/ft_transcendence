@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { useCustomSWR } from '../../hooks/useApi';
+import { useApi, useCustomSWR } from '../../hooks/useApi';
 import { useSocketContext } from '../../hooks/useContext';
 import { useMe } from '../../hooks/useUser';
 import { Room, Message } from './Chat.interface';
@@ -16,42 +16,80 @@ import {
 	DialogFooter,
 	Button,
 	Input,
-	Select,
-	Option
+	Typography,
+	List,
+	ListItem,
+	ListItemPrefix,
+	Accordion,
+	AccordionHeader,
+	AccordionBody,
+	IconButton,
+	Radio,
+	Chip
 } from '@material-tailwind/react';
+
+import { ChevronRightIcon, ChevronDownIcon, UserIcon, UsersIcon, ChatBubbleBottomCenterTextIcon, PlusIcon } from '@heroicons/react/24/outline';
+import escapeRegExp from 'escape-string-regexp';
 
 function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => void }) {
 	const [name, setName] = useState('');
 	const [access, setAccess] = useState('PRIVATE');
 	const [password, setPassword] = useState('');
+	const { me, mutate } = useMe();
+	const api = useApi();
 
 	function submit(e: any) {
 		e.preventDefault();
-		// action(name, access, password);
+		if (!name) return;
+		api
+			.post('/rooms', {
+				name,
+				access,
+				password
+			})
+			.then((response) => {
+				console.log(me);
+				mutate({
+					...me,
+					memberOf: [...me.memberOf, { room: response.data }]
+				});
+				console.log(response);
+				handleOpen();
+			})
+			.catch((error) => {
+				console.log(error);
+			});
 	}
 
 	return (
-		<Dialog open={open} handler={handleOpen} size="xs">
-			<DialogHeader>Its a simple dialog.</DialogHeader>
-			<DialogBody divider>
-				<form onSubmit={submit}>
+		<Dialog open={open} handler={handleOpen} size="md">
+			<form onSubmit={submit} className="flex flex-col gap-2">
+				<DialogHeader>Create new room</DialogHeader>
+				<DialogBody divider>
+					<div className="flex">
+						<Radio id="PUBLIC" value="PUBLIC" name="type" label="Public" onChange={(e) => setAccess(e.target.value)} checked={access === 'PUBLIC'} />
+						<Radio id="PRIVATE" value="PRIVATE" name="type" label="Private" onChange={(e) => setAccess(e.target.value)} checked={access === 'PRIVATE'} />
+						<Radio
+							id="PROTECTED"
+							value="PROTECTED"
+							name="type"
+							label="Protected"
+							onChange={(e) => setAccess(e.target.value)}
+							checked={access === 'PROTECTED'}
+						/>
+					</div>
 					<Input value={name} onChange={(e) => setName(e.target.value)} label="name"></Input>
-					<Select label="Select Version">
-						<Option value="PRIVATE">Private</Option>
-						<Option value="PROTECTED">Protected</Option>
-						<Option value="PUBLIC">Public</Option>
-					</Select>
 					{access == 'PROTECTED' ? <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="name"></input> : null}
-				</form>
-			</DialogBody>
-			<DialogFooter>
-				<Button variant="text" color="red" onClick={handleOpen} className="mr-1">
-					<span>Cancel</span>
-				</Button>
-				<Button variant="gradient" color="green" onClick={handleOpen}>
-					<span>Confirm</span>
-				</Button>
-			</DialogFooter>
+				</DialogBody>
+				<DialogFooter className="flex flex-row">
+					<Button variant="text" color="red" onClick={handleOpen} className="mr-1">
+						<span>Cancel</span>
+					</Button>
+					<Button variant="gradient" color="green" onClick={submit}>
+						<span>Confirm</span>
+					</Button>
+				</DialogFooter>
+			</form>
 		</Dialog>
 	);
 }
@@ -153,6 +191,10 @@ function ChatSettings() {
 export function ChatPanel() {
 	const { me } = useMe();
 	const [openedChatIds, setOpenedChat] = useState<number[]>([]);
+	const [openFriends, setOpenFriends] = useState(true);
+	const [openRooms, setOpenRooms] = useState(true);
+	const [openCreateRoom, setOpenCreateRoom] = useState(false);
+	const [searchInput, setSearchInput] = useState('');
 
 	// if (isLoading) return null;
 	// // return (<Spinner />)
@@ -168,28 +210,91 @@ export function ChatPanel() {
 		setOpenedChat(openedChatIds.filter((roomId: number) => roomId != roomIdToClose));
 	}
 
+	const handleCreateRoom = () => {
+		setOpenCreateRoom(!openCreateRoom);
+	};
+
 	const rooms: Room[] = me.memberOf.map((member: any) => member.room);
+	const filteredRooms: Room[] = rooms.filter((room: Room) => {
+		const regex = new RegExp(escapeRegExp(searchInput), 'i');
+		return regex.test(room.name);
+	});
 	const openedChat = rooms.filter((room: Room) => openedChatIds.some((roomId) => roomId === room.id));
 
 	return (
-		<ul className="absolute bottom-0 right-0 flex flex-row">
-			{openedChat.map((room: Room) => {
-				return (
-					<Box title={<RoomInfo room={room} />} color="green" close={() => closeChat(room.id)} key={room.id}>
-						<Chat roomInfo={room} />
-					</Box>
-				);
-			})}
-			<Box title={<ChatSettings />} color="blue" key="main">
-				{/* <CreateRoom action={createRoom} /> */}
-				{rooms.map((room: Room) => {
+		<>
+			<ul className="absolute bottom-0 right-72 flex flex-row">
+				{openedChat.map((room: Room) => {
 					return (
-						<div className="bg-black bg-opacity-20 even:bg-opacity-10 flex justify-between px-4">
-							<RoomInfo key={room.id} room={room} onClick={() => openChat(room.id)} />
-						</div>
+						<Box title={<RoomInfo room={room} />} color="green" close={() => closeChat(room.id)} key={room.id}>
+							<Chat roomInfo={room} />
+						</Box>
 					);
 				})}
-			</Box>
-		</ul>
+			</ul>
+			<div className="bg-white h-full w-72 p-2">
+				<div className="p-2">
+					<Input icon={<UserIcon className="h-5 w-5" />} label="Search" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
+				</div>
+				<List>
+					<Accordion
+						open={openFriends}
+						icon={<ChevronDownIcon strokeWidth={2.5} className={`mx-auto h-4 w-4 transition-transform ${openFriends ? 'rotate-180' : ''}`} />}
+					>
+						<ListItem className="p-0" selected={openFriends} ripple={false}>
+							<AccordionHeader onClick={() => setOpenFriends(!openFriends)} className="border-b-0 p-3">
+								<ListItemPrefix>
+									<UsersIcon className="h-5 w-5" />
+								</ListItemPrefix>
+								<Typography color="blue-gray" className="mr-auto font-normal">
+									Friends
+								</Typography>
+							</AccordionHeader>
+						</ListItem>
+						<AccordionBody className="py-1">
+							<List className="p-0">
+								<ListItem>
+									<ListItemPrefix>
+										<ChevronRightIcon strokeWidth={3} className="h-3 w-5" />
+									</ListItemPrefix>
+									Analytics
+								</ListItem>
+							</List>
+						</AccordionBody>
+					</Accordion>
+					<Accordion
+						open={openRooms}
+						icon={<ChevronDownIcon strokeWidth={2.5} className={`mx-auto h-4 w-4 transition-transform ${openRooms ? 'rotate-180' : ''}`} />}
+					>
+						<ListItem className="p-0" selected={openRooms} ripple={false}>
+							<AccordionHeader onClick={() => setOpenRooms(!openRooms)} className="border-b-0 p-3">
+								<ListItemPrefix>
+									<ChatBubbleBottomCenterTextIcon className="h-5 w-5" />
+								</ListItemPrefix>
+								<Typography color="blue-gray" className="flex mr-auto font-normal gap-2">
+									Rooms
+									<Chip value={filteredRooms.length} variant="ghost" size="sm" className="rounded-full" />
+								</Typography>
+							</AccordionHeader>
+							<IconButton variant="text" color="blue-gray" onClick={() => setOpenCreateRoom(true)}>
+								<PlusIcon className="h-5 w-5" />
+							</IconButton>
+						</ListItem>
+						<AccordionBody className="py-1">
+							<List className="p-0">
+								{filteredRooms.map((room: Room) => {
+									return (
+										<ListItem ripple={false} selected={openedChatIds.some((id) => id === room.id)}>
+											<RoomInfo key={room.id} room={room} onClick={() => openChat(room.id)} />
+										</ListItem>
+									);
+								})}
+							</List>
+						</AccordionBody>
+					</Accordion>
+				</List>
+			</div>
+			<CreateRoom open={openCreateRoom} handleOpen={handleCreateRoom} />
+		</>
 	);
 }
