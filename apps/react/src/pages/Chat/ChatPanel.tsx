@@ -180,6 +180,7 @@ function ChatSettings() {
 					</MenuHandler>
 					<MenuList>
 						<MenuItem onClick={handleOpen}>Create room</MenuItem>
+						<MenuItem onClick={handleOpen}>Join room</MenuItem>
 					</MenuList>
 				</Menu>
 			</div>
