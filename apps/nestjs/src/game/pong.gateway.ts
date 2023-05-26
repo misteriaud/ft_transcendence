@@ -74,7 +74,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 				this.startGame(gameIndex);
 			}
 		}
-		this.sendGameState(this.currentGame[client.data.gameIndex]);
+		//this.sendGameState(this.currentGame[client.data.gameIndex]);
 	}
 
 	@SubscribeMessage('pong/movePaddle')
@@ -101,13 +101,13 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		} else if (direction === 'stop') {
 			currentPlayer.paddleY = currentPlayer.paddleY;
 		}
-		this.sendGameState(currentGame);
+		//this.sendGameState(currentGame);
 	}
 
 	@SubscribeMessage('pong/stop')
 	sendGameState(currentGame: GameState) {
 		this.server.to(currentGame.playersIds.map((id) => id.toString())).emit('pong/gameState', currentGame);
-		console.log(currentGame);
+		//console.log(currentGame);
 	}
 
 	@UsePipes(new ValidationPipe())
@@ -182,3 +182,10 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		this.sendGameState(game);
 	}
 }
+
+//	switch to an event driven approach
+//	use vectors instead of dx and dy
+//	send clientside inputs to calculate paddle vectors and ball vector
+//	debounce
+
+//	https://www.youtube.com/watch?v=KoWqdEACyLI

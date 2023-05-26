@@ -49,28 +49,26 @@ const Pong = () => {
 		[socket, gameState, isConnected]
 	);
 
-	const handleKeyDown = useCallback(
-		throttle((e: KeyboardEvent) => {
-			switch (e.key.toLowerCase()) {
-				case 'w':
-					handlePaddleMove('up');
-					break;
-				case 's':
-					handlePaddleMove('down');
-					break;
-			}
-		}, 150),
-		[handlePaddleMove]
-	);
+	function handleKeyDown(e: any) {
+		if (e.repeat) return;
+		console.log('keydown');
+		switch (e.key.toLowerCase()) {
+			case 'w':
+				handlePaddleMove('up');
+				break;
+			case 's':
+				handlePaddleMove('down');
+				break;
+		}
+	}
 
-	const handleKeyUp = useCallback(
-		throttle((e: KeyboardEvent) => {
-			if (e.key.toLowerCase() === 'w' || e.key.toLowerCase() === 's') {
-				handlePaddleMove('stop');
-			}
-		}, 150),
-		[handlePaddleMove]
-	);
+	function handleKeyUp(e: any) {
+		if (e.repeat) return;
+		console.log('keyup');
+		if (e.key.toLowerCase() === 'w' || e.key.toLowerCase() === 's') {
+			handlePaddleMove('stop');
+		}
+	}
 
 	// Draw Functions
 	const drawPaddle = useCallback((context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) => {
@@ -122,7 +120,7 @@ const Pong = () => {
 			window.removeEventListener('keyup', handleKeyUp);
 			window.removeEventListener('keydown', handleKeyDown);
 		};
-	}, [handleKeyUp, handleKeyDown]);
+	}, []);
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
