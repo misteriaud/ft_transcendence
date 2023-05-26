@@ -1,6 +1,7 @@
 import pongLogo from '../images/pongLogo.png';
 import { Card } from '@material-tailwind/react';
 import { Link, Outlet } from 'react-router-dom';
+import { ReactNode } from 'react';
 
 function SidebarButton({ content, pathDrawn, page }: { content: string; pathDrawn: string; page: string }) {
 	return (
@@ -53,7 +54,7 @@ function Sidebar() {
 	);
 }
 
-function CustomFrame({ outlet, backgroundColor, classNameDetails }: { outlet: any; backgroundColor: string; classNameDetails: string }) {
+function CustomFrame({ outlet, backgroundColor, classNameDetails }: { outlet: ReactNode; backgroundColor: string; classNameDetails: string }) {
 	return (
 		<Card className={`${classNameDetails} rounded-xl bg-gray-800 border-8 border-gray-800`}>
 			<Card className="h-full w-full bg-gray-800 border-8 border-gray-800">
@@ -69,7 +70,7 @@ function CustomFrame({ outlet, backgroundColor, classNameDetails }: { outlet: an
 	);
 }
 
-export function SidebarLayout({ outlet }: { outlet: any }) {
+export function SidebarLayout({ outlet }: { outlet: ReactNode }) {
 	return (
 		<div className="flex">
 			<Card className="w-1/4 min-w-min mb-3 mr-3 ml-3 bg-gray-100 max-w-[12rem]">
