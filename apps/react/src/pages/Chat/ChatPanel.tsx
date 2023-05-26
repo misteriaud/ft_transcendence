@@ -1,57 +1,70 @@
 import { useEffect, useState, useRef } from 'react';
-import { useCustomSWR } from '../../hooks/useApi';
+import { useApi, useCustomSWR } from '../../hooks/useApi';
 import { useSocketContext } from '../../hooks/useContext';
 import { useMe } from '../../hooks/useUser';
 import { Room, Message } from './Chat.interface';
 import { RoomInfo } from './Room';
-import {
-	Menu,
-	MenuHandler,
-	MenuList,
-	MenuItem,
-	Spinner,
-	Dialog,
-	DialogHeader,
-	DialogBody,
-	DialogFooter,
-	Button,
-	Input,
-	Select,
-	Option
-} from '@material-tailwind/react';
+import { Menu, MenuHandler, MenuList, MenuItem, Spinner, Dialog, DialogHeader, DialogBody, DialogFooter, Button, Input, Radio } from '@material-tailwind/react';
 
 function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => void }) {
 	const [name, setName] = useState('');
 	const [access, setAccess] = useState('PRIVATE');
 	const [password, setPassword] = useState('');
+	const { me, mutate } = useMe();
+	const api = useApi();
 
 	function submit(e: any) {
 		e.preventDefault();
-		// action(name, access, password);
+		if (!name) return;
+		api
+			.post('/rooms', {
+				name,
+				access,
+				password
+			})
+			.then((response) => {
+				console.log(me);
+				mutate({
+					...me,
+					memberOf: [...me.memberOf, { room: response.data }]
+				});
+				console.log(response);
+				handleOpen();
+			})
+			.catch((error) => {
+				console.log(error);
+			});
 	}
 
 	return (
-		<Dialog open={open} handler={handleOpen} size="xs">
-			<DialogHeader>Its a simple dialog.</DialogHeader>
-			<DialogBody divider>
-				<form onSubmit={submit}>
+		<Dialog open={open} handler={handleOpen} size="md">
+			<form onSubmit={submit} className="flex flex-col gap-2">
+				<DialogHeader>Create new room</DialogHeader>
+				<DialogBody divider>
+					<div className="flex">
+						<Radio id="PUBLIC" value="PUBLIC" name="type" label="Public" onChange={(e) => setAccess(e.target.value)} checked={access === 'PUBLIC'} />
+						<Radio id="PRIVATE" value="PRIVATE" name="type" label="Private" onChange={(e) => setAccess(e.target.value)} checked={access === 'PRIVATE'} />
+						<Radio
+							id="PROTECTED"
+							value="PROTECTED"
+							name="type"
+							label="Protected"
+							onChange={(e) => setAccess(e.target.value)}
+							checked={access === 'PROTECTED'}
+						/>
+					</div>
 					<Input value={name} onChange={(e) => setName(e.target.value)} label="name"></Input>
-					<Select label="Select Version">
-						<Option value="PRIVATE">Private</Option>
-						<Option value="PROTECTED">Protected</Option>
-						<Option value="PUBLIC">Public</Option>
-					</Select>
 					{access == 'PROTECTED' ? <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="name"></input> : null}
-				</form>
-			</DialogBody>
-			<DialogFooter>
-				<Button variant="text" color="red" onClick={handleOpen} className="mr-1">
-					<span>Cancel</span>
-				</Button>
-				<Button variant="gradient" color="green" onClick={handleOpen}>
-					<span>Confirm</span>
-				</Button>
-			</DialogFooter>
+				</DialogBody>
+				<DialogFooter className="flex flex-row">
+					<Button variant="text" color="red" onClick={handleOpen} className="mr-1">
+						<span>Cancel</span>
+					</Button>
+					<Button variant="gradient" color="green" onClick={submit}>
+						<span>Confirm</span>
+					</Button>
+				</DialogFooter>
+			</form>
 		</Dialog>
 	);
 }
@@ -142,6 +155,7 @@ function ChatSettings() {
 					</MenuHandler>
 					<MenuList>
 						<MenuItem onClick={handleOpen}>Create room</MenuItem>
+						<MenuItem onClick={handleOpen}>Join room</MenuItem>
 					</MenuList>
 				</Menu>
 			</div>
