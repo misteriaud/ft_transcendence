@@ -49,6 +49,7 @@ const Pong = () => {
 		[socket, isReady, isConnected]
 	);
 
+<<<<<<< HEAD
 	function handleKeyDown(e: any) {
 		if (e.repeat) return;
 		switch (e.key.toLowerCase()) {
@@ -67,6 +68,30 @@ const Pong = () => {
 			handlePaddleMove('stop');
 		}
 	}
+=======
+	const handleKeyDown = useCallback(
+		throttle((e: KeyboardEvent) => {
+			switch (e.key.toLowerCase()) {
+				case 'w':
+					handlePaddleMove('up');
+					break;
+				case 's':
+					handlePaddleMove('down');
+					break;
+			}
+		}, 150),
+		[handlePaddleMove]
+	);
+
+	const handleKeyUp = useCallback(
+		throttle((e: KeyboardEvent) => {
+			if (e.key.toLowerCase() === 'w' || e.key.toLowerCase() === 's') {
+				handlePaddleMove('stop');
+			}
+		}, 150),
+		[handlePaddleMove]
+	);
+>>>>>>> parent of 9406e55 (<fix> remove useless sengGameState calls)
 
 	// Draw Functions
 	const drawPaddle = useCallback((context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) => {
@@ -118,7 +143,7 @@ const Pong = () => {
 			window.removeEventListener('keyup', handleKeyUp);
 			window.removeEventListener('keydown', handleKeyDown);
 		};
-	}, []);
+	}, [handleKeyUp, handleKeyDown]);
 
 	useEffect(() => {
 		const canvas = canvasRef.current;

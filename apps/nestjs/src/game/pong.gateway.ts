@@ -84,6 +84,10 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 				this.startGame(gameIndex);
 			}
 		}
+<<<<<<< HEAD
+=======
+		this.sendGameState(this.currentGame[client.data.gameIndex]);
+>>>>>>> parent of 9406e55 (<fix> remove useless sengGameState calls)
 	}
 
 	@SubscribeMessage('pong/movePaddle')
@@ -103,12 +107,27 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 			return;
 		}
 
+<<<<<<< HEAD
 		currentPlayer.direction = direction;
+=======
+		if (direction === 'up' && currentPlayer.paddleY - paddleSpeed > 0) {
+			currentPlayer.paddleY -= paddleSpeed;
+		} else if (direction === 'down' && currentPlayer.paddleY + paddleSpeed < CANVAS_HEIGHT - currentGame.paddleHeight) {
+			currentPlayer.paddleY += paddleSpeed;
+		} else if (direction === 'stop') {
+			currentPlayer.paddleY = currentPlayer.paddleY;
+		}
+		this.sendGameState(currentGame);
+>>>>>>> parent of 9406e55 (<fix> remove useless sengGameState calls)
 	}
 
 	@SubscribeMessage('pong/stop')
 	sendGameState(currentGame: GameState) {
 		this.server.to(currentGame.playersIds.map((id) => id.toString())).emit('pong/gameState', currentGame);
+<<<<<<< HEAD
+=======
+		console.log(currentGame);
+>>>>>>> parent of 9406e55 (<fix> remove useless sengGameState calls)
 	}
 
 	@UsePipes(new ValidationPipe())
