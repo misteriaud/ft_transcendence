@@ -1,3 +1,4 @@
+//pong.gateway.ts
 import { WsException } from '@nestjs/websockets';
 import { UsePipes, ValidationPipe } from '@nestjs/common';
 import { BaseWebsocketGateway } from 'src/utils/websocket.utils';
@@ -9,11 +10,30 @@ import { Socket } from 'socket.io';
 const CANVAS_HEIGHT = 450;
 const CANVAS_WIDTH = 800;
 
+class Vector {
+	constructor(public dx: number, public dy: number) {}
+}
+
+class Ball {
+	public vector: Vector;
+
+	constructor(public x: number, public y: number, angle: number, magnitude: number, public paddleWidth: number) {
+		this.vector = new Vector(Math.cos(angle) * magnitude, Math.sin(angle) * magnitude);
+	}
+}
+
+class Player {
+	paddleY: number;
+	score: number;
+	paddleSpeed: number;
+	paddleDirection: 'up' | 'down' | 'stop';
+	paddleHeight: number;
+}
+
 class GameState {
 	ball: { x: number; y: number; dx: number; dy: number };
-	player1: { paddleY: number; score: number };
-	player2: { paddleY: number; score: number };
-	paddleHeight: number;
+	player1: Player;
+	player2: Player;
 	paddleWidth: number;
 	ballRadius: number;
 	playersIds: number[];
@@ -22,9 +42,8 @@ class GameState {
 
 	constructor() {
 		this.ball = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 75, dy: 0 };
-		this.player1 = { paddleY: CANVAS_HEIGHT / 2, score: 0 };
-		this.player2 = { paddleY: CANVAS_HEIGHT / 2, score: 0 };
-		this.paddleHeight = 80;
+		this.player1 = { paddleY: CANVAS_HEIGHT / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 6, paddleHeight: 80 };
+		this.player2 = { paddleY: CANVAS_HEIGHT / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 6, paddleHeight: 80 };
 		this.paddleWidth = 10;
 		this.ballRadius = 6;
 		this.playersIds = [];
@@ -74,37 +93,9 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 				this.startGame(gameIndex);
 			}
 		}
-		//this.sendGameState(this.currentGame[client.data.gameIndex]);
 	}
 
-	@SubscribeMessage('pong/movePaddle')
-	handlePaddleMove(client: Socket, direction: 'up' | 'down' | 'stop') {
-		const paddleSpeed = 6;
-		const currentGame = this.currentGame[client.data.gameIndex];
-
-		if (!currentGame || !currentGame.playersReady.every(Boolean)) {
-			console.log('Not all players are ready or game does not exist');
-			return;
-		}
-
-		const currentPlayer = currentGame[`player${client.data.playerIndex + 1}`];
-
-		if (!currentPlayer) {
-			console.log('Player does not exist');
-			return;
-		}
-
-		if (direction === 'up' && currentPlayer.paddleY - paddleSpeed > 0) {
-			currentPlayer.paddleY -= paddleSpeed;
-		} else if (direction === 'down' && currentPlayer.paddleY + paddleSpeed < CANVAS_HEIGHT - currentGame.paddleHeight) {
-			currentPlayer.paddleY += paddleSpeed;
-		} else if (direction === 'stop') {
-			currentPlayer.paddleY = currentPlayer.paddleY;
-		}
-		//this.sendGameState(currentGame);
-	}
-
-	@SubscribeMessage('pong/stop')
+	@SubscribeMessage('pong/sendGameState')
 	sendGameState(currentGame: GameState) {
 		this.server.to(currentGame.playersIds.map((id) => id.toString())).emit('pong/gameState', currentGame);
 		//console.log(currentGame);
@@ -112,29 +103,45 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 
 	@UsePipes(new ValidationPipe())
 	async handleDisconnect(client: Socket) {
-		if (client.data && client.data.user) {
-			const gameIndex = this.currentGame.findIndex((game) => game.playersIds.includes(client.data.user.id));
-			if (gameIndex !== -1) {
-				this.currentGame[gameIndex].playersReady[client.data.playerIndex] = false;
-				this.currentGame[gameIndex].playersIds = this.currentGame[gameIndex].playersIds.filter((id) => id !== client.data.user.id);
-
-				if (this.currentGame[gameIndex].playersIds.length === 0) {
-					this.currentGame.splice(gameIndex, 1);
-				}
-			}
-		}
 		super.handleDisconnect(client);
+	}
+
+	@SubscribeMessage('pong/movePaddle')
+	handlePaddleMove(client: Socket, direction: 'up' | 'down' | 'stop') {
+		const currentGame = this.currentGame[client.data.gameIndex];
+		const currentPlayer = currentGame[`player${client.data.playerIndex + 1}`];
+
+		if (!currentGame || !currentGame.playersReady.every(Boolean)) {
+			console.log('Not all players are ready or game does not exist');
+			return;
+		}
+
+		if (!currentPlayer) {
+			console.log('Player does not exist');
+			return;
+		}
+
+		if (direction === 'up') {
+			currentPlayer.paddleDirection = direction;
+		} else if (direction === 'down') {
+			currentPlayer.paddleDirection = direction;
+		} else {
+			currentPlayer.paddleDirection = 'stop';
+		}
 	}
 
 	startGame(gameIndex: number) {
 		this.currentGame[gameIndex].gameInterval = setInterval(() => {
 			const game = this.currentGame[gameIndex];
 			if (game.playersReady.every(Boolean)) {
-				this.updateGameState(game);
+				this.UpdateBallState(game);
+				this.updatePaddleState(game);
 			}
-			if (game.player1.score >= 10 || game.player2.score >= 10) {
+			if (game.player1.score >= 11 || game.player2.score >= 11) {
 				this.endGame(gameIndex);
 			}
+
+			this.sendGameState(game);
 		}, 1000 / 60);
 	}
 
@@ -147,7 +154,17 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		this.currentGame.splice(gameIndex, 1);
 	}
 
-	updateGameState(game: GameState) {
+	updatePaddleState(game: GameState) {
+		for (const player of [game.player1, game.player2]) {
+			if (player.paddleDirection === 'up') {
+				player.paddleY = Math.max(player.paddleY - player.paddleSpeed, 0);
+			} else if (player.paddleDirection === 'down') {
+				player.paddleY = Math.min(player.paddleY + player.paddleSpeed, CANVAS_HEIGHT - player.paddleHeight);
+			}
+		}
+	}
+
+	UpdateBallState(game: GameState) {
 		// ball movement
 		game.ball.x += game.ball.dx;
 		game.ball.y += game.ball.dy;
@@ -155,15 +172,15 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		// horizontal
 		if (game.ball.x > CANVAS_WIDTH || game.ball.x < 0) {
 			// right side collision
-			if (game.ball.x > CANVAS_WIDTH / 2 && game.ball.y >= game.player2.paddleY && game.ball.y <= game.player2.paddleY + game.paddleHeight) {
+			if (game.ball.x > CANVAS_WIDTH / 2 && game.ball.y >= game.player2.paddleY && game.ball.y <= game.player2.paddleY + game.player2.paddleHeight) {
 				game.ball.dx = -game.ball.dx;
-				const deltaY = game.ball.y - (game.player2.paddleY + game.paddleHeight / 2);
+				const deltaY = game.ball.y - (game.player2.paddleY + game.player2.paddleHeight / 2);
 				game.ball.dy = deltaY * 0.35;
 			}
 			// left side collision
-			else if (game.ball.x < CANVAS_WIDTH / 2 && game.ball.y >= game.player1.paddleY && game.ball.y <= game.player1.paddleY + game.paddleHeight) {
+			else if (game.ball.x < CANVAS_WIDTH / 2 && game.ball.y >= game.player1.paddleY && game.ball.y <= game.player1.paddleY + game.player1.paddleHeight) {
 				game.ball.dx = -game.ball.dx;
-				const deltaY = game.ball.y - (game.player1.paddleY + game.paddleHeight / 2);
+				const deltaY = game.ball.y - (game.player1.paddleY + game.player1.paddleHeight / 2);
 				game.ball.dy = deltaY * 0.35;
 			} else {
 				if (game.ball.x < CANVAS_WIDTH / 2) {
@@ -179,13 +196,5 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		if (game.ball.y > CANVAS_HEIGHT || game.ball.y < 0) {
 			game.ball.dy = -game.ball.dy;
 		}
-		this.sendGameState(game);
 	}
 }
-
-//	switch to an event driven approach
-//	use vectors instead of dx and dy
-//	send clientside inputs to calculate paddle vectors and ball vector
-//	debounce
-
-//	https://www.youtube.com/watch?v=KoWqdEACyLI

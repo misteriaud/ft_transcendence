@@ -1,7 +1,7 @@
+//Pong.tsx
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useSocketContext } from '../hooks/useContext';
 import { Button } from '@material-tailwind/react';
-import { throttle } from 'lodash';
 
 interface Ball {
 	x: number;
@@ -13,17 +13,18 @@ interface Ball {
 interface Player {
 	paddleY: number;
 	score: number;
+	paddleSpeed: number;
+	paddleDirection: 'up' | 'down' | 'stop';
+	paddleHeight: number;
 }
 
 interface GameState {
 	ball: Ball;
 	player1: Player;
 	player2: Player;
-	paddleHeight: number;
 	paddleWidth: number;
 	ballRadius: number;
 	playersReady: boolean[];
-	fps: number;
 }
 
 const Pong = () => {
@@ -40,36 +41,28 @@ const Pong = () => {
 		}
 	}, [isReady, socket]);
 
-	const handlePaddleMove = useCallback(
-		throttle((direction: string) => {
-			if (gameState && isConnected) {
-				socket.emit('pong/movePaddle', direction);
-			}
-		}, 150),
-		[socket, gameState, isConnected]
-	);
-
 	function handleKeyDown(e: any) {
 		if (e.repeat) return;
-		console.log('keydown');
-		switch (e.key.toLowerCase()) {
-			case 'w':
-				handlePaddleMove('up');
-				break;
-			case 's':
-				handlePaddleMove('down');
-				break;
+		if (gameState && isConnected) {
+			switch (e.key.toLowerCase()) {
+				case 'w':
+					socket.emit('pong/movePaddle', 'up');
+					break;
+				case 's':
+					socket.emit('pong/movePaddle', 'down');
+					break;
+			}
 		}
 	}
 
 	function handleKeyUp(e: any) {
 		if (e.repeat) return;
-		console.log('keyup');
-		if (e.key.toLowerCase() === 'w' || e.key.toLowerCase() === 's') {
-			handlePaddleMove('stop');
+		if (gameState && isConnected) {
+			if (e.key.toLowerCase() === 'w' || e.key.toLowerCase() === 's') {
+				socket.emit('pong/movePaddle', 'stop');
+			}
 		}
 	}
-
 	// Draw Functions
 	const drawPaddle = useCallback((context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) => {
 		context.fillStyle = 'white';
@@ -95,10 +88,37 @@ const Pong = () => {
 		context.fillText(`Score: ${score}`, x, y);
 	}, []);
 
+	const drawGame = useCallback(
+		(gameState: GameState) => {
+			if (canvasRef.current) {
+				const context = canvasRef.current.getContext('2d');
+				if (context) {
+					drawField(context, canvasRef.current);
+					drawPaddle(context, 10, gameState.player1.paddleY, gameState.paddleWidth, gameState.player1.paddleHeight);
+					drawPaddle(
+						context,
+						canvasRef.current.width - gameState.paddleWidth - 10,
+						gameState.player2.paddleY,
+						gameState.paddleWidth,
+						gameState.player2.paddleHeight
+					);
+					drawBall(context, gameState.ball.x, gameState.ball.y, gameState.ballRadius);
+					drawScore(context, gameState.player1.score, canvasRef.current.width / 4, 30);
+					drawScore(context, gameState.player2.score, (canvasRef.current.width * 3) / 4, 30);
+				}
+			}
+		},
+		[drawField, drawPaddle, drawBall, drawScore]
+	);
+
 	// Effects
 	useEffect(() => {
 		if (isConnected) {
-			socket.on('pong/gameState', setGameState);
+			socket.on('pong/gameState', (gameState) => {
+				const newState = JSON.parse(JSON.stringify(gameState));
+				setGameState(newState);
+				drawGame(newState);
+			});
 
 			socket.on('pong/gameEnded', () => {
 				alert('Game has ended');
@@ -110,7 +130,7 @@ const Pong = () => {
 				socket.off('pong/gameEnded');
 			};
 		}
-	}, [isConnected, socket]);
+	}, [isConnected, socket, drawGame]);
 
 	useEffect(() => {
 		window.addEventListener('keyup', handleKeyUp);
@@ -120,29 +140,7 @@ const Pong = () => {
 			window.removeEventListener('keyup', handleKeyUp);
 			window.removeEventListener('keydown', handleKeyDown);
 		};
-	}, []);
-
-	useEffect(() => {
-		const canvas = canvasRef.current;
-		if (!canvas || !gameState) return;
-		const context = canvas.getContext('2d');
-		if (!context) return;
-
-		const render = () => {
-			drawField(context, canvas);
-			drawPaddle(context, 10, gameState.player1.paddleY, gameState.paddleWidth, gameState.paddleHeight);
-			drawPaddle(context, canvas.width - gameState.paddleWidth - 10, gameState.player2.paddleY, gameState.paddleWidth, gameState.paddleHeight);
-			drawBall(context, gameState.ball.x, gameState.ball.y, gameState.ballRadius);
-			drawScore(context, gameState.player1.score, canvas.width / 4, 30);
-			drawScore(context, gameState.player2.score, (canvas.width * 3) / 4, 30);
-
-			requestAnimationFrame(render);
-		};
-
-		const animationFrameId = requestAnimationFrame(render);
-
-		return () => cancelAnimationFrame(animationFrameId);
-	}, [gameState, drawField, drawPaddle, drawBall, drawScore]);
+	}, [handleKeyDown, handleKeyUp]);
 
 	// Render
 	return (
