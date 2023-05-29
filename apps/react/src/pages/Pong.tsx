@@ -41,17 +41,16 @@ const Pong = () => {
 	}, [isReady, socket]);
 
 	const handlePaddleMove = useCallback(
-		throttle((direction: string) => {
-			if (gameState && isConnected) {
+		(direction: 'up' | 'down' | 'stop') => {
+			if (isReady && isConnected) {
 				socket.emit('pong/movePaddle', direction);
 			}
-		}, 150),
-		[socket, gameState, isConnected]
+		},
+		[socket, isReady, isConnected]
 	);
 
 	function handleKeyDown(e: any) {
 		if (e.repeat) return;
-		console.log('keydown');
 		switch (e.key.toLowerCase()) {
 			case 'w':
 				handlePaddleMove('up');
@@ -64,7 +63,6 @@ const Pong = () => {
 
 	function handleKeyUp(e: any) {
 		if (e.repeat) return;
-		console.log('keyup');
 		if (e.key.toLowerCase() === 'w' || e.key.toLowerCase() === 's') {
 			handlePaddleMove('stop');
 		}
@@ -97,7 +95,7 @@ const Pong = () => {
 
 	// Effects
 	useEffect(() => {
-		if (isConnected) {
+		if (isReady && isConnected) {
 			socket.on('pong/gameState', setGameState);
 
 			socket.on('pong/gameEnded', () => {
@@ -110,7 +108,7 @@ const Pong = () => {
 				socket.off('pong/gameEnded');
 			};
 		}
-	}, [isConnected, socket]);
+	}, [isReady, isConnected, socket]);
 
 	useEffect(() => {
 		window.addEventListener('keyup', handleKeyUp);
