@@ -1,11 +1,12 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaUserService } from './prismaUser.service';
+import { PrismaRoomService } from 'src/room/prismaRoom.service';
 import { UserDto } from './dto';
 import { Profile } from 'passport';
 
 @Injectable()
 export class UserService {
-	constructor(private prismaUser: PrismaUserService) {}
+	constructor(private prismaUser: PrismaUserService, private prismaRoom: PrismaRoomService) {}
 
 	// Get me
 	async getMe(user_id: number, includeSecret = false) {
@@ -56,9 +57,7 @@ export class UserService {
 			throw new ConflictException('You have already sent a friend request to this user');
 		}
 		if (await this.prismaUser.getFriendRequest(other_id, user_id)) {
-			await this.prismaUser.deleteFriendRequest(other_id, user_id);
-			await this.prismaUser.createFriend(other_id, user_id);
-			return await this.prismaUser.createFriend(user_id, other_id);
+			return await this.acceptFriendRequest(user_id, other_id);
 		}
 		return await this.prismaUser.createFriendRequest(user_id, other_id);
 	}
@@ -77,7 +76,6 @@ export class UserService {
 			throw new NotFoundException('Friend request not found');
 		}
 		await this.prismaUser.deleteFriendRequest(other_id, user_id);
-		await this.prismaUser.createFriend(other_id, user_id);
 		return await this.prismaUser.createFriend(user_id, other_id);
 	}
 
@@ -95,7 +93,6 @@ export class UserService {
 			throw new NotFoundException('Friend not found');
 		}
 		await this.prismaUser.deleteFriend(user_id, other_id);
-		await this.prismaUser.deleteFriend(other_id, user_id);
 	}
 
 	// AUTH PART

@@ -36,6 +36,35 @@ export class PrismaRoomService {
 		});
 	}
 
+	// Create a room
+	async createDMRoom(user_id_A: number, user_id_B: number) {
+		return await this.prisma.room.create({
+			data: {
+				name: '',
+				access: e_room_access.DIRECT_MESSAGE,
+				members: {
+					createMany: {
+						data: [
+							{
+								role: e_member_role.OWNER,
+								user_id: user_id_A,
+							},
+							{
+								role: e_member_role.OWNER,
+								user_id: user_id_B,
+							},
+						],
+					},
+				},
+			},
+			select: {
+				id: true,
+				name: true,
+				access: true,
+			},
+		});
+	}
+
 	// Get PUBLIC and PROTECTED rooms
 	async getPublicOrProtected(user_id: number) {
 		return await this.prisma.room.findMany({

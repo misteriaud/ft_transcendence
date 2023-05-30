@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UserDto } from './dto';
 import { Profile } from 'passport';
 import { authenticator } from 'otplib';
+import { e_member_role, e_room_access } from '@prisma/client';
 
 @Injectable()
 export class PrismaUserService {
@@ -10,7 +11,7 @@ export class PrismaUserService {
 
 	// Get me
 	async getMe(user_id: number, includeSecret: boolean) {
-		return await this.prisma.user.findUnique({
+		const me = await this.prisma.user.findUnique({
 			where: {
 				id: user_id,
 			},
@@ -33,6 +34,21 @@ export class PrismaUserService {
 								status: true,
 							},
 						},
+						room_id: true,
+					},
+				},
+				friendOf: {
+					select: {
+						userA: {
+							select: {
+								id: true,
+								username: true,
+								login42: true,
+								avatar: true,
+								status: true,
+							},
+						},
+						room_id: true,
 					},
 				},
 				blocked: {
@@ -104,6 +120,25 @@ export class PrismaUserService {
 				updatedAt: true,
 			},
 		});
+
+		if (!me) return me;
+
+		const allFriends = [
+			...me.friends.map((friend) => {
+				return {
+					...friend.userB,
+					room_id: friend.room_id,
+				};
+			}),
+			...me.friendOf.map((friend) => {
+				return {
+					...friend.userA,
+					room_id: friend.room_id,
+				};
+			}),
+		];
+
+		return { ...me, allFriends };
 	}
 
 	// Edit me
@@ -233,16 +268,43 @@ export class PrismaUserService {
 
 	// Create friend
 	async createFriend(userA_id: number, userB_id: number) {
+		let idA = userA_id;
+		let idB = userB_id;
+
+		if (idB < idA) {
+			idA = userB_id;
+			idB = userA_id;
+		}
+
 		return await this.prisma.friends.create({
 			data: {
 				userA: {
 					connect: {
-						id: userA_id,
+						id: idA,
 					},
 				},
 				userB: {
 					connect: {
-						id: userB_id,
+						id: idB,
+					},
+				},
+				room: {
+					create: {
+						access: e_room_access.DIRECT_MESSAGE,
+						members: {
+							createMany: {
+								data: [
+									{
+										role: e_member_role.OWNER,
+										user_id: idA,
+									},
+									{
+										role: e_member_role.OWNER,
+										user_id: idB,
+									},
+								],
+							},
+						},
 					},
 				},
 			},
@@ -251,11 +313,19 @@ export class PrismaUserService {
 
 	// Get friend
 	async getFriend(userA_id: number, userB_id: number) {
+		let idA = userA_id;
+		let idB = userB_id;
+
+		if (idB < idA) {
+			idA = userB_id;
+			idB = userA_id;
+		}
+
 		return await this.prisma.friends.findUnique({
 			where: {
 				userA_id_userB_id: {
-					userA_id: userA_id,
-					userB_id: userB_id,
+					userA_id: idA,
+					userB_id: idB,
 				},
 			},
 		});
@@ -263,11 +333,19 @@ export class PrismaUserService {
 
 	// Delete friend
 	async deleteFriend(userA_id: number, userB_id: number) {
+		let idA = userA_id;
+		let idB = userB_id;
+
+		if (idB < idA) {
+			idA = userB_id;
+			idB = userA_id;
+		}
+
 		await this.prisma.friends.delete({
 			where: {
 				userA_id_userB_id: {
-					userA_id: userA_id,
-					userB_id: userB_id,
+					userA_id: idA,
+					userB_id: idB,
 				},
 			},
 		});

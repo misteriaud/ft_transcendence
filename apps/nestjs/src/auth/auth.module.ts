@@ -7,6 +7,7 @@ import { FortyTwoStrategy } from './42.strategy';
 import { UserModule } from 'src/user/user.module';
 import { UserService } from 'src/user/user.service';
 import { PrismaUserService } from 'src/user/prismaUser.service';
+import { PrismaRoomService } from 'src/room/prismaRoom.service';
 
 @Module({
 	imports: [
@@ -18,7 +19,7 @@ import { PrismaUserService } from 'src/user/prismaUser.service';
 			signOptions: { expiresIn: '1d' }, // e.g. 30s, 7d, 24h
 		}),
 	],
-	providers: [AuthService, FortyTwoStrategy, UserService, PrismaUserService],
+	providers: [AuthService, FortyTwoStrategy, UserService, PrismaUserService, PrismaRoomService],
 	controllers: [AuthController],
 })
 export class AuthModule {}

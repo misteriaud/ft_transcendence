@@ -40,6 +40,8 @@ model Friends {
 	userA_id	Int
 	userB		User	@relation("FriendsB", fields: [userB_id], references: [id], onDelete: Cascade)
 	userB_id	Int
+	room		Room	@relation(fields: [room_id], references: [id], onDelete: Cascade)
+	room_id		Int		@unique
 
 	@@id([userA_id, userB_id])
 	@@map("_Friends")
@@ -85,6 +87,7 @@ model Room {
 	access	e_room_access	@default(PUBLIC)
 	hash	String?
 	members	Member[]
+	friends	Friends?
 
 	@@map("rooms")
 }
