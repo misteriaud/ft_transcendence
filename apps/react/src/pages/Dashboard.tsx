@@ -31,12 +31,11 @@ export const DashboardLayout = () => {
 	}
 
 	return (
-		<div className="absolute inset-0 bg-orange-400 flex flex-col">
+		<div className="absolute inset-0 bg-orange-400 flex flex-col h-screen w-screen">
 			<Navbar />
-			<div className="flex flex-row-reverse h-full">
-				<ChatPanel />
+			<div className="flex flex-row justify-between h-full overflow-hidden">
 				<Outlet />
-				<User userId={me.id} />
+				<ChatPanel />
 			</div>
 		</div>
 	);

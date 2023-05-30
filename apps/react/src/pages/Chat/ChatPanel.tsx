@@ -233,11 +233,11 @@ export function ChatPanel() {
 					);
 				})}
 			</ul>
-			<div className="bg-white h-full w-72 p-2">
-				<div className="p-2">
+			<div className="bg-white w-72 p-2 flex flex-col">
+				<div className="p-2 shrink-0">
 					<Input icon={<UserIcon className="h-5 w-5" />} label="Search" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
 				</div>
-				<List>
+				<List className="overflow-scroll">
 					<Accordion
 						open={openFriends}
 						icon={<ChevronDownIcon strokeWidth={2.5} className={`mx-auto h-4 w-4 transition-transform ${openFriends ? 'rotate-180' : ''}`} />}
@@ -252,7 +252,7 @@ export function ChatPanel() {
 								</Typography>
 							</AccordionHeader>
 						</ListItem>
-						<AccordionBody className="py-1">
+						<AccordionBody className="py-1 overflow-scroll">
 							<List className="p-0">
 								<ListItem>
 									<ListItemPrefix>
@@ -281,7 +281,7 @@ export function ChatPanel() {
 								<PlusIcon className="h-5 w-5" />
 							</IconButton>
 						</ListItem>
-						<AccordionBody className="py-1">
+						<AccordionBody className="py-1 overflow-scroll">
 							<List className="p-0">
 								{filteredRooms.map((room: Room) => {
 									return (
