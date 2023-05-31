@@ -20,7 +20,7 @@ class Player {
 }
 
 class GameState {
-	ball: { x: number; y: number; dx: number; dy: number; ax: number; ay: number };
+	ball: { x: number; y: number; dx: number; dy: number };
 	player1: Player;
 	player2: Player;
 	paddleWidth: number;
@@ -31,9 +31,9 @@ class GameState {
 	timestamp: number;
 
 	constructor() {
-		this.ball = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 75, dy: 0, ax: 0, ay: 0 };
-		this.player1 = { paddleY: CANVAS_HEIGHT / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 6, paddleHeight: 80 };
-		this.player2 = { paddleY: CANVAS_HEIGHT / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 6, paddleHeight: 80 };
+		this.ball = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 2, dy: 0 };
+		this.player1 = { paddleY: CANVAS_HEIGHT / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80 };
+		this.player2 = { paddleY: CANVAS_HEIGHT / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80 };
 		this.paddleWidth = 10;
 		this.ballRadius = 6;
 		this.playersIds = [];
@@ -45,10 +45,8 @@ class GameState {
 	resetBall() {
 		this.ball.x = CANVAS_WIDTH / 2;
 		this.ball.y = CANVAS_HEIGHT / 2;
-		this.ball.dx = CANVAS_HEIGHT / 75;
+		this.ball.dx = CANVAS_HEIGHT / 2;
 		this.ball.dy = 0;
-		this.ball.ax = 0;
-		this.ball.ay = 0;
 		return this.ball;
 	}
 }
@@ -123,8 +121,11 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 			const game = this.currentGame[gameIndex];
 			if (game && !game.playersReady.every((player) => player === true)) return;
 
-			this.UpdateBallState(game);
-			this.updatePaddleState(game);
+			const now = Date.now();
+			const deltaTime = now - game.timestamp;
+			game.timestamp = now;
+			this.UpdateBallState(game, deltaTime / 1000);
+			this.updatePaddleState(game, deltaTime / 1000);
 
 			if (game.player1.score >= 11 || game.player2.score >= 11) {
 				return this.endGame(gameIndex);
@@ -143,32 +144,28 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		this.currentGame.splice(gameIndex, 1);
 	}
 
-	updatePaddleState(game: GameState) {
+	updatePaddleState(game: GameState, deltaTime: number) {
 		for (const player of [game.player1, game.player2]) {
 			if (player.paddleDirection === 'up') {
-				player.paddleY = Math.max(player.paddleY - player.paddleSpeed, 0);
+				player.paddleY = Math.max(player.paddleY - player.paddleSpeed * deltaTime, 0);
 			} else if (player.paddleDirection === 'down') {
-				player.paddleY = Math.min(player.paddleY + player.paddleSpeed, CANVAS_HEIGHT - player.paddleHeight);
+				player.paddleY = Math.min(player.paddleY + player.paddleSpeed * deltaTime, CANVAS_HEIGHT - player.paddleHeight);
 			}
 		}
 	}
 
-	UpdateBallState(game: GameState) {
+	UpdateBallState(game: GameState, deltaTime: number) {
 		// ball movement
-		game.ball.x += game.ball.dx;
-		game.ball.y += game.ball.dy;
-		game.ball.ax = 0;
-		game.ball.ay = 0;
+		game.ball.x += game.ball.dx * deltaTime;
+		game.ball.y += game.ball.dy * deltaTime;
 
 		// horizontal
 		if (game.ball.x > CANVAS_WIDTH || game.ball.x < 0) {
-			const oldDx = game.ball.dx;
 			// right side collision
 			if (game.ball.x > CANVAS_WIDTH / 2 && game.ball.y >= game.player2.paddleY && game.ball.y <= game.player2.paddleY + game.player2.paddleHeight) {
 				game.ball.dx = -game.ball.dx;
 				const deltaY = game.ball.y - (game.player2.paddleY + game.player2.paddleHeight / 2);
 				game.ball.dy = deltaY * 0.35;
-				game.ball.ax = game.ball.dx / (1 / TIME_DIVISION);
 			}
 			// left side collision
 			else if (game.ball.x < CANVAS_WIDTH / 2 && game.ball.y >= game.player1.paddleY && game.ball.y <= game.player1.paddleY + game.player1.paddleHeight) {
@@ -187,9 +184,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 
 		// vertical
 		if (game.ball.y > CANVAS_HEIGHT || game.ball.y < 0) {
-			const oldDy = game.ball.dy;
 			game.ball.dy = -game.ball.dy;
-			game.ball.ay = game.ball.dy / (1 / TIME_DIVISION);
 		}
 	}
 }
