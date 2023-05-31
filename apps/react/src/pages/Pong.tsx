@@ -8,6 +8,7 @@ interface Ball {
 	y: number;
 	dx: number;
 	dy: number;
+	lastUpdate: number;
 }
 
 interface Player {
@@ -32,6 +33,16 @@ const Pong = () => {
 	const { isConnected, socket } = useSocketContext();
 	const [isReady, setIsReady] = useState(false);
 	const [gameState, setGameState] = useState<GameState | null>(null);
+
+	// Ball predict
+	const predictBallPosition = useCallback((ball: Ball) => {
+		const dt = (Date.now() - ball.lastUpdate) / 1000;
+		return {
+			...ball,
+			x: ball.x + ball.dx * dt,
+			y: ball.y + ball.dy * dt
+		};
+	}, []);
 
 	// Handlers
 	const handleReadyClick = useCallback(() => {
@@ -102,13 +113,15 @@ const Pong = () => {
 						gameState.paddleWidth,
 						gameState.player2.paddleHeight
 					);
-					drawBall(context, gameState.ball.x, gameState.ball.y, gameState.ballRadius);
+
+					const predictedBall = predictBallPosition(gameState.ball);
+					drawBall(context, predictedBall.x, predictedBall.y, gameState.ballRadius);
 					drawScore(context, gameState.player1.score, canvasRef.current.width / 4, 30);
 					drawScore(context, gameState.player2.score, (canvasRef.current.width * 3) / 4, 30);
 				}
 			}
 		},
-		[drawField, drawPaddle, drawBall, drawScore]
+		[drawField, drawPaddle, drawBall, drawScore, predictBallPosition]
 	);
 
 	// Effects
@@ -116,6 +129,7 @@ const Pong = () => {
 		if (isConnected) {
 			socket.on('pong/gameState', (gameState) => {
 				const newState = JSON.parse(JSON.stringify(gameState));
+				newState.ball.lastUpdate = Date.now();
 				setGameState(newState);
 				drawGame(newState);
 			});

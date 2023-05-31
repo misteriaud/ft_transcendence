@@ -10,18 +10,6 @@ import { Socket } from 'socket.io';
 const CANVAS_HEIGHT = 450;
 const CANVAS_WIDTH = 800;
 
-class Vector {
-	constructor(public dx: number, public dy: number) {}
-}
-
-class Ball {
-	public vector: Vector;
-
-	constructor(public x: number, public y: number, angle: number, magnitude: number, public paddleWidth: number) {
-		this.vector = new Vector(Math.cos(angle) * magnitude, Math.sin(angle) * magnitude);
-	}
-}
-
 class Player {
 	paddleY: number;
 	score: number;
@@ -39,6 +27,7 @@ class GameState {
 	playersIds: number[];
 	playersReady: boolean[];
 	gameInterval: NodeJS.Timeout | null;
+	timestamp: number;
 
 	constructor() {
 		this.ball = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 75, dy: 0 };
@@ -97,6 +86,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 
 	@SubscribeMessage('pong/sendGameState')
 	sendGameState(currentGame: GameState) {
+		currentGame.timestamp = Date.now();
 		this.server.to(currentGame.playersIds.map((id) => id.toString())).emit('pong/gameState', currentGame);
 		//console.log(currentGame);
 	}
@@ -121,13 +111,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 			return;
 		}
 
-		if (direction === 'up') {
-			currentPlayer.paddleDirection = direction;
-		} else if (direction === 'down') {
-			currentPlayer.paddleDirection = direction;
-		} else {
-			currentPlayer.paddleDirection = 'stop';
-		}
+		currentPlayer.paddleDirection = direction;
 	}
 
 	startGame(gameIndex: number) {
