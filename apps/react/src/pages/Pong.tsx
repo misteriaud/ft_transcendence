@@ -35,12 +35,15 @@ const Pong = () => {
 	const { isConnected, socket } = useSocketContext();
 	const [isReady, setIsReady] = useState(false);
 	const [gameState, setGameState] = useState<GameState | null>(null);
+	const intervalId: React.MutableRefObject<number | null> = useRef(null);
 
 	// Ball predict
 	const predictBallPosition = (ball: Ball, time: number) => {
 		const elapsed = time - ball.lastUpdate;
-		const x = ball.x + ball.dx * elapsed + 0.5 * ball.ax * Math.pow(elapsed, 2);
-		const y = ball.y + ball.dy * elapsed + 0.5 * ball.ay * Math.pow(elapsed, 2);
+		console.log(elapsed);
+		const x = ball.x + ball.dx * elapsed;
+		const y = ball.y + ball.dy * elapsed;
+		console.log(ball.ax);
 		return { x, y };
 	};
 
@@ -99,39 +102,31 @@ const Pong = () => {
 		context.fillText(`Score: ${score}`, x, y);
 	}, []);
 
-	const drawGame = useCallback(
-		(gameState: GameState) => {
-			if (canvasRef.current) {
-				const context = canvasRef.current.getContext('2d');
-				if (context) {
-					drawField(context, canvasRef.current);
-					drawPaddle(context, 10, gameState.player1.paddleY, gameState.paddleWidth, gameState.player1.paddleHeight);
-					drawPaddle(
-						context,
-						canvasRef.current.width - gameState.paddleWidth - 10,
-						gameState.player2.paddleY,
-						gameState.paddleWidth,
-						gameState.player2.paddleHeight
-					);
+	function drawGame(state: GameState) {
+		if (!canvasRef.current || !state) return;
 
-					const predictedBall = predictBallPosition(gameState.ball, Date.now());
-					drawBall(context, predictedBall.x, predictedBall.y, gameState.ballRadius);
-					drawScore(context, gameState.player1.score, canvasRef.current.width / 4, 30);
-					drawScore(context, gameState.player2.score, (canvasRef.current.width * 3) / 4, 30);
-				}
-			}
-		},
-		[drawField, drawPaddle, drawBall, drawScore, predictBallPosition]
-	);
+		const context = canvasRef.current.getContext('2d');
+		if (!context) return;
+		console.log('draw game state');
+		drawField(context, canvasRef.current);
+		drawPaddle(context, 10, state.player1.paddleY, state.paddleWidth, state.player1.paddleHeight);
+		drawPaddle(context, canvasRef.current.width - state.paddleWidth - 10, state.player2.paddleY, state.paddleWidth, state.player2.paddleHeight);
+
+		const predictedBall = predictBallPosition(state.ball, Date.now());
+		drawBall(context, predictedBall.x, predictedBall.y, state.ballRadius);
+		//drawBall(context, state.ball.x, state.ball.y, state.ballRadius);
+		drawScore(context, state.player1.score, canvasRef.current.width / 4, 30);
+		drawScore(context, state.player2.score, (canvasRef.current.width * 3) / 4, 30);
+	}
 
 	// Effects
 	useEffect(() => {
 		if (isConnected) {
 			socket.on('pong/gameState', (gameState) => {
+				setIsReady(true);
 				const newState = JSON.parse(JSON.stringify(gameState));
 				newState.ball.lastUpdate = Date.now();
 				setGameState(newState);
-				drawGame(newState);
 			});
 
 			socket.on('pong/gameEnded', () => {
@@ -144,7 +139,7 @@ const Pong = () => {
 				socket.off('pong/gameEnded');
 			};
 		}
-	}, [isConnected, socket, drawGame]);
+	}, [isConnected, socket]);
 
 	useEffect(() => {
 		window.addEventListener('keyup', handleKeyUp);
@@ -155,6 +150,17 @@ const Pong = () => {
 			window.removeEventListener('keydown', handleKeyDown);
 		};
 	}, [handleKeyDown, handleKeyUp]);
+
+	useEffect(() => {
+		console.log('new game state');
+		if (canvasRef.current && gameState && isReady)
+			intervalId.current = window.setInterval(() => {
+				drawGame(gameState);
+			}, 1000 / 120);
+		return () => {
+			if (intervalId.current) clearInterval(intervalId.current);
+		};
+	}, [canvasRef, gameState, isReady]);
 
 	// Render
 	return (

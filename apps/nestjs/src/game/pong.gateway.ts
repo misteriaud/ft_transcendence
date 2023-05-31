@@ -9,6 +9,7 @@ import { Socket } from 'socket.io';
 
 const CANVAS_HEIGHT = 450;
 const CANVAS_WIDTH = 800;
+const TIME_DIVISION = 10;
 
 class Player {
 	paddleY: number;
@@ -120,16 +121,17 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 	startGame(gameIndex: number) {
 		this.currentGame[gameIndex].gameInterval = setInterval(() => {
 			const game = this.currentGame[gameIndex];
-			if (game.playersReady.every(Boolean)) {
-				this.UpdateBallState(game);
-				this.updatePaddleState(game);
-			}
+			if (game && !game.playersReady.every((player) => player === true)) return;
+
+			this.UpdateBallState(game);
+			this.updatePaddleState(game);
+
 			if (game.player1.score >= 11 || game.player2.score >= 11) {
-				this.endGame(gameIndex);
+				return this.endGame(gameIndex);
 			}
 
 			this.sendGameState(game);
-		}, 1000 / 60);
+		}, 1000 / TIME_DIVISION);
 	}
 
 	endGame(gameIndex: number) {
@@ -166,7 +168,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 				game.ball.dx = -game.ball.dx;
 				const deltaY = game.ball.y - (game.player2.paddleY + game.player2.paddleHeight / 2);
 				game.ball.dy = deltaY * 0.35;
-				game.ball.ax = (game.ball.dx - oldDx) / (1 / 60);
+				game.ball.ax = game.ball.dx / (1 / TIME_DIVISION);
 			}
 			// left side collision
 			else if (game.ball.x < CANVAS_WIDTH / 2 && game.ball.y >= game.player1.paddleY && game.ball.y <= game.player1.paddleY + game.player1.paddleHeight) {
@@ -187,7 +189,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		if (game.ball.y > CANVAS_HEIGHT || game.ball.y < 0) {
 			const oldDy = game.ball.dy;
 			game.ball.dy = -game.ball.dy;
-			game.ball.ay = (game.ball.dy - oldDy) / (1 / 60);
+			game.ball.ay = game.ball.dy / (1 / TIME_DIVISION);
 		}
 	}
 }
