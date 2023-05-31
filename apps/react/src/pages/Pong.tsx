@@ -8,6 +8,8 @@ interface Ball {
 	y: number;
 	dx: number;
 	dy: number;
+	ax: number;
+	ay: number;
 	lastUpdate: number;
 }
 
@@ -35,14 +37,12 @@ const Pong = () => {
 	const [gameState, setGameState] = useState<GameState | null>(null);
 
 	// Ball predict
-	const predictBallPosition = useCallback((ball: Ball) => {
-		const dt = (Date.now() - ball.lastUpdate) / 1000;
-		return {
-			...ball,
-			x: ball.x + ball.dx * dt,
-			y: ball.y + ball.dy * dt
-		};
-	}, []);
+	const predictBallPosition = (ball: Ball, time: number) => {
+		const elapsed = time - ball.lastUpdate;
+		const x = ball.x + ball.dx * elapsed + 0.5 * ball.ax * Math.pow(elapsed, 2);
+		const y = ball.y + ball.dy * elapsed + 0.5 * ball.ay * Math.pow(elapsed, 2);
+		return { x, y };
+	};
 
 	// Handlers
 	const handleReadyClick = useCallback(() => {
@@ -114,7 +114,7 @@ const Pong = () => {
 						gameState.player2.paddleHeight
 					);
 
-					const predictedBall = predictBallPosition(gameState.ball);
+					const predictedBall = predictBallPosition(gameState.ball, Date.now());
 					drawBall(context, predictedBall.x, predictedBall.y, gameState.ballRadius);
 					drawScore(context, gameState.player1.score, canvasRef.current.width / 4, 30);
 					drawScore(context, gameState.player2.score, (canvasRef.current.width * 3) / 4, 30);

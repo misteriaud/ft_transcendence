@@ -19,7 +19,7 @@ class Player {
 }
 
 class GameState {
-	ball: { x: number; y: number; dx: number; dy: number };
+	ball: { x: number; y: number; dx: number; dy: number; ax: number; ay: number };
 	player1: Player;
 	player2: Player;
 	paddleWidth: number;
@@ -30,7 +30,7 @@ class GameState {
 	timestamp: number;
 
 	constructor() {
-		this.ball = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 75, dy: 0 };
+		this.ball = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 75, dy: 0, ax: 0, ay: 0 };
 		this.player1 = { paddleY: CANVAS_HEIGHT / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 6, paddleHeight: 80 };
 		this.player2 = { paddleY: CANVAS_HEIGHT / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 6, paddleHeight: 80 };
 		this.paddleWidth = 10;
@@ -38,6 +38,7 @@ class GameState {
 		this.playersIds = [];
 		this.playersReady = [false, false];
 		this.gameInterval = null;
+		this.timestamp = Date.now();
 	}
 
 	resetBall() {
@@ -45,6 +46,8 @@ class GameState {
 		this.ball.y = CANVAS_HEIGHT / 2;
 		this.ball.dx = CANVAS_HEIGHT / 75;
 		this.ball.dy = 0;
+		this.ball.ax = 0;
+		this.ball.ay = 0;
 		return this.ball;
 	}
 }
@@ -152,14 +155,18 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		// ball movement
 		game.ball.x += game.ball.dx;
 		game.ball.y += game.ball.dy;
+		game.ball.ax = 0;
+		game.ball.ay = 0;
 
 		// horizontal
 		if (game.ball.x > CANVAS_WIDTH || game.ball.x < 0) {
+			const oldDx = game.ball.dx;
 			// right side collision
 			if (game.ball.x > CANVAS_WIDTH / 2 && game.ball.y >= game.player2.paddleY && game.ball.y <= game.player2.paddleY + game.player2.paddleHeight) {
 				game.ball.dx = -game.ball.dx;
 				const deltaY = game.ball.y - (game.player2.paddleY + game.player2.paddleHeight / 2);
 				game.ball.dy = deltaY * 0.35;
+				game.ball.ax = (game.ball.dx - oldDx) / (1 / 60);
 			}
 			// left side collision
 			else if (game.ball.x < CANVAS_WIDTH / 2 && game.ball.y >= game.player1.paddleY && game.ball.y <= game.player1.paddleY + game.player1.paddleHeight) {
@@ -178,7 +185,9 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 
 		// vertical
 		if (game.ball.y > CANVAS_HEIGHT || game.ball.y < 0) {
+			const oldDy = game.ball.dy;
 			game.ball.dy = -game.ball.dy;
+			game.ball.ay = (game.ball.dy - oldDy) / (1 / 60);
 		}
 	}
 }
