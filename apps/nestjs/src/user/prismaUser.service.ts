@@ -109,23 +109,30 @@ export class PrismaUserService {
 	}
 
 	// Edit me
-	async editMe(user_id: number, twoFactorEnabled: boolean, dto: UserDto, avatarURL: string | null) {
+	async editMe(user_id: number, twoFactorEnabled: boolean, new_twoFactorEnabled: boolean, dto: UserDto, avatarURL: string | null) {
 		let secret: string | null = null;
 
-		if (!twoFactorEnabled && dto.twoFactorEnabled) {
+		if (!twoFactorEnabled && new_twoFactorEnabled) {
 			secret = authenticator.generateSecret();
 		}
+
+		const data: {
+			username?: string;
+			avatar?: string;
+			twoFactorEnabled?: boolean;
+			twoFactorSecret?: string;
+		} = {
+			...(dto.username !== null && { username: dto.username }),
+			...(avatarURL !== null && { avatar: avatarURL }),
+			...(dto.twoFactorEnabled !== null && { twoFactorEnabled: new_twoFactorEnabled }),
+			...(secret !== null && { twoFactorSecret: secret }),
+		};
 
 		return await this.prisma.user.update({
 			where: {
 				id: user_id,
 			},
-			data: {
-				username: dto.username,
-				avatar: avatarURL,
-				twoFactorEnabled: dto.twoFactorEnabled,
-				twoFactorSecret: secret,
-			},
+			data: data,
 			select: {
 				id: true,
 				username: true,

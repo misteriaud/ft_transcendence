@@ -6,8 +6,10 @@ import { useStoreDispatchContext } from '../hooks/useContext';
 import { StoreActionType } from '../context/storeProvider';
 import { useApi } from '../hooks/useApi';
 import './me-settings.css';
+import { useMe } from '../hooks/useUser';
 
-export function SettingsDialog({ me, mutate, dialogStatus, dialogHandler }: any) {
+export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
+	const { me, mutate } = useMe();
 	const [state, setState] = useState('initial');
 	const [info, setInfo] = useState({
 		username: me.username,
@@ -18,6 +20,7 @@ export function SettingsDialog({ me, mutate, dialogStatus, dialogHandler }: any)
 	});
 	const dispatch = useStoreDispatchContext();
 	const api = useApi();
+	console.log(state);
 
 	function handleAvatarUpload(event: any) {
 		const avatar = event.target.files[0];
@@ -32,6 +35,7 @@ export function SettingsDialog({ me, mutate, dialogStatus, dialogHandler }: any)
 
 	function handleTwoFactorEnabledChange(event: any) {
 		setState('editing');
+
 		setInfo({ ...info, twoFactorEnabled: event.target.checked });
 	}
 
@@ -45,13 +49,13 @@ export function SettingsDialog({ me, mutate, dialogStatus, dialogHandler }: any)
 		const formData = new FormData();
 
 		if (me.avatar !== info.avatarURL) {
-			info.avatar && formData.append('avatar', info.avatar);
+			typeof info.avatar !== 'undefined' && info.avatar !== null && formData.append('avatar', info.avatar);
 		}
 		if (me.username !== info.username) {
-			info.username && formData.append('username', info.username);
+			typeof info.username !== 'undefined' && info.username !== null && formData.append('username', info.username);
 		}
 		if (me.twoFactorEnabled !== info.twoFactorEnabled) {
-			info.twoFactorEnabled && formData.append('twoFactorEnabled', info.twoFactorEnabled);
+			typeof info.twoFactorEnabled !== 'undefined' && info.twoFactorEnabled !== null && formData.append('twoFactorEnabled', info.twoFactorEnabled);
 		}
 
 		setState('loading');
@@ -66,26 +70,24 @@ export function SettingsDialog({ me, mutate, dialogStatus, dialogHandler }: any)
 				const avatarURL = `${res.data.me.avatar}?t=${Date.now()}`;
 				const twoFactorEnabled = res.data.me.twoFactorEnabled;
 
-				mutate({
-					...me,
-					username: username,
-					avatar: avatarURL,
-					twoFactorEnabled: twoFactorEnabled
+				dispatch({
+					type: StoreActionType.LOGIN,
+					content: res.data.jwt
 				});
-				if (res.data.twoFactorSecret) {
-					const twoFactorSecret = res.data.me.twoFactorSecret;
-
-					dispatch({
-						type: StoreActionType.LOGIN,
-						content: res.data.jwt
-					});
+				if (res.data.me.twoFactorSecret) {
 					setState('two-factor-secret');
-					setInfo({ ...info, username: username, avatarURL: avatarURL, twoFactorEnabled: twoFactorEnabled, twoFactorSecret: twoFactorSecret });
+					setInfo({ ...info, username: username, avatarURL: avatarURL, twoFactorEnabled: twoFactorEnabled, twoFactorSecret: res.data.me.twoFactorSecret });
 				} else {
 					setState('initial');
 					setInfo({ ...info, username: username, avatarURL: avatarURL, twoFactorEnabled: twoFactorEnabled, twoFactorSecret: '' });
 					dialogHandler();
 				}
+				// mutate({
+				// 	...me,
+				// 	username: username,
+				// 	avatar: avatarURL,
+				// 	twoFactorEnabled: twoFactorEnabled
+				// });
 			})
 			.catch(() => {
 				setState('editing');

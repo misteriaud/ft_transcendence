@@ -19,25 +19,20 @@ export function Me() {
 
 	if (isLoading) {
 		return (
-			<Menu>
-				<MenuHandler>
-					<div className="flex justify-center items-center p-3 bg-white">
-						<Spinner />
-					</div>
-				</MenuHandler>
-			</Menu>
+			<div className="flex justify-center items-center p-3 bg-white">
+				<Spinner />
+			</div>
 		);
 	}
 	if (error) {
 		// error
 		return (
-			<Menu>
-				<MenuHandler>
-					<div className="flex justify-center items-center p-3 rounded-md text-red-500 hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80">
-						<ExclamationTriangleIcon strokeWidth={2} className="h-12 w-12" />
-					</div>
-				</MenuHandler>
-			</Menu>
+			<div
+				className="flex justify-center items-center p-3 rounded-md text-red-500 hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80"
+				onClick={() => mutate()}
+			>
+				<ExclamationTriangleIcon strokeWidth={2} className="h-12 w-12" />
+			</div>
 		);
 	}
 
@@ -68,18 +63,12 @@ export function Me() {
 		<Menu open={openMenu} handler={handleOpenCloseMenu}>
 			<MenuHandler>
 				<div className="flex justify-center items-center p-3 rounded-md text-blue-gray-500 hover:text-blue-gray-900 bg-white hover:bg-blue-gray-50 hover:bg-opacity-80">
-					{isLoading ? (
-						<Spinner />
-					) : (
-						<>
-							<Typography variant="h5" className="font-normal px-3 py-2">
-								{me.username}
-							</Typography>
-							<Badge overlap="circular" placement="bottom-end" color="green">
-								<Avatar variant="circular" alt={me.username} className="cursor-pointer" src={`${me.avatar}?t=${Date.now()}`} />
-							</Badge>
-						</>
-					)}
+					<Typography variant="h5" className="font-normal px-3 py-2">
+						{me.username}
+					</Typography>
+					<Badge overlap="circular" placement="bottom-end" color="green">
+						<Avatar variant="circular" alt={me.username} className="cursor-pointer" src={`${me.avatar}?t=${Date.now()}`} />
+					</Badge>
 				</div>
 			</MenuHandler>
 			<MenuList>
@@ -109,7 +98,7 @@ export function Me() {
 					</Typography>
 				</MenuItem>
 			</MenuList>
-			<SettingsDialog me={me} mutate={mutate} dialogStatus={openSettingsDialog} dialogHandler={handleOpenCloseSettingsDialog} />
+			<SettingsDialog dialogStatus={openSettingsDialog} dialogHandler={handleOpenCloseSettingsDialog} />
 		</Menu>
 	);
 }

@@ -47,7 +47,10 @@ function RoomMenuItems({ me, user, room_id }: { me: i_me; user: i_user; room_id:
 		return (
 			<>
 				<hr className="my-2 border-blue-gray-50" />
-				<div className="flex justify-around p-2 rounded-md text-red-500 hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80">
+				<div
+					className="flex justify-around p-2 rounded-md text-red-500 hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80"
+					onClick={() => mutateRoom()}
+				>
 					<ExclamationTriangleIcon strokeWidth={2} className="h-6 w-6 text-red-500" />
 				</div>
 			</>
@@ -213,30 +216,29 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 
 	if (isLoadingMe || isLoadingUser) {
 		return (
-			<Menu>
-				<MenuHandler>
-					<div className="flex justify-center items-center p-3 bg-white">
-						<Spinner />
-					</div>
-				</MenuHandler>
-			</Menu>
+			<div className="flex justify-center items-center p-3 bg-white">
+				<Spinner />
+			</div>
 		);
 	}
 	if (errorMe || errorUser) {
 		// error
 		return (
-			<Menu>
-				<MenuHandler>
-					<div className="flex justify-center items-center p-3 rounded-md text-red-500 hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80">
-						<ExclamationTriangleIcon strokeWidth={2} className="h-12 w-12" />
-					</div>
-				</MenuHandler>
-			</Menu>
+			<div
+				className="flex justify-center items-center p-3 rounded-md text-red-500 hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80"
+				onClick={() => {
+					mutateMe();
+					mutateUser();
+				}}
+			>
+				<ExclamationTriangleIcon strokeWidth={2} className="h-12 w-12" />
+			</div>
 		);
 	}
 
 	const meAdminOrOwnerOfRooms = me.memberOf.filter((m: i_member) => m.role === e_member_role.OWNER || m.role === e_member_role.ADMIN);
 
+	const isMeUser = me.id === user.id;
 	const isCurrentLocationMeProfile = location.pathname === `/dashboard/users/${user.id}` || location.pathname === `/dashboard/users/${user.login42}`;
 	const areMeAndUserFriends = me.friends.some((f: i_friends) => f.userB.id === user.id);
 	const isMeAdminOrOwnerOfOneRoom = meAdminOrOwnerOfRooms.length > 0;
@@ -245,6 +247,7 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 	const meBlockUser = me.blocked.some((f: i_blocked) => f.userB.id === user.id);
 	const userBlockMe = me.blockedBy.some((f: i_blocked) => f.userB.id === me.id);
 
+	const hideAll = isMeUser;
 	const disableProfile = isCurrentLocationMeProfile || meBlockUser || userBlockMe;
 	const disableSendMessage = !areMeAndUserFriends || meBlockUser || userBlockMe;
 	const disableInviteToRoom = !areMeAndUserFriends || !isMeAdminOrOwnerOfOneRoom || meBlockUser || userBlockMe;
@@ -360,7 +363,7 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 					</Badge>
 				</div>
 			</MenuHandler>
-			<MenuList>
+			<MenuList className={`${hideAll && 'hidden'}`}>
 				<MenuItem className="flex items-center gap-2" disabled={disableProfile} onClick={handleProfile}>
 					<UserCircleIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">
