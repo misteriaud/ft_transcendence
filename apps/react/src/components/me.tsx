@@ -1,32 +1,56 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Avatar, Badge, Menu, MenuHandler, MenuItem, MenuList, Spinner, Typography } from '@material-tailwind/react';
-import { Cog6ToothIcon, PowerIcon, UserCircleIcon, UsersIcon } from '@heroicons/react/24/solid';
+import { Cog6ToothIcon, ExclamationTriangleIcon, PowerIcon, UserCircleIcon, UsersIcon } from '@heroicons/react/24/solid';
 import { KeyedMutator } from 'swr';
 import { useStoreDispatchContext } from '../hooks/useContext';
 import { StoreActionType } from '../context/storeProvider';
 import { useMe } from '../hooks/useUser';
-import { User } from './prisma-interfaces';
+import { i_me } from './interfaces';
 import { SettingsDialog } from './me-settings';
 
 export function Me() {
-	const { isLoading, me, mutate }: { isLoading: boolean; me: User; mutate: KeyedMutator<any> } = useMe();
+	const { me, mutate, isLoading, error }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
 	const [openMenu, setOpenMenu] = useState(false);
 	const [openSettingsDialog, setOpenSettingsDialog] = useState(false);
 	const location = useLocation();
 	const navigate = useNavigate();
 	const dispatch = useStoreDispatchContext();
 
+	if (isLoading) {
+		return (
+			<Menu>
+				<MenuHandler>
+					<div className="flex justify-center items-center p-3 bg-white">
+						<Spinner />
+					</div>
+				</MenuHandler>
+			</Menu>
+		);
+	}
+	if (error) {
+		// error
+		return (
+			<Menu>
+				<MenuHandler>
+					<div className="flex justify-center items-center p-3 rounded-md text-red-500 hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80">
+						<ExclamationTriangleIcon strokeWidth={2} className="h-12 w-12" />
+					</div>
+				</MenuHandler>
+			</Menu>
+		);
+	}
+
 	const isCurrentLocationMeProfile =
 		location.pathname === `/dashboard/users/${me.id}` || location.pathname === `/dashboard/users/${me.login42}` || location.pathname === '/dashboard/users/me';
 
-	const disabledProfile = isCurrentLocationMeProfile;
+	const disableProfile = isCurrentLocationMeProfile;
 
 	function handleOpenCloseMenu() {
 		setOpenMenu(!openMenu);
 	}
 
-	function navigateToProfile() {
+	function handleProfile() {
 		navigate(`/dashboard/users/${me.login42}`);
 	}
 
@@ -59,7 +83,7 @@ export function Me() {
 				</div>
 			</MenuHandler>
 			<MenuList>
-				<MenuItem className="flex items-center gap-2" disabled={disabledProfile} onClick={navigateToProfile}>
+				<MenuItem className="flex items-center gap-2" disabled={disableProfile} onClick={handleProfile}>
 					<UserCircleIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">
 						My Profile

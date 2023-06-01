@@ -25,6 +25,7 @@ export function useUser(id: string) {
 		isLoading,
 		forbiden,
 		user: data,
-		mutate
+		mutate,
+		error
 	};
 }

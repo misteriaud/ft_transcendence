@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { Spinner } from '@material-tailwind/react';
 import { useMe, useUser } from '../hooks/useUser';
+import { User } from '../components/user';
 
 export function ProfilePage() {
 	const { username } = useParams();
@@ -13,5 +14,9 @@ export function ProfilePage() {
 	if (!user) {
 		return <h2>User not Found</h2>;
 	}
-	return <></>;
+	return (
+		<>
+			<User room_id={1} login42={user.login42}></User>
+		</>
+	);
 }

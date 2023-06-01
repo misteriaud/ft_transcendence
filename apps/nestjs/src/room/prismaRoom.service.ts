@@ -69,9 +69,6 @@ export class PrismaRoomService {
 				name: true,
 				access: true,
 				members: {
-					where: {
-						banned: false,
-					},
 					select: {
 						user: {
 							select: {
@@ -81,8 +78,10 @@ export class PrismaRoomService {
 								avatar: true,
 							},
 						},
+						role: true,
 						muted: true,
 						muted_until: true,
+						banned: true,
 						messages: true,
 					},
 				},
@@ -152,6 +151,18 @@ export class PrismaRoomService {
 
 	// Edit a member
 	async editMember(room_id: number, user_id: number, role: e_member_role | null, muted: boolean | null, muted_until: Date | null, banned: boolean | null) {
+		const data: {
+			role?: e_member_role;
+			muted?: boolean;
+			muted_until?: Date;
+			banned?: boolean;
+		} = {
+			...(role !== null && { role }),
+			...(muted !== null && { muted }),
+			...(muted_until !== null && { muted_until }),
+			...(banned !== null && { banned }),
+		};
+
 		return await this.prisma.member.update({
 			where: {
 				room_id_user_id: {
@@ -159,12 +170,7 @@ export class PrismaRoomService {
 					user_id: user_id,
 				},
 			},
-			data: {
-				role: role,
-				muted: muted,
-				muted_until: muted_until,
-				banned: banned,
-			},
+			data: data,
 		});
 	}
 
