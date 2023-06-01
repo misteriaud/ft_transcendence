@@ -59,8 +59,6 @@ export class PrismaRoomService {
 			},
 			select: {
 				id: true,
-				name: true,
-				access: true,
 			},
 		});
 	}
@@ -98,9 +96,6 @@ export class PrismaRoomService {
 				name: true,
 				access: true,
 				members: {
-					where: {
-						banned: false,
-					},
 					select: {
 						user: {
 							select: {
@@ -126,6 +121,7 @@ export class PrismaRoomService {
 								token: true,
 							},
 						},
+						role: true,
 					},
 				},
 			},

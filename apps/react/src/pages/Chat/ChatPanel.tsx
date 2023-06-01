@@ -25,7 +25,8 @@ import {
 	AccordionBody,
 	IconButton,
 	Radio,
-	Chip
+	Chip,
+	ListItemSuffix
 } from '@material-tailwind/react';
 
 import {
@@ -38,7 +39,6 @@ import {
 	EyeIcon,
 	Bars3Icon
 } from '@heroicons/react/24/outline';
-import escapeRegExp from 'escape-string-regexp';
 
 function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => void }) {
 	const [name, setName] = useState('');
@@ -211,7 +211,7 @@ function ChatAccordeon({
 	openedRooms: number[];
 	Icon: any;
 	openChat: (id: number) => void;
-	plusAction?: () => void;
+	plusAction?: (e: any) => void;
 }) {
 	const [open, setOpen] = useState(false);
 
@@ -224,12 +224,14 @@ function ChatAccordeon({
 						{name}
 						<Chip value={rooms.length} variant="ghost" size="sm" className="rounded-full" />
 					</Typography>
+					<ListItemSuffix>
+						{plusAction && (
+							<IconButton variant="text" color="blue-gray" onClick={plusAction}>
+								<PlusIcon className="h-5 w-5" />
+							</IconButton>
+						)}
+					</ListItemSuffix>
 				</AccordionHeader>
-				{plusAction && (
-					<IconButton variant="text" color="blue-gray" onClick={plusAction}>
-						<PlusIcon className="h-5 w-5" />
-					</IconButton>
-				)}
 			</ListItem>
 			<AccordionBody className="py-1 overflow-scroll">
 				<List className="p-0">
@@ -248,14 +250,11 @@ function ChatAccordeon({
 
 export function ChatPanel() {
 	const { me } = useMe();
-	const { data, isLoading } = useCustomSWR('/rooms');
-	const [searchInput, setSearchInput] = useState('');
+	const { data: dataRoomsAvailable, isLoading } = useCustomSWR('/rooms');
 	const [openedChatIds, setOpenedChat] = useState<number[]>([]);
 	const [openCreateRoom, setOpenCreateRoom] = useState(false);
 
 	if (isLoading) return null;
-
-	// if (error) return <h1>Error</h1>;
 
 	function openChat(roomIdToOpen: number) {
 		if (openedChatIds.findIndex((roomId: number) => roomId === roomIdToOpen) != -1) return;
@@ -270,39 +269,37 @@ export function ChatPanel() {
 		setOpenCreateRoom(!openCreateRoom);
 	};
 
-	const filteredRooms: Room[] = me.memberOf
-		.map((member: any) => member.room)
-		.filter((room: Room) => {
-			if (room.access === 'DIRECT_MESSAGE') return false;
-			const regex = new RegExp(escapeRegExp(searchInput), 'i');
-			return regex.test(room.name);
-		});
-	const filteredFriends: Room[] = me.allFriends
-		.map((friend: any) => {
-			return {
-				id: friend.room_id,
-				name: friend.username,
-				access: 'DIRECT_MESSAGE',
-				userId: friend.id
-			};
-		})
-		.filter((room: Room) => {
-			const regex = new RegExp(escapeRegExp(searchInput), 'i');
-			return regex.test(room.name);
-		});
-	const filterAvailable: Room[] = data.filter((room: Room) => {
-		if (room.access === 'DIRECT_MESSAGE') return false;
-		const regex = new RegExp(escapeRegExp(searchInput), 'i');
-		return regex.test(room.name);
-	});
+	const rooms: Record<string, Room[]> = me.memberOf.reduce(
+		(acc: Record<string, Room[]>, { room }: { room: Room }) => {
+			switch (room.access) {
+				case 'DIRECT_MESSAGE':
+					return {
+						...acc,
+						friends: [...acc.friends, room]
+					};
+					break;
 
-	const openedChat = openedChatIds.map((id): Room => {
-		let room = filteredFriends.find((room) => room.id === id);
-		if (!room) room = filteredRooms.find((room) => room.id === id);
-		if (!room) throw 'error';
-		return room;
-	});
-	// const openedChat = me.memberOf.map((member: any) => member.room).filter((room: Room) => openedChatIds.some((roomId) => roomId === room.id));
+				default:
+					return {
+						...acc,
+						rooms: [...acc.rooms, room]
+					};
+					break;
+			}
+		},
+		{
+			friends: [],
+			rooms: []
+		}
+	);
+	const filterAvailable: Room[] = dataRoomsAvailable.filter(
+		(availableRoom: Room) => !me.memberOf.some(({ room: memberRoom }: { room: Room }) => memberRoom.id === availableRoom.id)
+	);
+
+	const openedChat = me.memberOf.reduce((acc: Room[], { room }: { room: Room }) => {
+		if (!openedChatIds.some((roomId) => room.id === roomId)) return acc;
+		return [...acc, room];
+	}, []);
 
 	return (
 		<>
@@ -316,19 +313,19 @@ export function ChatPanel() {
 				})}
 			</ul>
 			<div className="bg-white w-72 p-2 flex flex-col">
-				<div className="p-2 shrink-0">
-					<Input icon={<UserIcon className="h-5 w-5" />} label="Search" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
-				</div>
 				<List className="overflow-scroll">
-					<ChatAccordeon key="friends" name="Friends" rooms={filteredFriends} openedRooms={[]} Icon={UsersIcon} openChat={openChat} />
+					<ChatAccordeon key="friends" name="Friends" rooms={rooms.friends} openedRooms={openedChatIds} Icon={UsersIcon} openChat={openChat} />
 					<ChatAccordeon
 						key="rooms"
 						name="Rooms"
-						rooms={filteredRooms}
+						rooms={rooms.rooms}
 						openedRooms={openedChatIds}
 						Icon={ChatBubbleBottomCenterTextIcon}
 						openChat={openChat}
-						plusAction={() => setOpenCreateRoom(true)}
+						plusAction={(e) => {
+							e.stopPropagation();
+							setOpenCreateRoom(true);
+						}}
 					/>
 				</List>
 				<List className="mt-auto">

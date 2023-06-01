@@ -1,5 +1,4 @@
 import { Member } from './member';
-import { Friends } from './friends';
 import { e_room_access } from '@prisma/client';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -18,7 +17,4 @@ export class Room {
 
 	@ApiProperty({ isArray: true, type: () => Member })
 	members: Member[];
-
-	@ApiPropertyOptional({ type: () => Friends })
-	friends?: Friends;
 }

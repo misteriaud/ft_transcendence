@@ -37,7 +37,7 @@ export class UserService {
 			await this.prismaUser.deleteFriendRequest(other_id, user_id);
 		}
 		if (await this.prismaUser.getFriend(user_id, other_id)) {
-			await this.prismaUser.deleteFriend(user_id, other_id);
+			await this.deleteFriend(user_id, other_id);
 			await this.prismaUser.deleteFriend(other_id, user_id);
 		}
 		return await this.prismaUser.createBlocked(user_id, other_id);
@@ -76,7 +76,9 @@ export class UserService {
 			throw new NotFoundException('Friend request not found');
 		}
 		await this.prismaUser.deleteFriendRequest(other_id, user_id);
-		return await this.prismaUser.createFriend(user_id, other_id);
+		const { id: room_id } = await this.prismaRoom.createDMRoom(user_id, other_id);
+		await this.prismaUser.createFriend(other_id, user_id, room_id);
+		return await this.prismaUser.createFriend(user_id, other_id, room_id);
 	}
 
 	// Reject friend request
@@ -92,6 +94,9 @@ export class UserService {
 		if (!(await this.prismaUser.getFriend(user_id, other_id))) {
 			throw new NotFoundException('Friend not found');
 		}
+		const { room_id } = await this.prismaUser.getFriend(user_id, other_id);
+		await this.prismaRoom.delete(room_id);
+		await this.prismaUser.deleteFriend(other_id, user_id);
 		await this.prismaUser.deleteFriend(user_id, other_id);
 	}
 

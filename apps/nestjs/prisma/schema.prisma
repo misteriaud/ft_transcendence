@@ -40,8 +40,7 @@ model Friends {
 	userA_id	Int
 	userB		User	@relation("FriendsB", fields: [userB_id], references: [id], onDelete: Cascade)
 	userB_id	Int
-	room		Room	@relation(fields: [room_id], references: [id], onDelete: Cascade)
-	room_id		Int		@unique
+	room_id		Int
 
 	@@id([userA_id, userB_id])
 	@@map("_Friends")
@@ -87,7 +86,6 @@ model Room {
 	access	e_room_access	@default(PUBLIC)
 	hash	String?
 	members	Member[]
-	friends	Friends?
 
 	@@map("rooms")
 }
@@ -110,7 +108,7 @@ model Member {
 
 model Message {
 	id			Int			@id @default(autoincrement())
-	author		Member		@relation(fields: [room_id, user_id], references: [room_id, user_id])
+	author		Member		@relation(fields: [room_id, user_id], references: [room_id, user_id], onDelete: Cascade)
 	room_id		Int
 	user_id		Int
 	content		String
