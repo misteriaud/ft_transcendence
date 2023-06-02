@@ -48,7 +48,7 @@ export const DashboardLayout = () => {
 	}
 
 	return (
-		<div className="absolute inset-0 bg-orange-400 flex flex-col h-screen w-screen">
+		<div className="absolute inset-0 bg-gray-200 flex flex-col h-screen w-screen">
 			<Navbar />
 			<div className="flex flex-row justify-end h-full overflow-hidden">
 				<Outlet />

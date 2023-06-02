@@ -3,8 +3,9 @@ import { useMe } from '../../hooks/useUser';
 import { useApi, useCustomSWR } from '../../hooks/useApi';
 import { Menu, MenuHandler, MenuList, MenuItem, Spinner, Dialog, DialogHeader, DialogBody, DialogFooter, Button, Input } from '@material-tailwind/react';
 import { User } from '../../components/User';
-import { Bars3Icon, EllipsisVerticalIcon, KeyIcon, LockClosedIcon, NoSymbolIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { Bars3Icon, ChatBubbleOvalLeftEllipsisIcon, EllipsisVerticalIcon, KeyIcon, LockClosedIcon, NoSymbolIcon } from '@heroicons/react/24/outline';
+import { useState, useRef, MutableRefObject, useEffect } from 'react';
+import { useAlertContext } from '../../hooks/useContext';
 
 function RoomMembers({ room }: { room: Room }) {
 	const { data, error, isLoading } = useCustomSWR(`/rooms/${room.id}`);
@@ -34,6 +35,11 @@ function RoomMembers({ room }: { room: Room }) {
 
 export function PassDialog({ open, handleOpen, room, join }: any) {
 	const [pass, setPass] = useState('');
+	const inputRef: MutableRefObject<HTMLInputElement | null> = useRef(null);
+
+	useEffect(() => {
+		if (inputRef.current) inputRef.current.focus();
+	}, [inputRef]);
 
 	return (
 		<Dialog open={open} size="sm" handler={handleOpen}>
@@ -46,7 +52,7 @@ export function PassDialog({ open, handleOpen, room, join }: any) {
 			>
 				<DialogHeader>{room.name} is protected by a password</DialogHeader>
 				<DialogBody divider>
-					<Input type="password" value={pass} onChange={(e) => setPass(e.target.value)} label="password"></Input>
+					<Input type="password" value={pass} onChange={(e) => setPass(e.target.value)} label="password" inputRef={inputRef}></Input>
 				</DialogBody>
 				<DialogFooter>
 					<Button variant="text" color="red" onClick={() => handleOpen(null)} className="mr-1">
@@ -72,6 +78,7 @@ export function RoomInfo({ room, onClick }: { room: Room; onClick?: (e: any) => 
 	const api = useApi();
 	const { me, mutate } = useMe();
 	const [openJoinPassDial, setOpenJoinPassDial] = useState(false);
+	const { alert } = useAlertContext();
 
 	const handlePassDial = () => setOpenJoinPassDial(!openJoinPassDial);
 
@@ -98,9 +105,10 @@ export function RoomInfo({ room, onClick }: { room: Room; onClick?: (e: any) => 
 					]
 				});
 				roomMutate(roomData);
+				alert({ elem: <h1>You successfully join {room.name}</h1>, color: 'green' });
 			})
 			.catch((error) => {
-				console.log(error);
+				alert({ elem: <h1>Wrong password</h1>, color: 'red' });
 			});
 	}
 
@@ -185,12 +193,12 @@ export function RoomInfo({ room, onClick }: { room: Room; onClick?: (e: any) => 
 	}
 
 	return (
-		<div className="w-full flex justify-between">
+		<div className="w-full flex justify-between items-center">
 			<span
 				onClick={(e) => {
 					if (role && onClick) onClick(e);
 				}}
-				className={`basis-4/5 overflow-hidden flex items-center justify-start ${onClick ? 'cursor-pointer' : ''}`}
+				className={`basis-4/5 overflow-hidden flex items-center ${onClick ? 'cursor-pointer' : ''} gap-2`}
 			>
 				<h1 className="truncate">{room.name}</h1>
 				{icon}

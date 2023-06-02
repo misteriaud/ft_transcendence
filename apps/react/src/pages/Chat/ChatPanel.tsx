@@ -37,7 +37,9 @@ import {
 	ChatBubbleBottomCenterTextIcon,
 	PlusIcon,
 	EyeIcon,
-	Bars3Icon
+	Bars3Icon,
+	XMarkIcon,
+	LockClosedIcon
 } from '@heroicons/react/24/outline';
 
 function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => void }) {
@@ -103,26 +105,8 @@ function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => voi
 	);
 }
 
-function Box({ title, children, color, close }: any) {
+function Chat({ roomInfo, close }: { roomInfo: Room; close: () => void }) {
 	const [isFold, setIsFold] = useState(false);
-	return (
-		<li
-			className={`self-end flex flex-col justify-content overflow-auto w-48 max-h-80 mr-2 border-2 border-black/20 shadow-lg shadow-[0_-20px_30px_-15px_rgba(0,0,0,0.3)] overflow-hidden rounded-t-lg bg-${color}-400`}
-		>
-			<div className={`flex justify-around items-center p-2 bg-black bg-opacity-20 cursor-pointer hover:bg-${color}-500`} onClick={() => setIsFold(!isFold)}>
-				{title}
-				{close && (
-					<button onClick={close} className="m-2 w-6 h-6 flex justify-center items-center rounded-full bg-black bg-opacity-10 hover:bg-opacity-20">
-						X
-					</button>
-				)}
-			</div>
-			<div className="flex-shrink min-h-0 overflow-scroll flex flex-col">{!isFold && children}</div>
-		</li>
-	);
-}
-
-function Chat({ roomInfo }: { roomInfo: Room }) {
 	const [chatInput, setChatInput] = useState('');
 	const { me } = useMe();
 	const { isLoading, data: messages, error, mutate } = useCustomSWR(`/rooms/${roomInfo.id}/message`);
@@ -156,22 +140,39 @@ function Chat({ roomInfo }: { roomInfo: Room }) {
 	if (error) return <h1>Something went wrong</h1>;
 
 	return (
-		<>
-			<ul className="overflow-scroll flex flex-col">
-				{messages.map((message: Message) => (
-					<li
-						key={message.id}
-						className={`flex-shrink min-w-0 self-${message.author.user.id == me.id ? 'end' : 'start'} rounded-md bg-white bg-opacity-90 px-1 py-0.5 m-1`}
-					>
-						{message.content}
-					</li>
-				))}
-				<li ref={lastMessageRef}></li>
-			</ul>
-			<form onSubmit={sendMessage} className="flex static bottom-0 left-0 right-0">
-				<input value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="message" className="w-full p-1"></input>
-			</form>
-		</>
+		<li className="self-end flex flex-col justify-content w-56 max-h-80 mr-2 border-2 border-black/20 shadow-lg overflow-hidden rounded-t-lg backdrop-blur-sm  transition-all duration-500">
+			<div className="flex justify-around items-center px-2 py-1 bg-black bg-opacity-5 cursor-pointer hover:bg-opacity-10" onClick={() => setIsFold(!isFold)}>
+				<RoomInfo room={roomInfo} />
+				{close && (
+					<IconButton onClick={close} variant="text" color="blue-gray">
+						<XMarkIcon className="h-5 w-5" />
+					</IconButton>
+				)}
+			</div>
+			{!isFold && (
+				<div className="flex-shrink min-h-0 overflow-scroll flex flex-col">
+					<ul className="overflow-scroll pt-2 flex flex-col pr-2">
+						{messages.map((message: Message) => (
+							<li
+								key={message.id}
+								className={`flex-shrink min-w-0 self-${message.author.user.id == me.id ? 'end' : 'start'} rounded-md bg-white bg-opacity-90 px-1 py-0.5 m-1`}
+							>
+								{message.content}
+							</li>
+						))}
+						<li ref={lastMessageRef}></li>
+					</ul>
+					<form onSubmit={sendMessage} className="flex static bottom-0 left-0 right-0">
+						<input
+							value={chatInput}
+							onChange={(e) => setChatInput(e.target.value)}
+							placeholder="message"
+							className="w-full py-1 px-2 m-2 rounded outline-none opacity-60 focus:opacity-90"
+						></input>
+					</form>
+				</div>
+			)}
+		</li>
 	);
 }
 
@@ -220,17 +221,15 @@ function ChatAccordeon({
 			<ListItem className="p-0" selected={open} ripple={false}>
 				<AccordionHeader onClick={() => setOpen(!open)} className="border-b-0 p-3">
 					<ListItemPrefix>{createElement(Icon, { className: 'h-5 w-5' })}</ListItemPrefix>
-					<Typography color="blue-gray" className="flex mr-auto font-normal gap-2">
+					<div className="flex mr-auto font-normal gap-2 text-base">
 						{name}
 						<Chip value={rooms.length} variant="ghost" size="sm" className="rounded-full" />
-					</Typography>
-					<ListItemSuffix>
-						{plusAction && (
-							<IconButton variant="text" color="blue-gray" onClick={plusAction}>
-								<PlusIcon className="h-5 w-5" />
-							</IconButton>
-						)}
-					</ListItemSuffix>
+					</div>
+					{plusAction && (
+						<ListItemSuffix className="opacity-70 hover:opacity-100">
+							<PlusIcon className="h-5 w-5" onClick={plusAction} />
+						</ListItemSuffix>
+					)}
 				</AccordionHeader>
 			</ListItem>
 			<AccordionBody className="py-1 overflow-scroll">
@@ -305,11 +304,7 @@ export function ChatPanel() {
 		<>
 			<ul className="absolute bottom-0 right-72 flex flex-row">
 				{openedChat.map((room: Room) => {
-					return (
-						<Box title={<RoomInfo room={room} />} color="green" close={() => closeChat(room.id)} key={room.id}>
-							<Chat roomInfo={room} />
-						</Box>
-					);
+					return <Chat roomInfo={room} close={() => closeChat(room.id)} key={room.id} />;
 				})}
 			</ul>
 			<div className="bg-white w-72 p-2 flex flex-col">
