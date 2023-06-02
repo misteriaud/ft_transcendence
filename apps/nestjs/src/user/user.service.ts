@@ -36,16 +36,8 @@ export class UserService {
 		} else {
 			new_twoFactorEnabled = dto.twoFactorEnabled === 'false' ? false : true;
 		}
-		console.log(new_twoFactorEnabled);
 
-		return {
-			me: await this.prismaUser.editMe(user_id, twoFactorEnabled, new_twoFactorEnabled, dto, new_avatarURL),
-			jwt: await this.jwt.signAsync({
-				id: user_id,
-				twoFactorEnabled: new_twoFactorEnabled !== null ? new_twoFactorEnabled : twoFactorEnabled,
-				authorized2fa: new_twoFactorEnabled !== null ? new_twoFactorEnabled : twoFactorEnabled,
-			}),
-		};
+		return await this.prismaUser.editMe(user_id, twoFactorEnabled, new_twoFactorEnabled, dto, new_avatarURL);
 	}
 
 	// Delete me

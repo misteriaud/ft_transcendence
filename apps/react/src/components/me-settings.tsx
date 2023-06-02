@@ -66,28 +66,24 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 				}
 			})
 			.then((res) => {
-				const username = res.data.me.username;
-				const avatarURL = `${res.data.me.avatar}?t=${Date.now()}`;
-				const twoFactorEnabled = res.data.me.twoFactorEnabled;
+				const username = res.data.username;
+				const avatarURL = `${res.data.avatar}?t=${Date.now()}`;
+				const twoFactorEnabled = res.data.twoFactorEnabled;
 
-				dispatch({
-					type: StoreActionType.LOGIN,
-					content: res.data.jwt
+				mutate({
+					...me,
+					username: username,
+					avatar: avatarURL,
+					twoFactorEnabled: twoFactorEnabled
 				});
-				if (res.data.me.twoFactorSecret) {
+				if (res.data.twoFactorSecret) {
 					setState('two-factor-secret');
-					setInfo({ ...info, username: username, avatarURL: avatarURL, twoFactorEnabled: twoFactorEnabled, twoFactorSecret: res.data.me.twoFactorSecret });
+					setInfo({ ...info, username: username, avatarURL: avatarURL, twoFactorEnabled: twoFactorEnabled, twoFactorSecret: res.data.twoFactorSecret });
 				} else {
 					setState('initial');
 					setInfo({ ...info, username: username, avatarURL: avatarURL, twoFactorEnabled: twoFactorEnabled, twoFactorSecret: '' });
 					dialogHandler();
 				}
-				// mutate({
-				// 	...me,
-				// 	username: username,
-				// 	avatar: avatarURL,
-				// 	twoFactorEnabled: twoFactorEnabled
-				// });
 			})
 			.catch(() => {
 				setState('editing');
