@@ -8,6 +8,7 @@ import {
 	HandRaisedIcon,
 	HandThumbUpIcon,
 	HomeIcon,
+	RocketLaunchIcon,
 	ScaleIcon,
 	SparklesIcon,
 	SpeakerWaveIcon,
@@ -251,6 +252,7 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 	const disableProfile = isCurrentLocationMeProfile || meBlockUser || userBlockMe;
 	const disableSendMessage = !areMeAndUserFriends || meBlockUser || userBlockMe;
 	const disableInviteToRoom = !areMeAndUserFriends || !isMeAdminOrOwnerOfOneRoom || meBlockUser || userBlockMe;
+	const disableInviteToGame = !areMeAndUserFriends || true /* !isMeInGame */ || meBlockUser || userBlockMe;
 	const hideSendFriendRequest = areMeAndUserFriends || meSentFriendRequestToUser || userSentFriendRequestToMe || meBlockUser || userBlockMe;
 	const hideCancelFriendRequest = areMeAndUserFriends || !meSentFriendRequestToUser || meBlockUser || userBlockMe;
 	const hideAcceptFriendRequest = areMeAndUserFriends || !userSentFriendRequestToMe || meBlockUser || userBlockMe;
@@ -391,6 +393,12 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 						))}
 					</MenuList>
 				</Menu>
+				<MenuItem className="flex items-center gap-2" disabled={disableInviteToGame}>
+					<RocketLaunchIcon strokeWidth={2} className="h-4 w-4" />
+					<Typography variant="small" className="font-normal">
+						Invite to Game
+					</Typography>
+				</MenuItem>
 				{room_id && <RoomMenuItems me={me} user={user} room_id={room_id} />}
 				<hr className="my-2 border-blue-gray-50" />
 				<MenuItem className={`flex items-center gap-2 ${hideSendFriendRequest && 'hidden'}`} onClick={handleSendFriendRequest}>

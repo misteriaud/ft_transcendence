@@ -63,7 +63,7 @@ export function Me() {
 		<Menu open={openMenu} handler={handleOpenCloseMenu}>
 			<MenuHandler>
 				<div className="flex justify-center items-center p-3 rounded-md text-blue-gray-500 hover:text-blue-gray-900 bg-white hover:bg-blue-gray-50 hover:bg-opacity-80">
-					<Typography variant="h5" className="font-normal px-3 py-2">
+					<Typography variant="h5" className="font-normal mr-3">
 						{me.username}
 					</Typography>
 					<Badge overlap="circular" placement="bottom-end" color="green">
