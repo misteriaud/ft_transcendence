@@ -1,9 +1,37 @@
 import { useState } from 'react';
-import { Avatar, Button, Dialog, DialogBody, DialogFooter, DialogHeader, Input, Spinner, Switch, Typography } from '@material-tailwind/react';
-import { ExclamationTriangleIcon, PencilIcon } from '@heroicons/react/24/solid';
+import {
+	Avatar,
+	Button,
+	Collapse,
+	Dialog,
+	DialogBody,
+	DialogFooter,
+	DialogHeader,
+	Input,
+	List,
+	ListItem,
+	ListItemPrefix,
+	ListItemSuffix,
+	Spinner,
+	Switch,
+	Tab,
+	TabPanel,
+	Tabs,
+	TabsBody,
+	TabsHeader,
+	Typography
+} from '@material-tailwind/react';
+import {
+	ArrowPathIcon,
+	ChevronDownIcon,
+	ClipboardDocumentListIcon,
+	CubeTransparentIcon,
+	ExclamationTriangleIcon,
+	HashtagIcon,
+	PencilIcon,
+	VariableIcon
+} from '@heroicons/react/24/solid';
 import QRCode from 'react-qr-code';
-import { useStoreDispatchContext } from '../hooks/useContext';
-import { StoreActionType } from '../context/storeProvider';
 import { useApi } from '../hooks/useApi';
 import './me-settings.css';
 import { useMe } from '../hooks/useUser';
@@ -11,6 +39,8 @@ import { useMe } from '../hooks/useUser';
 export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 	const { me, mutate } = useMe();
 	const [state, setState] = useState('initial');
+	const [activeTab, setActiveTab] = useState('qr-code');
+	const [collapse, setCollapse] = useState(false);
 	const [info, setInfo] = useState({
 		username: me.username,
 		avatar: null,
@@ -18,7 +48,6 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 		twoFactorEnabled: me.twoFactorEnabled,
 		twoFactorSecret: ''
 	});
-	const dispatch = useStoreDispatchContext();
 	const api = useApi();
 	console.log(state);
 
@@ -35,13 +64,14 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 
 	function handleTwoFactorEnabledChange(event: any) {
 		setState('editing');
-
 		setInfo({ ...info, twoFactorEnabled: event.target.checked });
 	}
 
 	function handleCancel() {
 		setState('initial');
 		setInfo({ ...info, username: me.username, avatarURL: me.avatar, twoFactorEnabled: me.twoFactorEnabled, twoFactorSecret: '' });
+		setActiveTab('qr-code');
+		setCollapse(false);
 		dialogHandler();
 	}
 
@@ -82,6 +112,8 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 				} else {
 					setState('initial');
 					setInfo({ ...info, username: username, avatarURL: avatarURL, twoFactorEnabled: twoFactorEnabled, twoFactorSecret: '' });
+					setActiveTab('qr-code');
+					setCollapse(false);
 					dialogHandler();
 				}
 			})
@@ -92,6 +124,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 
 	const editing = (
 		<>
+			<DialogHeader className="justify-center">Settings</DialogHeader>
 			<DialogBody className="flex justify-around p-8" divider>
 				<div className="relative">
 					<Avatar
@@ -130,23 +163,108 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 	);
 
 	const loading = (
-		<DialogBody className="flex justify-around p-8" divider>
-			<Spinner className="h-24 w-24" />
-		</DialogBody>
+		<>
+			<DialogHeader className="justify-center">Settings</DialogHeader>
+			<DialogBody className="flex justify-around p-8" divider>
+				<Spinner className="h-24 w-24" />
+			</DialogBody>
+		</>
 	);
 
 	const twoFactorSecret = (
 		<>
+			<DialogHeader className="justify-center">Two-factor authentication (2FA)</DialogHeader>
 			<DialogBody className="flex flex-col justify-around items-center p-8" divider>
-				<Typography className="text-center" variant="h1" color="blue">
-					{info.twoFactorSecret}
-				</Typography>
-				<QRCode className="mt-4 mb-4" value={`otpauth://totp/ft_transcendence?secret=${info.twoFactorSecret}&algorithm=SHA1&digits=6&period=30`} />
+				<Tabs value={activeTab}>
+					<TabsHeader
+						className="rounded-none border-b border-blue-gray-50 bg-transparent p-0"
+						indicatorProps={{
+							className: 'bg-transparent border-b-2 border-blue-500 shadow-none rounded-none'
+						}}
+					>
+						<Tab key="setup-key" value="setup-key" onClick={() => setActiveTab('setup-key')} className={activeTab === 'setup-key' ? 'text-blue-500' : ''}>
+							Setup Key
+						</Tab>
+						<Tab key="qr-code" value="qr-code" onClick={() => setActiveTab('qr-code')} className={activeTab === 'qr-code' ? 'text-blue-500' : ''}>
+							QR Code
+						</Tab>
+					</TabsHeader>
+					<TabsBody>
+						<TabPanel key={'setup-key'} value={'setup-key'}>
+							<Typography className="text-center mb-4">
+								You can configure two-factor authentication (2FA) using a mobile app. You can add a token manually with the following secret:
+							</Typography>
+							<Button
+								className="flex justify-center items-center mb-1 mx-auto"
+								variant="text"
+								onClick={() => {
+									navigator.clipboard.writeText(info.twoFactorSecret);
+								}}
+							>
+								<Typography variant="h3" color="blue" textGradient>
+									{info.twoFactorSecret}
+								</Typography>
+								<ClipboardDocumentListIcon className="h-5 w-5 m-2 text-blue-gray-500" />
+							</Button>
+							<div className="flex">
+								<Button className="flex mx-auto items-center" variant="text" color="blue-gray" onClick={() => setCollapse(!collapse)}>
+									<Typography className="text-xl normal-case">Additional Information</Typography>
+									<ChevronDownIcon strokeWidth={2.5} className={`h-5 w-5 ml-2 transition-transform ${collapse ? 'rotate-180' : ''}`} />
+								</Button>
+							</div>
+							<Collapse className="flex" open={collapse}>
+								<List className="mx-auto px-8">
+									<ListItem ripple={false} className="p-1 pointer-events-none">
+										<ListItemPrefix className="mr-2">
+											<CubeTransparentIcon className="h-5 w-5 my-2 text-blue-gray-500" />
+										</ListItemPrefix>
+										<Typography>Type:</Typography>
+										<ListItemSuffix className="inline-flex pl-4">
+											<Typography>TOTP</Typography>
+										</ListItemSuffix>
+									</ListItem>
+									<ListItem ripple={false} className="p-1 pointer-events-none">
+										<ListItemPrefix className="mr-2">
+											<HashtagIcon className="h-5 w-5 my-2 text-blue-gray-500" />
+										</ListItemPrefix>
+										<Typography>Digits:</Typography>
+										<ListItemSuffix className="inline-flex pl-4">
+											<Typography>6</Typography>
+										</ListItemSuffix>
+									</ListItem>
+									<ListItem ripple={false} className="p-1 pointer-events-none">
+										<ListItemPrefix className="mr-2">
+											<ArrowPathIcon className="h-5 w-5 my-2 text-blue-gray-500" />
+										</ListItemPrefix>
+										<Typography>Interval:</Typography>
+										<ListItemSuffix className="inline-flex pl-4">
+											<Typography>30</Typography>
+										</ListItemSuffix>
+									</ListItem>
+									<ListItem ripple={false} className="p-1 pointer-events-none">
+										<ListItemPrefix className="mr-2">
+											<VariableIcon className="h-5 w-5 my-2 text-blue-gray-500" />
+										</ListItemPrefix>
+										<Typography>Algorithm:</Typography>
+										<ListItemSuffix className="inline-flex pl-4">
+											<Typography>SHA1</Typography>
+										</ListItemSuffix>
+									</ListItem>
+								</List>
+							</Collapse>
+						</TabPanel>
+						<TabPanel key={'qr-code'} value={'qr-code'}>
+							<Typography className="text-center mb-4">
+								You can configure two-factor authentication (2FA) using a mobile app. You can add a token automatically by scanning the following QR code:
+							</Typography>
+							<QRCode className="mx-auto" value={`otpauth://totp/ft_transcendence?secret=${info.twoFactorSecret}&algorithm=SHA1&digits=6&period=30`} />
+						</TabPanel>
+					</TabsBody>
+				</Tabs>
 				<div className="flex items-center">
 					<ExclamationTriangleIcon strokeWidth={2} className="h-16 w-16 text-red-500" />
 					<Typography className="text-center" variant="h6" color="red">
-						This code is essential for your account's security. Once this popup is closed, it will no longer be visible, and you won't be able to access your
-						account without it.
+						Once this popup is closed, the code will no longer be visible! It is important to save this code now, otherwise you may lose access to your account.
 					</Typography>
 				</div>
 			</DialogBody>
@@ -169,7 +287,6 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 				unmount: { scale: 0.9, y: -100 }
 			}}
 		>
-			<DialogHeader className="justify-center">Settings</DialogHeader>
 			{(state === 'initial' || state === 'editing') && editing}
 			{state === 'loading' && loading}
 			{state === 'two-factor-secret' && twoFactorSecret}
