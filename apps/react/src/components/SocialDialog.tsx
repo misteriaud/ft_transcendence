@@ -23,30 +23,7 @@ import { i_me } from './interfaces';
 import { useMe } from '../hooks/useUser';
 import { KeyedMutator } from 'swr';
 
-function DefaultUserBlock() {
-	const [userOnline, setUserOnline] = useState(true);
-
-	return (
-		<div className="relative mb-2 bg-white p-2 flex max-w-lg mx-auto items-center rounded-xl shadow-lg">
-			<div className="relative">
-				<Avatar src={defaultImg2} alt="avatar" size="lg" withBorder={true} className="border-4 border-gray-700" />
-				<div className="absolute -top-0.5 -right-0.5 h-6 w-6 bg-white rounded-full border-2 border-gray-700">
-					<span
-						className={`absolute h-4 w-4 ${
-							userOnline ? 'bg-green-500' : 'bg-gray-500'
-						} rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2`}
-					></span>
-				</div>
-			</div>
-			<div className="ml-4 ml-2 flex flex-col justify-center truncate">
-				<Typography variant="h6" color="blue-gray">
-					UnGrandEtBeauUsernameeeeeeeeeee
-				</Typography>
-				<Typography variant="h6">jvermeer</Typography>
-			</div>
-		</div>
-	);
-}
+/* ////////////////////// Component navigation bar  ////////////////////// */
 
 function NavList({ handleTabClick }: { handleTabClick: (tab: BarStatus) => void }) {
 	return (
@@ -70,7 +47,7 @@ function NavList({ handleTabClick }: { handleTabClick: (tab: BarStatus) => void 
 	);
 }
 
-function SocialNavBar({ handleTabClick }: { handleTabClick: (tab: BarStatus) => void }) {
+function SocialDialogNavBar({ handleTabClick }: { handleTabClick: (tab: BarStatus) => void }) {
 	const [openNav, setOpenNav] = useState(false);
 
 	// Debounce function to avoid re-rendering every time you resize the page.
@@ -130,7 +107,9 @@ function SocialNavBar({ handleTabClick }: { handleTabClick: (tab: BarStatus) => 
 	);
 }
 
-function UserBlock({ avatar, username, login42, userOnline }: { avatar: string | undefined; username: string; login42: string; userOnline: string }) {
+/* ////////////////////// Display each user line ////////////////////// */
+
+function UserBlock({ avatar, username, login42, userStatus }: { avatar: string | undefined; username: string; login42: string; userStatus: string }) {
 	return (
 		<div className="relative mb-2 bg-white p-2 flex max-w-lg mx-auto items-center rounded-xl shadow-lg">
 			<div className="relative">
@@ -138,7 +117,7 @@ function UserBlock({ avatar, username, login42, userOnline }: { avatar: string |
 				<div className="absolute -top-0.5 -right-0.5 h-6 w-6 bg-white rounded-full border-2 border-gray-700">
 					<span
 						className={`absolute h-4 w-4 ${
-							userOnline === 'ONLINE' || userOnline === 'INGAME' ? 'bg-green-500' : 'bg-gray-500'
+							userStatus === 'ONLINE' || userStatus === 'INGAME' ? 'bg-green-500' : 'bg-gray-500'
 						} rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2`}
 					></span>
 				</div>
@@ -152,6 +131,8 @@ function UserBlock({ avatar, username, login42, userOnline }: { avatar: string |
 		</div>
 	);
 }
+
+/* ////////////////////// CSS Tabs components ////////////////////// */
 
 function BlockedTab({ me }: { me: i_me }) {
 	return (
@@ -169,7 +150,7 @@ function BlockedTab({ me }: { me: i_me }) {
 					<ul>
 						{me.blocked.map((users) => {
 							const { username, login42, avatar, status } = users.userB;
-							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userOnline={status} />;
+							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userStatus={status} />;
 						})}
 					</ul>
 				</TabPanel>
@@ -177,7 +158,7 @@ function BlockedTab({ me }: { me: i_me }) {
 					<ul>
 						{me.blockedBy.map((users) => {
 							const { username, login42, avatar, status } = users.userA;
-							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userOnline={status} />;
+							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userStatus={status} />;
 						})}
 					</ul>
 				</TabPanel>
@@ -202,7 +183,7 @@ function RequestsTab({ me }: { me: i_me }) {
 					<ul>
 						{me.friendRequestsSent.map((users) => {
 							const { username, login42, avatar, status } = users.userB;
-							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userOnline={status} />;
+							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userStatus={status} />;
 						})}
 					</ul>
 				</TabPanel>
@@ -210,7 +191,7 @@ function RequestsTab({ me }: { me: i_me }) {
 					<ul>
 						{me.friendRequestsReceived.map((users) => {
 							const { username, login42, avatar, status } = users.userA;
-							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userOnline={status} />;
+							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userStatus={status} />;
 						})}
 					</ul>
 				</TabPanel>
@@ -224,11 +205,13 @@ function FriendsTab({ me }: { me: i_me }) {
 		<ul>
 			{me.friends.map((users) => {
 				const { username, login42, avatar, status } = users.userB;
-				return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userOnline={status} />;
+				return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userStatus={status} />;
 			})}
 		</ul>
 	);
 }
+
+/* ////////////////////// Main component ////////////////////// */
 
 type BarStatus = 'Friends' | 'Requests' | 'Blocked';
 
@@ -264,7 +247,7 @@ export function SocialDialog() {
 	return (
 		<Fragment>
 			<Button onClick={handleOpen} variant="gradient" color="blue">
-				Open Dialog me: {me.username}
+				Open Dialog
 			</Button>
 			<Dialog
 				open={open}
@@ -281,7 +264,7 @@ export function SocialDialog() {
 						<XMarkIcon className="h-6 w-6" strokeWidth={2} />
 					</IconButton>
 				</div>
-				<SocialNavBar handleTabClick={handleTabClick} />
+				<SocialDialogNavBar handleTabClick={handleTabClick} />
 				<DialogBody className="max-h-[25rem] min-h-[25rem] overflow-y-auto p-0">
 					{navTabName === 'Friends' && <FriendsTab me={me} />}
 					{navTabName === 'Requests' && <RequestsTab me={me} />}
