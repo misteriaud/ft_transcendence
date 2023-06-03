@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Avatar, Badge, Menu, MenuHandler, MenuItem, MenuList, Spinner, Typography } from '@material-tailwind/react';
+import { Menu, MenuHandler, MenuItem, MenuList, Spinner, Typography } from '@material-tailwind/react';
 import { Cog6ToothIcon, ExclamationTriangleIcon, PowerIcon, UserCircleIcon, UsersIcon } from '@heroicons/react/24/solid';
 import { KeyedMutator } from 'swr';
 import { useStoreDispatchContext } from '../hooks/useContext';
@@ -8,6 +8,7 @@ import { StoreActionType } from '../context/storeProvider';
 import { useMe } from '../hooks/useUser';
 import { i_me } from './interfaces';
 import { SettingsDialog } from './me-settings';
+import { UserUI } from './userUI';
 
 export function Me() {
 	const { me, mutate, isLoading, error }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
@@ -62,14 +63,7 @@ export function Me() {
 	return (
 		<Menu open={openMenu} handler={handleOpenCloseMenu}>
 			<MenuHandler>
-				<div className="flex justify-center items-center p-3 rounded-md text-blue-gray-500 hover:text-blue-gray-900 bg-white hover:bg-blue-gray-50 hover:bg-opacity-80">
-					<Typography variant="h5" className="font-normal mr-3">
-						{me.username}
-					</Typography>
-					<Badge overlap="circular" placement="bottom-end" color="green">
-						<Avatar variant="circular" alt={me.username} className="cursor-pointer" src={`${me.avatar}?t=${Date.now()}`} />
-					</Badge>
-				</div>
+				<UserUI username={me.username} avatar={me.avatar} onClick={handleOpenCloseMenu} />
 			</MenuHandler>
 			<MenuList>
 				<MenuItem className="flex items-center gap-2" disabled={disableProfile} onClick={handleProfile}>

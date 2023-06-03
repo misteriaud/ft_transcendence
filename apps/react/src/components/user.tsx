@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Avatar, Badge, Menu, MenuHandler, MenuItem, MenuList, Spinner, Typography } from '@material-tailwind/react';
+import { Menu, MenuHandler, MenuItem, MenuList, Spinner, Typography } from '@material-tailwind/react';
 import {
 	ArrowLeftOnRectangleIcon,
 	ChatBubbleOvalLeftEllipsisIcon,
@@ -23,6 +23,7 @@ import { e_member_role } from './interfaces';
 import { useMe, useUser } from '../hooks/useUser';
 import { useRoom } from '../hooks/useRoom';
 import { useApi } from '../hooks/useApi';
+import { UserUI } from './userUI';
 
 function RoomMenuItems({ me, user, room_id }: { me: i_me; user: i_user; room_id: number }) {
 	const {
@@ -356,14 +357,7 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 	return (
 		<Menu open={openMenu} handler={handleOpenCloseMenu}>
 			<MenuHandler>
-				<div className="flex justify-center items-center p-3 rounded-md text-blue-gray-500 hover:text-blue-gray-900 bg-white hover:bg-blue-gray-50 hover:bg-opacity-80">
-					<Typography variant="h5" className="font-normal px-3 py-2">
-						{user.username}
-					</Typography>
-					<Badge overlap="circular" placement="bottom-end" color="green">
-						<Avatar variant="circular" alt={user.username} className="cursor-pointer" src={`${user.avatar}?t=${Date.now()}`} />
-					</Badge>
-				</div>
+				<UserUI username={user.username} avatar={user.avatar} onClick={handleOpenCloseMenu} />
 			</MenuHandler>
 			<MenuList className={`${hideAll && 'hidden'}`}>
 				<MenuItem className="flex items-center gap-2" disabled={disableProfile} onClick={handleProfile}>

@@ -24,7 +24,7 @@ export const DashboardLayout = () => {
 		<div className="absolute inset-0 bg-orange-400 flex flex-col">
 			<nav className="h-12 bg-green-300 flex flex-row justify-between">
 				<Link to="settings">Settings</Link>
-				<Me key="abcd" />
+				<Me />
 			</nav>
 			<Outlet />
 			<ChatPanel />

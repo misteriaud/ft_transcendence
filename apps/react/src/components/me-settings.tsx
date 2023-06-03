@@ -49,7 +49,6 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 		twoFactorSecret: ''
 	});
 	const api = useApi();
-	console.log(state);
 
 	function handleAvatarUpload(event: any) {
 		const avatar = event.target.files[0];
