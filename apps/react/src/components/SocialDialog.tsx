@@ -19,14 +19,9 @@ import {
 } from '@material-tailwind/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import defaultImg2 from '../images/pingpong-map.jpg';
-import { i_blocked, e_member_role, i_friend_requests, i_friends, i_me, i_member, i_room, i_user } from './interfaces';
-import { useMe, useUser } from '../hooks/useUser';
+import { i_me } from './interfaces';
+import { useMe } from '../hooks/useUser';
 import { KeyedMutator } from 'swr';
-
-interface SocialNavBarProps {
-	navTabName: BarStatus;
-	handleTabClick: (tab: BarStatus) => void;
-}
 
 function DefaultUserBlock() {
 	const [userOnline, setUserOnline] = useState(true);
@@ -56,17 +51,17 @@ function DefaultUserBlock() {
 function NavList({ handleTabClick }: { handleTabClick: (tab: BarStatus) => void }) {
 	return (
 		<ul className="flex flex-col gap-1 xl:mb-0 xl:mt-0 xl:flex-row xl:items-center xl:justify-center xl:gap-20">
-			<Typography as="li" variant="body2" color="blue-gray" className="p-1 font-medium">
+			<Typography as="li" variant="paragraph" color="blue-gray" className="p-1 font-medium">
 				<button onClick={() => handleTabClick('Friends')} className="flex items-center hover:text-blue-500 transition-colors">
 					Friends
 				</button>
 			</Typography>
-			<Typography as="li" variant="body2" color="blue-gray" className="p-1 font-medium">
+			<Typography as="li" variant="paragraph" color="blue-gray" className="p-1 font-medium">
 				<button onClick={() => handleTabClick('Requests')} className="flex items-center hover:text-blue-500 transition-colors">
 					Requests
 				</button>
 			</Typography>
-			<Typography as="li" variant="body2" color="blue-gray" className="p-1 font-medium">
+			<Typography as="li" variant="paragraph" color="blue-gray" className="p-1 font-medium">
 				<button onClick={() => handleTabClick('Blocked')} className="flex items-center hover:text-blue-500 transition-colors">
 					Blocked
 				</button>
@@ -78,6 +73,7 @@ function NavList({ handleTabClick }: { handleTabClick: (tab: BarStatus) => void 
 function SocialNavBar({ handleTabClick }: { handleTabClick: (tab: BarStatus) => void }) {
 	const [openNav, setOpenNav] = useState(false);
 
+	// Debounce function to avoid re-rendering every time you resize the page.
 	function debounce(func: () => void, delay: number) {
 		let timerId: NodeJS.Timeout | undefined;
 		let b = false;
@@ -93,6 +89,8 @@ function SocialNavBar({ handleTabClick }: { handleTabClick: (tab: BarStatus) => 
 		};
 	}
 
+	// Closes the navigation bar if the user resizes the page.
+	// Use of debounce function to prevent re-rendering.
 	useEffect(() => {
 		const handleWindowResize = () => {
 			console.log('handle window call');
@@ -155,35 +153,80 @@ function UserBlock({ avatar, username, login42, userOnline }: { avatar: string |
 	);
 }
 
-function DoubleTab({ me, navTabName }: { me: i_me; navTabName: BarStatus }) {
-	let firstTab;
-	let secondTab;
-	if (navTabName === 'Requests') {
-		firstTab = 'Sent';
-		secondTab = 'Received';
-	} else if (navTabName === 'Blocked') {
-		firstTab = 'Blocked';
-		secondTab = 'Blocked Me';
-	}
+function BlockedTab({ me }: { me: i_me }) {
 	return (
-		<Tabs value="sent">
+		<Tabs value="Blocked">
 			<TabsHeader className="mx-auto max-w-xs">
-				<Tab key="Sent" value="sent">
-					{firstTab}
+				<Tab key="Blocked" value="Blocked">
+					Blocked
 				</Tab>
-				<Tab key="Received" value="received">
-					{secondTab}
+				<Tab key="Blocked by" value="Blocked by">
+					Blocked by
 				</Tab>
 			</TabsHeader>
 			<TabsBody>
-				<TabPanel key="Sent" value="sent">
-					<DefaultUserBlock />
+				<TabPanel key="Blocked" value="Blocked">
+					<ul>
+						{me.blocked.map((users) => {
+							const { username, login42, avatar, status } = users.userB;
+							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userOnline={status} />;
+						})}
+					</ul>
 				</TabPanel>
-				<TabPanel key="Received" value="received">
-					<DefaultUserBlock />
+				<TabPanel key="Blocked by" value="Blocked by">
+					<ul>
+						{me.blockedBy.map((users) => {
+							const { username, login42, avatar, status } = users.userA;
+							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userOnline={status} />;
+						})}
+					</ul>
 				</TabPanel>
 			</TabsBody>
 		</Tabs>
+	);
+}
+
+function RequestsTab({ me }: { me: i_me }) {
+	return (
+		<Tabs value="Sent">
+			<TabsHeader className="mx-auto max-w-xs">
+				<Tab key="Sent" value="Sent">
+					Sent
+				</Tab>
+				<Tab key="Received" value="Received">
+					Received
+				</Tab>
+			</TabsHeader>
+			<TabsBody>
+				<TabPanel key="Sent" value="Sent">
+					<ul>
+						{me.friendRequestsSent.map((users) => {
+							const { username, login42, avatar, status } = users.userB;
+							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userOnline={status} />;
+						})}
+					</ul>
+				</TabPanel>
+				<TabPanel key="Received" value="Received">
+					<ul>
+						{me.friendRequestsReceived.map((users) => {
+							const { username, login42, avatar, status } = users.userA;
+							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userOnline={status} />;
+						})}
+					</ul>
+				</TabPanel>
+			</TabsBody>
+		</Tabs>
+	);
+}
+
+function FriendsTab({ me }: { me: i_me }) {
+	return (
+		<ul>
+			{me.friends.map((users) => {
+				const { username, login42, avatar, status } = users.userB;
+				return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userOnline={status} />;
+			})}
+		</ul>
 	);
 }
 
@@ -198,8 +241,6 @@ export function SocialDialog() {
 	const handleTabClick = (value: BarStatus) => {
 		if (value !== navTabName) setNavTabName(value);
 	};
-
-	// console.log(navTabName);
 
 	if (isLoadingMe) {
 		return (
@@ -220,70 +261,38 @@ export function SocialDialog() {
 		);
 	}
 
-	const friends = me.friends;
-	const blocked = me.blocked;
-	const blockedBy = me.blockedBy;
-	const friendRequestsSent = me.friendRequestsSent;
-	const friendRequestsReceived = me.friendRequestsReceived;
-
 	return (
 		<Fragment>
 			<Button onClick={handleOpen} variant="gradient" color="blue">
 				Open Dialog me: {me.username}
 			</Button>
-			<div>
-				<Dialog
-					open={open}
-					handler={handleOpen}
-					size="md"
-					animate={{
-						mount: { scale: 1, y: 0 },
-						unmount: { scale: 0.9, y: -100 }
-					}}
-					className="bg-gray-100"
-				>
-					<div className="hidden 2xl:block absolute top-2 right-2">
-						<IconButton variant="text" onClick={handleOpen} className="h-6 w-6 text-inherit hover:bg-transparent focus:bg-transparent" ripple={false}>
-							<XMarkIcon className="h-6 w-6" strokeWidth={2} />
-						</IconButton>
-					</div>
-					<SocialNavBar handleTabClick={handleTabClick} />
-					<DialogBody className="max-h-[30rem] min-h-[30rem] overflow-y-auto p-0">
-						{navTabName === 'Friends' ? (
-							<>
-								<UserBlock avatar={me.avatar} username={me.username} login42={me.login42} userOnline="ONLINE" />
-								<DefaultUserBlock />
-								<DefaultUserBlock />
-								<DefaultUserBlock />
-								<DefaultUserBlock />
-								<DefaultUserBlock />
-							</>
-						) : (
-							<DoubleTab me={me} navTabName={navTabName} />
-						)}
-					</DialogBody>
-					<DialogFooter className="bg-gray-300">
-						<Button variant="gradient" color="gray" onClick={handleOpen} size="sm" className="2xl:invisible">
-							Close
-						</Button>
-					</DialogFooter>
-				</Dialog>
-			</div>
+			<Dialog
+				open={open}
+				handler={handleOpen}
+				size="md"
+				animate={{
+					mount: { scale: 1, y: 0 },
+					unmount: { scale: 0.9, y: -100 }
+				}}
+				className="bg-gray-100"
+			>
+				<div className="hidden 2xl:block absolute top-2 right-2">
+					<IconButton variant="text" onClick={handleOpen} className="h-6 w-6 text-inherit hover:bg-transparent focus:bg-transparent" ripple={false}>
+						<XMarkIcon className="h-6 w-6" strokeWidth={2} />
+					</IconButton>
+				</div>
+				<SocialNavBar handleTabClick={handleTabClick} />
+				<DialogBody className="max-h-[25rem] min-h-[25rem] overflow-y-auto p-0">
+					{navTabName === 'Friends' && <FriendsTab me={me} />}
+					{navTabName === 'Requests' && <RequestsTab me={me} />}
+					{navTabName === 'Blocked' && <BlockedTab me={me} />}
+				</DialogBody>
+				<DialogFooter className="bg-gray-300">
+					<Button variant="gradient" color="gray" onClick={handleOpen} size="sm" className="2xl:invisible">
+						Close
+					</Button>
+				</DialogFooter>
+			</Dialog>
 		</Fragment>
 	);
 }
-
-// export function SocialDialog() {
-// 	const data = initialData;
-
-// 	return data;
-// }
-
-// const initialData = [
-// 	{ id: 1, username: 'Un-plutot-grand-pseudo', login42: 'dpaccagn', avatar: '../images/default-image.jpg', status: 'ONLINE', navBar: 'Friends'},
-// 	{ id: 2, username: 'Un-plutot-grand-pseudo', login42: 'dpaccagn', avatar: '../images/default-image.jpg', status: 'ONLINE', navBar: 'Friends'},
-// 	{ id: 3, username: 'Un-plutot-grand-pseudo', login42: 'dpaccagn', avatar: '../images/default-image.jpg', status: 'INGAME', navBar: 'Friends'},
-// 	{ id: 4, username: 'Un-plutot-grand-pseudo', login42: 'dpaccagn', avatar: '../images/default-image.jpg', status: 'ONLINE', navBar: 'Friends'},
-// 	{ id: 5, username: 'Un-plutot-grand-pseudo', login42: 'dpaccagn', avatar: '../images/default-image.jpg', status: 'OFFLINE', navBar: 'Friends'},
-// 	{ id: 6, username: 'Un-plutot-grand-pseudo', login42: 'dpaccagn', avatar: '../images/default-image.jpg', status: 'ONLINE', navBar: 'Friends'},
-// ]
