@@ -1,6 +1,6 @@
 import pongLogo from '../images/pongLogo.png';
 import { Card } from '@material-tailwind/react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ReactNode } from 'react';
 
 function SidebarButton({ content, pathDrawn, page }: { content: string; pathDrawn: string; page: string }) {

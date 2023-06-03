@@ -1,5 +1,4 @@
 import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
-
 import { LoginPage, loader as loginLoader } from './pages/Login';
 import { LoginFakePage } from './pages/LoginFake';
 import HomePage from './pages/Home';
