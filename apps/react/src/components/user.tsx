@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { forwardRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Menu, MenuHandler, MenuItem, MenuList, Spinner, Typography } from '@material-tailwind/react';
 import {
@@ -25,7 +25,7 @@ import { useRoom } from '../hooks/useRoom';
 import { useApi } from '../hooks/useApi';
 import { UserUI } from './userUI';
 
-function RoomMenuItems({ me, user, room_id }: { me: i_me; user: i_user; room_id: number }) {
+const RoomMenuItems = forwardRef(({ me, user, room_id, ...otherProps }: { me: i_me; user: i_user; room_id: number; otherProps?: any }, ref: any) => {
 	const {
 		room,
 		mutate: mutateRoom,
@@ -37,8 +37,8 @@ function RoomMenuItems({ me, user, room_id }: { me: i_me; user: i_user; room_id:
 	if (isLoadingRoom) {
 		return (
 			<>
-				<hr className="my-2 border-blue-gray-50 bg-white" />
-				<div className="flex justify-around p-2">
+				<hr ref={ref} {...otherProps} className="my-2 border-blue-gray-50 bg-white outline-none" />
+				<div ref={ref} {...otherProps} className="flex justify-around p-2 outline-none">
 					<Spinner />
 				</div>
 			</>
@@ -48,9 +48,11 @@ function RoomMenuItems({ me, user, room_id }: { me: i_me; user: i_user; room_id:
 		// error
 		return (
 			<>
-				<hr className="my-2 border-blue-gray-50" />
+				<hr ref={ref} {...otherProps} className="my-2 border-blue-gray-50 outline-none" />
 				<div
-					className="flex justify-around p-2 rounded-md text-red-500 hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80"
+					ref={ref}
+					{...otherProps}
+					className="flex justify-around p-2 rounded-md text-red-500 outline-none hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80"
 					onClick={() => mutateRoom()}
 				>
 					<ExclamationTriangleIcon strokeWidth={2} className="h-6 w-6 text-red-500" />
@@ -156,44 +158,44 @@ function RoomMenuItems({ me, user, room_id }: { me: i_me; user: i_user; room_id:
 	}
 	return (
 		<>
-			<hr className="my-2 border-blue-gray-50" />
-			<MenuItem className={`flex items-center gap-2 ${hidePromote && 'hidden'}`} onClick={handlePromote}>
+			<hr ref={ref} {...otherProps} className="my-2 border-blue-gray-50 outline-none" />
+			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hidePromote && 'hidden'}`} onClick={handlePromote} tabIndex={-1}>
 				<SparklesIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Promote
 				</Typography>
 			</MenuItem>
-			<MenuItem className={`flex items-center gap-2 ${hideDemote && 'hidden'}`} onClick={handleDemote}>
+			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideDemote && 'hidden'}`} onClick={handleDemote} tabIndex={-1}>
 				<SparklesIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Demote
 				</Typography>
 			</MenuItem>
-			<MenuItem className={`flex items-center gap-2 ${hideMute && 'hidden'}`} onClick={handleMute}>
+			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideMute && 'hidden'}`} onClick={handleMute} tabIndex={-1}>
 				<SpeakerXMarkIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Mute
 				</Typography>
 			</MenuItem>
-			<MenuItem className={`flex items-center gap-2 ${hideUnmute && 'hidden'}`} onClick={handleUnmute}>
+			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideUnmute && 'hidden'}`} onClick={handleUnmute} tabIndex={-1}>
 				<SpeakerWaveIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Unmute
 				</Typography>
 			</MenuItem>
-			<MenuItem className={`flex items-center gap-2 ${hideKick && 'hidden'}`} onClick={handleKick}>
+			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideKick && 'hidden'}`} onClick={handleKick} tabIndex={-1}>
 				<ArrowLeftOnRectangleIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Kick
 				</Typography>
 			</MenuItem>
-			<MenuItem className={`flex items-center gap-2 ${hideBan && 'hidden'}`} onClick={handleBan}>
+			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideBan && 'hidden'}`} onClick={handleBan} tabIndex={-1}>
 				<ScaleIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Ban
 				</Typography>
 			</MenuItem>
-			<MenuItem className={`flex items-center gap-2 ${hideUnban && 'hidden'}`} onClick={handleUnban}>
+			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideUnban && 'hidden'}`} onClick={handleUnban} tabIndex={-1}>
 				<ScaleIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Unban
@@ -201,7 +203,7 @@ function RoomMenuItems({ me, user, room_id }: { me: i_me; user: i_user; room_id:
 			</MenuItem>
 		</>
 	);
-}
+});
 
 export function User({ room_id, login42 }: { room_id?: number; login42: string }) {
 	const { me, mutate: mutateMe, isLoading: isLoadingMe, error: errorMe }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
@@ -218,7 +220,7 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 
 	if (isLoadingMe || isLoadingUser) {
 		return (
-			<div className="flex justify-center items-center p-3 bg-white">
+			<div className="flex justify-center items-center p-3 bg-white outline-none">
 				<Spinner />
 			</div>
 		);
@@ -227,7 +229,7 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 		// error
 		return (
 			<div
-				className="flex justify-center items-center p-3 rounded-md text-red-500 hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80"
+				className="flex justify-center items-center p-3 rounded-md text-red-500 outline-none hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80"
 				onClick={() => {
 					mutateMe();
 					mutateUser();
@@ -360,13 +362,13 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 				<UserUI username={user.username} avatar={user.avatar} onClick={handleOpenCloseMenu} />
 			</MenuHandler>
 			<MenuList className={`${hideAll && 'hidden'}`}>
-				<MenuItem className="flex items-center gap-2" disabled={disableProfile} onClick={handleProfile}>
+				<MenuItem className="flex items-center gap-2 outline-none" disabled={disableProfile} onClick={handleProfile} tabIndex={-1}>
 					<UserCircleIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">
 						{user.username}'s Profile
 					</Typography>
 				</MenuItem>
-				<MenuItem className="flex items-center gap-2" disabled={disableSendMessage}>
+				<MenuItem className="flex items-center gap-2 outline-none" disabled={disableSendMessage} tabIndex={-1}>
 					<ChatBubbleOvalLeftEllipsisIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">
 						Send Message
@@ -374,7 +376,7 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 				</MenuItem>
 				<Menu placement="right-start" offset={15}>
 					<MenuHandler>
-						<MenuItem className="flex items-center gap-2" disabled={disableInviteToRoom}>
+						<MenuItem className="flex items-center gap-2 outline-none" disabled={disableInviteToRoom} tabIndex={-1}>
 							<HomeIcon strokeWidth={2} className="h-4 w-4" />
 							<Typography variant="small" className="font-normal">
 								Invite to Room
@@ -382,12 +384,14 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 						</MenuItem>
 					</MenuHandler>
 					<MenuList>
-						{meAdminOrOwnerOfRooms.map((item: any) => (
-							<MenuItem className="flex items-center gap-2">{item.room.name}</MenuItem>
+						{meAdminOrOwnerOfRooms.map((m: i_member) => (
+							<MenuItem key={m.room.id} className="flex items-center gap-2 outline-none" tabIndex={-1}>
+								{m.room.name}
+							</MenuItem>
 						))}
 					</MenuList>
 				</Menu>
-				<MenuItem className="flex items-center gap-2" disabled={disableInviteToGame}>
+				<MenuItem className="flex items-center gap-2 outline-none" disabled={disableInviteToGame} tabIndex={-1}>
 					<RocketLaunchIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">
 						Invite to Game
@@ -395,43 +399,43 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 				</MenuItem>
 				{room_id && <RoomMenuItems me={me} user={user} room_id={room_id} />}
 				<hr className="my-2 border-blue-gray-50" />
-				<MenuItem className={`flex items-center gap-2 ${hideSendFriendRequest && 'hidden'}`} onClick={handleSendFriendRequest}>
+				<MenuItem className={`flex items-center gap-2 outline-none ${hideSendFriendRequest && 'hidden'}`} onClick={handleSendFriendRequest} tabIndex={-1}>
 					<UserPlusIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">
 						Send Friend Request
 					</Typography>
 				</MenuItem>
-				<MenuItem className={`flex items-center gap-2 ${hideCancelFriendRequest && 'hidden'}`} onClick={handleCancelFriendRequest}>
+				<MenuItem className={`flex items-center gap-2 outline-none ${hideCancelFriendRequest && 'hidden'}`} onClick={handleCancelFriendRequest} tabIndex={-1}>
 					<UserMinusIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">
 						Cancel Friend Request
 					</Typography>
 				</MenuItem>
-				<MenuItem className={`flex items-center gap-2 ${hideAcceptFriendRequest && 'hidden'}`} onClick={handleAcceptFriendRequest}>
+				<MenuItem className={`flex items-center gap-2 outline-none ${hideAcceptFriendRequest && 'hidden'}`} onClick={handleAcceptFriendRequest} tabIndex={-1}>
 					<UserPlusIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">
 						Accept Friend Request
 					</Typography>
 				</MenuItem>
-				<MenuItem className={`flex items-center gap-2 ${hideRejectFriendRequest && 'hidden'}`} onClick={handleRejectFriendRequest}>
+				<MenuItem className={`flex items-center gap-2 outline-none ${hideRejectFriendRequest && 'hidden'}`} onClick={handleRejectFriendRequest} tabIndex={-1}>
 					<UserMinusIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">
 						Reject Friend Request
 					</Typography>
 				</MenuItem>
-				<MenuItem className={`flex items-center gap-2 ${hideRemoveFriend && 'hidden'}`} onClick={handleRemoveFriend}>
+				<MenuItem className={`flex items-center gap-2 outline-none ${hideRemoveFriend && 'hidden'}`} onClick={handleRemoveFriend} tabIndex={-1}>
 					<UserMinusIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">
 						Remove Friend
 					</Typography>
 				</MenuItem>
-				<MenuItem className={`flex items-center gap-2 ${hideBlock && 'hidden'}`} onClick={handleBlock}>
+				<MenuItem className={`flex items-center gap-2 outline-none ${hideBlock && 'hidden'}`} onClick={handleBlock} tabIndex={-1}>
 					<HandRaisedIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">
 						Block User
 					</Typography>
 				</MenuItem>
-				<MenuItem className={`flex items-center gap-2 ${hideUnblock && 'hidden'}`} onClick={handleUnblock}>
+				<MenuItem className={`flex items-center gap-2 outline-none ${hideUnblock && 'hidden'}`} onClick={handleUnblock} tabIndex={-1}>
 					<HandThumbUpIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">
 						Unblock User
