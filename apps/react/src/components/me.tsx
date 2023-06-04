@@ -64,7 +64,7 @@ export function Me() {
 	return (
 		<Menu open={openMenu} handler={handleOpenCloseMenu}>
 			<MenuHandler>
-				<UserUI username={me.username} avatar={me.avatar} onClick={handleOpenCloseMenu} />
+				<UserUI username={me.username} avatar={me.avatar} inverse={true} onClick={handleOpenCloseMenu} />
 			</MenuHandler>
 			<MenuList>
 				<MenuItem className="flex items-center gap-2" disabled={disableProfile} onClick={handleProfile}>
