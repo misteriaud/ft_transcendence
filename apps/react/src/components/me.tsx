@@ -58,6 +58,7 @@ export function Me() {
 		dispatch({
 			type: StoreActionType.LOGOUT
 		});
+		navigate('/');
 	}
 
 	return (
