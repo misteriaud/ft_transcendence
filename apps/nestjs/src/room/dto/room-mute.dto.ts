@@ -1,7 +1,9 @@
-import { IsDateString, IsNotEmpty } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsDate, IsNotEmpty } from 'class-validator';
 
 export class RoomMuteDto {
-	@IsDateString()
+	@Type(() => Date)
+	@IsDate()
 	@IsNotEmpty()
-	muted_until: string;
+	mute_until: Date;
 }

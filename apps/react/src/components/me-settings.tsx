@@ -68,7 +68,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 
 	function handleCancel() {
 		setState('initial');
-		setInfo({ ...info, username: me.username, avatarURL: me.avatar, twoFactorEnabled: me.twoFactorEnabled, twoFactorSecret: '' });
+		setInfo({ ...info, username: me.username, avatar: null, avatarURL: me.avatar, twoFactorEnabled: me.twoFactorEnabled, twoFactorSecret: '' });
 		setActiveTab('qr-code');
 		setCollapse(false);
 		dialogHandler();
