@@ -9,10 +9,12 @@ import { useMe } from '../hooks/useUser';
 import { i_me } from './interfaces';
 import { SettingsDialog } from './me-settings';
 import { UserUI } from './userUI';
+import { SocialDialog } from './SocialDialog';
 
 export function Me({ className }: { className?: string }) {
 	const { me, mutate, isLoading, error }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
 	const [openSettingsDialog, setOpenSettingsDialog] = useState(false);
+	const [openSocialDialog, setOpenSocialDialog] = useState(false);
 	const location = useLocation();
 	const navigate = useNavigate();
 	const dispatch = useStoreDispatchContext();
@@ -45,6 +47,10 @@ export function Me({ className }: { className?: string }) {
 		navigate(`/dashboard/users/${me.login42}`);
 	}
 
+	function handleOpenCloseSocialDialog() {
+		setOpenSocialDialog(!openSocialDialog);
+	}
+
 	function handleOpenCloseSettingsDialog() {
 		setOpenSettingsDialog(!openSettingsDialog);
 	}
@@ -68,7 +74,7 @@ export function Me({ className }: { className?: string }) {
 						My Profile
 					</Typography>
 				</MenuItem>
-				<MenuItem className="flex items-center gap-2">
+				<MenuItem className="flex items-center gap-2" onClick={handleOpenCloseSocialDialog}>
 					<UsersIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">
 						Social
@@ -89,6 +95,7 @@ export function Me({ className }: { className?: string }) {
 				</MenuItem>
 			</MenuList>
 			<SettingsDialog dialogStatus={openSettingsDialog} dialogHandler={handleOpenCloseSettingsDialog} />
+			<SocialDialog dialogStatus={openSocialDialog} dialogHandler={handleOpenCloseSocialDialog} />
 		</Menu>
 	);
 }

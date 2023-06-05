@@ -135,7 +135,7 @@ export function RoomInfo({ room, onClick }: { room: Room; onClick?: (e: any) => 
 		const user = roomData.members.find((member: any) => member.user.id != me.id)?.user;
 		return (
 			<div className="w-full flex justify-between" onClick={onClick}>
-				<UserUI username={user.username} avatar={user.avatar} />
+				<UserUI username={user.username} avatar={user.avatar} className="text-xs" />
 			</div>
 		);
 	}

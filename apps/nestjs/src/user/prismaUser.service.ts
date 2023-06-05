@@ -26,6 +26,15 @@ export class PrismaUserService {
 				twoFactorSecret: includeSecret,
 				friends: {
 					select: {
+						userA: {
+							select: {
+								id: true,
+								username: true,
+								login42: true,
+								avatar: true,
+								status: true,
+							},
+						},
 						userB: {
 							select: {
 								id: true,
@@ -52,12 +61,22 @@ export class PrismaUserService {
 				},
 				blocked: {
 					select: {
+						userA: {
+							select: {
+								id: true,
+								username: true,
+								login42: true,
+								avatar: true,
+								status: true,
+							},
+						},
 						userB: {
 							select: {
 								id: true,
 								username: true,
 								login42: true,
 								avatar: true,
+								status: true,
 							},
 						},
 					},
@@ -70,12 +89,31 @@ export class PrismaUserService {
 								username: true,
 								login42: true,
 								avatar: true,
+								status: true,
+							},
+						},
+						userB: {
+							select: {
+								id: true,
+								username: true,
+								login42: true,
+								avatar: true,
+								status: true,
 							},
 						},
 					},
 				},
 				friendRequestsSent: {
 					select: {
+						userA: {
+							select: {
+								id: true,
+								username: true,
+								login42: true,
+								avatar: true,
+								status: true,
+							},
+						},
 						userB: {
 							select: {
 								id: true,
@@ -89,6 +127,15 @@ export class PrismaUserService {
 				},
 				friendRequestsReceived: {
 					select: {
+						userA: {
+							select: {
+								id: true,
+								username: true,
+								login42: true,
+								avatar: true,
+								status: true,
+							},
+						},
 						userB: {
 							select: {
 								id: true,
