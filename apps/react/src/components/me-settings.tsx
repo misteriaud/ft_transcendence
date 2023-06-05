@@ -141,7 +141,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 					<input id="avatar-upload" className="hidden" type="file" accept="image/*" onChange={handleAvatarUpload} />
 				</div>
 				<div className="flex flex-col justify-around">
-					<Input variant="static" label="Username" value={info.username} onChange={handleUsernameChange} />
+					<Input variant="static" label="Username" maxLength={32} value={info.username} onChange={handleUsernameChange} />
 					<Switch
 						id="two-factor-authentication"
 						label="Enable two-factor authentication"
