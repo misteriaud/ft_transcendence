@@ -20,6 +20,7 @@ class Player {
 }
 
 class GameState {
+	id: number;
 	ball: { x: number; y: number; dx: number; dy: number };
 	player1: Player;
 	player2: Player;
@@ -29,6 +30,7 @@ class GameState {
 	playersReady: boolean[];
 	gameInterval: NodeJS.Timeout | null;
 	timestamp: number;
+	expiration: Date;
 
 	constructor() {
 		this.ball = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 2, dy: 0 };
@@ -53,10 +55,34 @@ class GameState {
 
 export class PongWebsocketGateway extends BaseWebsocketGateway {
 	currentGame: GameState[] = [];
+	waitingNormalModePlayerId: number | null;
+	waitingHardcoreModePlayerId: number | null;
+	waitingInvitation: {
+		id: number;
+		player1Id: number;
+		player2Id: number;
+	}[];
 
 	constructor(jwtService: JwtService, userService: UserService) {
 		super(jwtService, userService);
 	}
+
+	// 1 - player 1 invite (player 2 | random)
+	// 2 - player2 accept | random invite
+	// 3 - server wait for player1 and player2 ready
+	// 4 - play
+	// 5 - save game in DB
+
+	// @SubscribeMessage('pong/playgame')
+	// joinGame(client: Socket, player2id: number | null, mode: number) {
+	// 	// no player2 given
+	// 	if (this.waitingHardcoreModePlayerId) {
+	// 		// create new game
+	// 		new_game_id
+	// 		this.server.to([client.data.user.id, this.waitingHardcoreModePlayerId]).emit('pong/newGame', new_game);
+	// 		this.waitingHardcoreModePlayerId = null;
+	// 	} else this.waitingHardcoreModePlayerId = client.data.user.id;
+	// }
 
 	@UsePipes(new ValidationPipe())
 	@SubscribeMessage('pong/ready')

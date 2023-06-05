@@ -38,7 +38,5 @@ export class BaseWebsocketGateway {
 		client.join(payload.id.toString());
 	}
 
-	async handleDisconnect(client: Socket) {
-		this.logger.log('Client disconnected: ' + client.id);
-	}
+	async handleDisconnect(client: Socket) {}
 }
