@@ -82,6 +82,7 @@ export function StoreProvider() {
 			});
 		});
 		return () => {
+			console.log('unset socket');
 			socketRef.current.close();
 		};
 	}, [store.JWT]);

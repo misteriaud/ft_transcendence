@@ -1,178 +1,179 @@
+//Pong.tsx
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
 import { useSocketContext } from '../hooks/useContext';
+import { Button } from '@material-tailwind/react';
 
-interface GameState {
-	ball: { x: number; y: number; dx: number; dy: number };
-	player1: { paddleY: number; score: number };
-	player2: { paddleY: number; score: number };
-	paddleHeight: number;
-	paddleWidth: number;
-	ballRadius: number;
+interface Ball {
+	x: number;
+	y: number;
+	dx: number;
+	dy: number;
+	lastUpdate: number;
 }
 
-type Direction = 'up' | 'down';
+interface Player {
+	paddleY: number;
+	score: number;
+	paddleSpeed: number;
+	paddleDirection: 'up' | 'down' | 'stop';
+	paddleHeight: number;
+}
+
+interface GameState {
+	ball: Ball;
+	player1: Player;
+	player2: Player;
+	paddleWidth: number;
+	ballRadius: number;
+	playersReady: boolean[];
+}
 
 const Pong = () => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const { isConnected, socket } = useSocketContext();
-	// const [gameStarted, setGameStarted] = useState(false);
-	// const [connectedPlayers, setConnectedPlayers] = useState(0);
-	// const [player1Ready, setPlayer1Ready] = useState(false);
-	// const [player2Ready, setPlayer2Ready] = useState(false);
+	const [isReady, setIsReady] = useState(false);
+	const [gameState, setGameState] = useState<GameState | null>(null);
+	const intervalId: React.MutableRefObject<number | null> = useRef(null);
 
-	// const draw = useCallback((gameState: GameState | null) => {
-	// 	if (!gameState) return; // gameState is not ready
-	// 	const canvas = canvasRef.current;
-	// 	if (!canvas) return; // canvas is not ready
+	// Ball predict
+	const predictBallPosition = (ball: Ball, time: number) => {
+		const elapsed = (time - ball.lastUpdate) / 1000;
+		const x = ball.x + ball.dx * elapsed;
+		const y = ball.y + ball.dy * elapsed;
+		return { x, y };
+	};
 
-	// 	const context = canvas.getContext('2d');
-	// 	if (!context) return; // context is not ready
+	// Handlers
+	const handleReadyClick = useCallback(() => {
+		if (!isReady) {
+			socket.emit('pong/ready');
+			setIsReady(true);
+		}
+	}, [isReady, socket]);
 
-	// 	// Clear the canvas
-	// 	context.clearRect(0, 0, canvas.width, canvas.height);
+	function handleKeyDown(e: any) {
+		if (e.repeat) return;
+		if (gameState && isConnected) {
+			switch (e.key.toLowerCase()) {
+				case 'w':
+					socket.emit('pong/movePaddle', 'up');
+					break;
+				case 's':
+					socket.emit('pong/movePaddle', 'down');
+					break;
+			}
+		}
+	}
 
-	// 	// Draw the ball
-	// 	context.beginPath();
-	// 	context.arc(gameState.ball.x, gameState.ball.y, gameState.ballRadius, 0, Math.PI * 2);
-	// 	context.fillStyle = 'red';
-	// 	context.fill();
-	// 	context.closePath();
+	function handleKeyUp(e: any) {
+		if (e.repeat) return;
+		if (gameState && isConnected) {
+			if (e.key.toLowerCase() === 'w' || e.key.toLowerCase() === 's') {
+				socket.emit('pong/movePaddle', 'stop');
+			}
+		}
+	}
+	// Draw Functions
+	const drawPaddle = useCallback((context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) => {
+		context.fillStyle = 'white';
+		context.fillRect(x, y, width, height);
+	}, []);
 
-	// 	// Draw the paddles
-	// 	context.fillRect(20, gameState.player1.paddleY, gameState.paddleWidth, gameState.paddleHeight);
-	// 	context.fillRect(canvas.width - 30, gameState.player2.paddleY, gameState.paddleWidth, gameState.paddleHeight);
+	const drawField = useCallback((context: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+		context.fillStyle = 'grey';
+		context.fillRect(0, 0, canvas.width, canvas.height);
+	}, []);
 
-	// 	// Draw the scores
-	// 	context.font = '16px Arial';
-	// 	context.fillText(`Player 1: ${gameState.player1.score}`, 10, 20);
-	// 	context.fillText(`Player 2: ${gameState.player2.score}`, canvas.width - 80, 20);
-	// }, []);
+	const drawBall = useCallback((context: CanvasRenderingContext2D, x: number, y: number, radius: number) => {
+		context.beginPath();
+		context.arc(x, y, radius, 0, Math.PI * 2, false);
+		context.fillStyle = 'white';
+		context.fill();
+		context.closePath();
+	}, []);
 
-	// const movePaddle = useCallback(
-	// 	(direction: Direction) => {
-	// 		socket.emit('movePaddle', { direction, player: 'player1' }); // replace player1 with actual player id
-	// 	},
-	// 	[socket]
-	// );
+	const drawScore = useCallback((context: CanvasRenderingContext2D, score: number, x: number, y: number) => {
+		context.fillStyle = 'white';
+		context.font = '16px Arial';
+		context.fillText(`Score: ${score}`, x, y);
+	}, []);
 
-	// const startGame = () => {
-	// 	if (connectedPlayers === 2 && player1Ready && player2Ready) {
-	// 		socket.emit('startGame');
-	// 		setGameStarted(true);
-	// 	}
-	// };
+	function drawGame(state: GameState) {
+		if (!canvasRef.current || !state) return;
 
-	// const handlePlayer1Ready = () => {
-	// 	setPlayer1Ready(true);
-	// 	socket.emit('playerReady', 'player1');
-	// };
+		const context = canvasRef.current.getContext('2d');
+		if (!context) return;
+		drawField(context, canvasRef.current);
+		drawPaddle(context, 10, state.player1.paddleY, state.paddleWidth, state.player1.paddleHeight);
+		drawPaddle(context, canvasRef.current.width - state.paddleWidth - 10, state.player2.paddleY, state.paddleWidth, state.player2.paddleHeight);
 
-	// const handlePlayer2Ready = () => {
-	// 	setPlayer2Ready(true);
-	// 	socket.emit('playerReady', 'player2');
-	// };
+		const predictedBall = predictBallPosition(state.ball, Date.now());
+		drawBall(context, predictedBall.x, predictedBall.y, state.ballRadius);
+		drawScore(context, state.player1.score, canvasRef.current.width / 4, 30);
+		drawScore(context, state.player2.score, (canvasRef.current.width * 3) / 4, 30);
+	}
 
-	// useEffect(() => {
-	// 	if (!isConnected) return;
-	// 	socket.on('connect_error', (error) => {
-	// 		console.error('Connection Error', error);
-	// 	});
+	// Effects
+	useEffect(() => {
+		if (isConnected) {
+			socket.on('pong/gameState', (gameState) => {
+				setIsReady(true);
+				gameState.ball.lastUpdate = Date.now();
+				setGameState(gameState);
+			});
 
-	// 	socket.on('connect', () => {
-	// 		console.log('Connected to server');
-	// 	});
+			socket.on('pong/gameEnded', () => {
+				alert('Game has ended');
+				setIsReady(false);
+			});
 
-	// 	socket.on('disconnect', () => {
-	// 		console.log('Disconnected from server');
-	// 	});
-
-	// 	socket.on('pong/gameState', (newGameState: GameState) => {
-	// 		console.log('Received game state', newGameState);
-	// 		draw(newGameState);
-	// 	});
-
-	// 	socket.on('playerConnected', (numPlayers: number) => {
-	// 		setConnectedPlayers(numPlayers);
-	// 	});
-
-	// 	socket.on('playerDisconnected', (numPlayers: number) => {
-	// 		setConnectedPlayers(numPlayers);
-	// 	});
-
-	// 	// const handleKeyDown = (e: KeyboardEvent) => {
-	// 	// 	switch (e.key) {
-	// 	// 		case 'ArrowUp':
-	// 	// 			movePaddle('up');
-	// 	// 			break;
-	// 	// 		case 'ArrowDown':
-	// 	// 			movePaddle('down');
-	// 	// 			break;
-	// 	// 		default:
-	// 	// 			break;
-	// 	// 	}
-	// 	// };
-
-	// 	// window.addEventListener('keydown', handleKeyDown);
-
-	// 	// Remove event listeners when the component is unmounted
-	// 	return () => {
-	// 		// window.removeEventListener('keydown', handleKeyDown);
-	// 		socket.off('connect');
-	// 		socket.off('disconnect');
-	// 		socket.off('playerConnected');
-	// 		socket.off('playerDisconnected');
-	// 		socket.off('connect_error');
-	// 		socket.off('gameState');
-	// 		socket.disconnect();
-	// 	};
-	// }, [socket]);
+			return () => {
+				socket.off('pong/gameState');
+				socket.off('pong/gameEnded');
+			};
+		}
+	}, [isConnected, socket]);
 
 	useEffect(() => {
-		if (!isConnected) return;
-		socket.on('pong/gameState', (newGameState: GameState) => {
-			console.log('Received game state', newGameState);
-		});
-		return () => {
-			socket.off('pong/gameState');
-		};
-	}, [isConnected]);
+		window.addEventListener('keyup', handleKeyUp);
+		window.addEventListener('keydown', handleKeyDown);
 
+		return () => {
+			window.removeEventListener('keyup', handleKeyUp);
+			window.removeEventListener('keydown', handleKeyDown);
+		};
+	}, [handleKeyDown, handleKeyUp]);
+
+	useEffect(() => {
+		const loop = () => {
+			if (canvasRef.current && gameState && isReady) {
+				const newGameState = { ...gameState };
+				setGameState(newGameState);
+				drawGame(newGameState);
+			}
+			intervalId.current = requestAnimationFrame(loop);
+		};
+
+		intervalId.current = requestAnimationFrame(loop);
+
+		return () => {
+			if (intervalId.current) cancelAnimationFrame(intervalId.current);
+		};
+	}, [canvasRef, gameState, isReady]);
+
+	// Render
 	return (
-		<div className="flex flex-col">
-			<canvas ref={canvasRef} width={500} height={500} />
-			<button
-				onClick={() => {
-					socket.emit('pong/ready');
-				}}
-			>
-				Player 1 Ready
-			</button>
-			<button
-				onClick={() => {
-					socket.emit('pong/movePaddle', 'up');
-				}}
-			>
-				up
-			</button>
-			<button
-				onClick={() => {
-					socket.emit('pong/movePaddle', 'down');
-				}}
-			>
-				down
-			</button>
-			{/* {!gameStarted && connectedPlayers === 2 && (
-				<div>
-					<button disabled={player1Ready} onClick={handlePlayer1Ready}>
-						Player 1 Ready
-					</button>
-					<button disabled={player2Ready} onClick={handlePlayer2Ready}>
-						Player 2 Ready
-					</button>
-					{player1Ready && player2Ready && <button onClick={startGame}>Start Game</button>}
-				</div>
-			)} */}
+		<div className="absolute inset-0 flex flex-col items-center justify-center">
+			<div className="relative">
+				<canvas ref={canvasRef} width={800} height={450} className="bg-black" />
+				{!isReady && (
+					<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+						<Button color="blue" onClick={handleReadyClick}>
+							Ready
+						</Button>
+					</div>
+				)}
+			</div>
 		</div>
 	);
 };

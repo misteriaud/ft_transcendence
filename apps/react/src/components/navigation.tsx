@@ -7,6 +7,7 @@ import { i_user } from './interfaces';
 import { useUsers } from '../hooks/useUser';
 import { UserUI } from './userUI';
 import { Me } from './me';
+import { GameButton } from '../components/Queue';
 
 export function SearchBar() {
 	const {
@@ -141,7 +142,7 @@ export function Navigation() {
 		<Navbar className="grid grid-cols-3 gap-4 p-2" style={{ gridTemplateColumns: '2fr 1fr 2fr' }} fullWidth={true}>
 			<SearchBar />
 			<div className="col-start-2 col-span-1 flex justify-center items-center">
-				<Button size="lg">Play</Button>
+				<GameButton />
 			</div>
 			<div className="col-start-3 col-span-1 flex justify-end items-center">
 				<Me className="rounded-md text-blue-gray-500 hover:text-blue-gray-900 bg-white hover:bg-blue-gray-50 hover:bg-opacity-80 cursor-pointer" />
