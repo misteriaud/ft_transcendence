@@ -38,6 +38,7 @@ import { useMe, useUser } from '../hooks/useUser';
 import { useRoom } from '../hooks/useRoom';
 import { useApi } from '../hooks/useApi';
 import { UserUI } from './userUI';
+import { getStatus, usePresenceContext } from '../hooks/useContext';
 
 export function MuteDialog({ user, room, mutateRoom, dialogStatus, dialogHandler }: any) {
 	const time = {
@@ -371,7 +372,7 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 	);
 });
 
-export function User({ room_id, login42 }: { room_id?: number; login42: string }) {
+export function User({ room_id, login42, clickable = true }: { room_id?: number; login42: string; clickable?: boolean }) {
 	const { me, mutate: mutateMe, isLoading: isLoadingMe, error: errorMe }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
 	const {
 		user,
@@ -382,6 +383,7 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 	const location = useLocation();
 	const navigate = useNavigate();
 	const api = useApi();
+	const status = getStatus(user.id);
 
 	if (isLoadingMe || isLoadingUser) {
 		return (
@@ -403,6 +405,10 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 				<ExclamationTriangleIcon strokeWidth={2} className="h-12 w-12" />
 			</div>
 		);
+	}
+
+	if (!clickable) {
+		return <UserUI username={user.username} avatar={user.avatar} status={status} />;
 	}
 
 	const invitableRooms = me.memberOf.filter((m: i_member) => m.role === e_member_role.OWNER || m.role === e_member_role.ADMIN);
@@ -529,7 +535,7 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 	return (
 		<Menu>
 			<MenuHandler>
-				<UserUI username={user.username} avatar={user.avatar} />
+				<UserUI username={user.username} avatar={user.avatar} status={status} />
 			</MenuHandler>
 			<MenuList className={`${hideAll && 'hidden'}`}>
 				<MenuItem className="flex items-center gap-2 outline-none" disabled={disableProfile} onClick={handleProfile} tabIndex={-1}>

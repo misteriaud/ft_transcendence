@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Menu, MenuHandler, MenuItem, MenuList, Spinner, Typography } from '@material-tailwind/react';
 import { Cog6ToothIcon, ExclamationTriangleIcon, PowerIcon, UserCircleIcon, UsersIcon } from '@heroicons/react/24/solid';
 import { KeyedMutator } from 'swr';
-import { useStoreDispatchContext } from '../hooks/useContext';
+import { getStatus, useStoreDispatchContext } from '../hooks/useContext';
 import { StoreActionType } from '../context/storeProvider';
 import { useMe } from '../hooks/useUser';
 import { i_me } from './interfaces';
@@ -18,6 +18,7 @@ export function Me({ className }: { className?: string }) {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const dispatch = useStoreDispatchContext();
+	const status = getStatus(me.id);
 
 	if (isLoading) {
 		return (
@@ -65,7 +66,7 @@ export function Me({ className }: { className?: string }) {
 	return (
 		<Menu placement="bottom-end">
 			<MenuHandler>
-				<UserUI className={className} username={me.username} avatar={me.avatar} inverse={true} />
+				<UserUI className={className} username={me.username} avatar={me.avatar} inverse={true} status={status} />
 			</MenuHandler>
 			<MenuList>
 				<MenuItem className="flex items-center gap-2" disabled={disableProfile} onClick={handleProfile}>

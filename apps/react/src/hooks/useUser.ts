@@ -1,5 +1,3 @@
-import useSWR from 'swr';
-import { useStoreContext } from './useContext';
 import { useCustomSWR } from './useApi';
 
 export function useMe() {
@@ -16,7 +14,7 @@ export function useMe() {
 	};
 }
 
-export function useUser(id: string) {
+export function useUser(id: number | string) {
 	const { data, mutate, error, isLoading } = useCustomSWR(`/users/${id}`);
 
 	const forbiden = error && error.response.status === 403;

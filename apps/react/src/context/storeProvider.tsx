@@ -5,6 +5,7 @@ import { io, Socket } from 'socket.io-client';
 import { Alert } from '@material-tailwind/react';
 import { nanoid } from 'nanoid';
 import { CountdownCircleTimer } from 'react-countdown-circle-timer';
+import { e_user_status } from '../components/interfaces';
 
 export interface StoreState {
 	JWT?: string;
@@ -27,6 +28,7 @@ export const SocketContext = createContext<React.MutableRefObject<Socket> | null
 export const NotificationContext = createContext<
 	(({ elem, color, icon, timer }: { elem: ReactElement; color?: AlertColor; icon?: React.ReactNode; timer?: number }) => void) | null
 >(null);
+export const PresenceContext = createContext<Map<number, e_user_status>>(new Map());
 
 type AlertColor =
 	| 'blue-gray'
@@ -65,6 +67,7 @@ export function StoreProvider() {
 	const outlet = useOutlet();
 	const [store, dispatch] = useLocalStorageReducer('store', storeReducer, {});
 	const [alerts, setAlerts] = useState<Notification[]>([]);
+	const [presences, setPresences] = useState<Map<number, e_user_status>>(new Map());
 	const socketRef: React.MutableRefObject<Socket> = useRef() as React.MutableRefObject<Socket>;
 
 	useEffect(() => {
@@ -81,11 +84,25 @@ export function StoreProvider() {
 				content: event.data
 			});
 		});
+		socketRef.current.on('presence/init', (initialPresenses: [number, e_user_status][]) => {
+			setPresences(new Map(initialPresenses));
+			console.log('presence/init', new Map(initialPresenses));
+		});
 		return () => {
 			console.log('unset socket');
 			socketRef.current.close();
 		};
 	}, [store.JWT]);
+
+	useEffect(() => {
+		socketRef.current?.on('presence/update', ({ id, status }: { id: number; status: e_user_status }) => {
+			const newMap = new Map(presences);
+			if (status == e_user_status.OFFLINE) newMap.delete(id);
+			else newMap.set(id, status);
+			setPresences(newMap);
+			console.log('presence/update', newMap, id);
+		});
+	}, [socketRef, presences]);
 
 	const addAlert = ({ elem, color = 'blue', icon, timer = 10 }: { elem: ReactElement; color?: AlertColor; icon?: React.ReactNode; timer?: number }) => {
 		const id = nanoid();
@@ -99,10 +116,6 @@ export function StoreProvider() {
 				timer
 			}
 		]);
-		// if (timer > 0)
-		// 	setTimeout(() => {
-		// 		setAlerts(alerts.filter((alert) => alert.id !== id));
-		// 	}, 1000 * timer);
 	};
 
 	const removeAlert = (toRemoveId: string) => {
@@ -141,8 +154,10 @@ export function StoreProvider() {
 			<StoreDispatchContext.Provider value={dispatch}>
 				<SocketContext.Provider value={socketRef}>
 					<NotificationContext.Provider value={addAlert}>
-						<div className="absolute w-screen flex flex-col justify-center items-center z-50">{alertComp}</div>
-						{outlet}
+						<PresenceContext.Provider value={presences}>
+							<div className="absolute w-screen flex flex-col justify-center items-center z-50">{alertComp}</div>
+							{outlet}
+						</PresenceContext.Provider>
 					</NotificationContext.Provider>
 				</SocketContext.Provider>
 			</StoreDispatchContext.Provider>
