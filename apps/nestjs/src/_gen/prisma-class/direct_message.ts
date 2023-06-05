@@ -1,18 +1,18 @@
-import { Member } from './member';
+import { Friends } from './friends';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class Message {
+export class DirectMessage {
 	@ApiProperty({ type: Number })
 	id: number;
 
-	@ApiProperty({ type: () => Member })
-	author: Member;
+	@ApiProperty({ type: () => Friends })
+	user: Friends;
 
 	@ApiProperty({ type: Number })
-	room_id: number;
+	author_id: number;
 
 	@ApiProperty({ type: Number })
-	user_id: number;
+	receiver_id: number;
 
 	@ApiProperty({ type: String })
 	content: string;

@@ -152,16 +152,6 @@ paths:
               examples:
                 base:
                   value: {"id": 1, "username": "username", "login42": "login42", "avatar": null, "status": "ONLINE", "history": [], "createdAt": "2023-05-03T10:57:04.381Z"}
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                invalid_user_id:
-                  summary: Invalid user id
-                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -220,16 +210,6 @@ paths:
                 friend:
                   summary: Friend
                   value: {"userA_id": 1, "userB_id": 2}
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                invalid_user_id:
-                  summary: Invalid user id
-                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -363,16 +343,6 @@ paths:
                 friend:
                   summary: Friend
                   value: {"userA_id": 1, "userB_id": 2}
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                invalid_user_id:
-                  summary: Invalid user id
-                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -558,16 +528,6 @@ paths:
               examples:
                 base:
                   value: {"userA_id": 1, "userB_id": 2}
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                invalid_user_id:
-                  summary: Invalid user id
-                  value: {"statusCode": 400, "message": "Invalid user id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -764,7 +724,17 @@ paths:
                 type: object
               examples:
                 base:
-                  value: {TODO}
+                  value: {"id":1,"name":"Room 1","access":"PUBLIC","members":[{"user":{"id":1,"username":"userA","login42":"userA","avatar":null},"muted":false,"muted_until":"2023-05-22T18:05:45.075Z","messages":[],"invitations":[{"id":1,"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOjEsInJvb21faWQiOjEsImV4cCI6MTY4NDg2NzQ0N30.BDJ-cc8-ez3EqvYv9veXsF7j9rjdwlKvrmHFE2E28co"},{"id":2,"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOjEsInJvb21faWQiOjEsInN1YiI6MywiZXhwIjoxNjg0ODY5MTc2fQ.rJoX9JYHq8JMHOTmukOKpz6tLczKtJ609Jl271ywuaY"}]},{"user":{"id":2,"username":"userB","login42":"userB","avatar":null},"muted":false,"muted_until":"2023-05-22T18:06:10.773Z","messages":[{"id":1,"content":"Hello world!","createdAt":"2023-05-22T18:31:00.447Z","updatedAt":"2023-05-22T18:31:00.447Z"}],"invitations":[]},{"user":{"id":3,"username":"userC","login42":"userC","avatar":null},"muted":false,"muted_until":"2023-05-22T18:28:41.231Z","messages":[],"invitations":[]}]}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -850,6 +820,9 @@ paths:
                   value: { "statusCode": 400, "message": ["name should not be empty", "name must be a string", "access should not be empty", "access must be one of the following values: PUBLIC, PROTECTED, PRIVATE", "access must be one of the following values: PUBLIC, PROTECTED, PRIVATE, DIRECT_MESSAGE"], "error": "Bad Request"}
                 empty_password:
                   value: {"statusCode": 400, "message": ["password should not be empty"], "error": "Bad Request"}
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -899,6 +872,16 @@ paths:
       responses:
         '204':
           description: Room deleted successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -976,6 +959,9 @@ paths:
                 empty_password:
                   summary: Empty password
                   value: {"statusCode": 400, "message": ["password should not be empty"], "error": "Bad Request"}
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -1048,6 +1034,16 @@ paths:
               examples:
                 base:
                   value: {"room_id": 1, "user_id": 2, "role": "MEMBER", "muted": false, "muted_until": "2042-01-01T00:00:00.000Z", "banned": false}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -1125,6 +1121,16 @@ paths:
       responses:
         '204':
           description: Room leaved successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -1185,6 +1191,19 @@ paths:
               examples:
                 base:
                   value: {"room_id": 1, "user_id": 2, "role": "ADMIN", "muted": false, "muted_until": "2042-01-01T00:00:00.000Z","banned": false}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
+                invalid_member_id:
+                  summary: Invalid member id
+                  value: {"statusCode": 400, "message": "Invalid member id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -1266,6 +1285,19 @@ paths:
               examples:
                 base:
                   value: {"room_id": 1, "user_id": 2, "role": "MEMBER", "muted": false, "muted_until": "2042-01-01T00:00:00.000Z","banned": false}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
+                invalid_member_id:
+                  summary: Invalid member id
+                  value: {"statusCode": 400, "message": "Invalid member id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -1340,6 +1372,19 @@ paths:
       responses:
         '204':
           description: Kicked successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
+                invalid_member_id:
+                  summary: Invalid member id
+                  value: {"statusCode": 400, "message": "Invalid member id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -1429,6 +1474,19 @@ paths:
               examples:
                 base:
                   value: {"room_id": 1, "user_id": 2, "role": "MEMBER", "muted": true, "muted_until": "2042-01-01T00:00:00.000Z","banned": false}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
+                invalid_member_id:
+                  summary: Invalid member id
+                  value: {"statusCode": 400, "message": "Invalid member id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -1508,6 +1566,19 @@ paths:
               examples:
                 base:
                   value: {"room_id": 1, "user_id": 2, "role": "MEMBER", "muted": false, "muted_until": "2042-01-01T00:00:00.000Z","banned": false}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
+                invalid_member_id:
+                  summary: Invalid member id
+                  value: {"statusCode": 400, "message": "Invalid member id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -1589,6 +1660,19 @@ paths:
               examples:
                 base:
                   value: {"room_id": 1, "user_id": 2, "role": "MEMBER", "muted": false, "muted_until": "2042-01-01T00:00:00.000Z","banned": true}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
+                invalid_member_id:
+                  summary: Invalid member id
+                  value: {"statusCode": 400, "message": "Invalid member id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -1667,6 +1751,19 @@ paths:
               examples:
                 base:
                   value: {"room_id": 1, "user_id": 2, "role": "MEMBER", "muted": false, "muted_until": "2042-01-01T00:00:00.000Z","banned": false}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
+                invalid_member_id:
+                  summary: Invalid member id
+                  value: {"statusCode": 400, "message": "Invalid member id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -1717,6 +1814,309 @@ paths:
               examples:
                 base:
                   value: {"statusCode": 409, "message": "This member is not banned", "error": "Conflict"}
+  /rooms/{id}/message:
+    post:
+      tags:
+        - rooms
+      summary: Create a message
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: The content of the message
+                  example: "Hello world!"
+      responses:
+        '201':
+          description: Message created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"id":1,"author":{"user":{"id":2,"username":"userB","login42":"userB","avatar":null}},"content":"Hello world!","createdAt":"2023-05-22T19:23:29.363Z","updatedAt":"2023-05-22T19:23:29.363Z"}
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 400, "message": ["content should not be empty", "content must be a string"], "error": "Bad Request"}
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+    get:
+      tags:
+        - rooms
+      summary: Get all messages
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+              examples:
+                base:
+                  value: [{"id":1,"author":{"user":{"id":2,"username":"userB","login42":"userB","avatar":null}},"content":"Hello world!","createdAt":"2023-05-22T18:31:00.447Z","updatedAt":"2023-05-22T18:31:00.447Z"},{"id":2,"author":{"user":{"id":2,"username":"userB","login42":"userB","avatar":null}},"content":"Bye!","createdAt":"2023-05-22T19:23:29.363Z","updatedAt":"2023-05-22T19:23:29.363Z"}]
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+  /rooms/{id}/message/{message_id}:
+    put:
+      tags:
+        - rooms
+      summary: Edit a message
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+        - name: message_id
+          in: path
+          description: Id of the message
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: The content of the message
+                  example: "Hello world!"
+      responses:
+        '200':
+          description: Message edited successfully
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"id":1,"author":{"user":{"id":2,"username":"userB","login42":"userB","avatar":null}},"content":"Hello!","createdAt":"2023-05-22T19:38:04.289Z","updatedAt":"2023-05-22T19:39:05.087Z"}
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 400, "message": ["content should not be empty", "content must be a string"], "error": "Bad Request"}
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
+                invalid_message_id:
+                  summary: Invalid message id
+                  value: {"statusCode": 400, "message": "Invalid message id", "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                not_author:
+                  summary: Not the author
+                  value: {"statusCode": 403, "message": "You are not the author of this message", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+                message:
+                  summary: Message
+                  value: {"statusCode": 404, "message": "Message not found", "error": "Not found"}
+    delete:
+      tags:
+        - rooms
+      summary: Delete a message
+      parameters:
+        - name: id
+          in: path
+          description: Id of the room
+          required: true
+          schema:
+            type: string
+        - name: message_id
+          in: path
+          description: Id of the message
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Message deleted successfully
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
+                invalid_message_id:
+                  summary: Invalid message id
+                  value: {"statusCode": 400, "message": "Invalid message id", "error": "Bad Request"}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                not_member:
+                  summary: Not a member
+                  value: {"statusCode": 403, "message": "You are not a member of this room", "error": "Forbidden"}
+                not_author:
+                  summary: Not the author
+                  value: {"statusCode": 403, "message": "You are not the author of this message", "error": "Forbidden"}
+                banned:
+                  summary: Banned
+                  value: {"statusCode": 403, "message": "You are banned from this room", "error": "Forbidden"}
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                room:
+                  summary: Room
+                  value: {"statusCode": 404, "message": "Room not found", "error": "Not found"}
+                message:
+                  summary: Message
+                  value: {"statusCode": 404, "message": "Message not found", "error": "Not found"}
   /rooms/{id}/invitation:
     post:
       tags:
@@ -1752,7 +2152,7 @@ paths:
                 type: object
               examples:
                 base:
-                  value: {TODO}
+                  value: {"id":1,"iss":{"user":{"id":1,"username":"userA","login42":"userA","avatar":null}},"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOjEsInJvb21faWQiOjEsInN1YiI6MywiZXhwIjoxNjg0ODY5MTc2fQ.rJoX9JYHq8JMHOTmukOKpz6tLczKtJ609Jl271ywuaY"}
         '400':
           description: Bad request
           content:
@@ -1766,6 +2166,9 @@ paths:
                 exp:
                   summary: Bad exp
                   value: {"statusCode": 400, "message": ["exp must be a Date instance"], "error": "Bad Request"}
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -1818,10 +2221,22 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                type: array
+                items:
+                  type: object
               examples:
                 base:
-                  value: {TODO}
+                  value: [{"id":1,"iss":{"user":{"id":1,"username":"userA","login42":"userA","avatar":null}},"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOjEsInJvb21faWQiOjEsImV4cCI6MTY4NDg2NzQ0N30.BDJ-cc8-ez3EqvYv9veXsF7j9rjdwlKvrmHFE2E28co"},{"id":2,"iss":{"user":{"id":1,"username":"userA","login42":"userA","avatar":null}},"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOjEsInJvb21faWQiOjEsInN1YiI6MywiZXhwIjoxNjg0ODY5MTc2fQ.rJoX9JYHq8JMHOTmukOKpz6tLczKtJ609Jl271ywuaY"}]
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:
@@ -1878,6 +2293,16 @@ paths:
       responses:
         '204':
           description: Invitation deleted successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                invalid_room_id:
+                  summary: Invalid room id
+                  value: {"statusCode": 400, "message": "Invalid room id", "error": "Bad Request"}
         '401':
           description: Unauthorized
           content:

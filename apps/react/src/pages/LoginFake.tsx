@@ -2,7 +2,7 @@ import { Navigate, redirect } from 'react-router-dom';
 import { useStoreDispatchContext } from '../hooks/useContext';
 import { useApi } from '../hooks/useApi';
 import { useMe } from '../hooks/useUser';
-import { Spinner } from '../components/Spinner';
+import { Spinner } from '@material-tailwind/react';
 import { StoreActionType } from '../context/storeProvider';
 import { useState } from 'react';
 

@@ -1,35 +1,54 @@
 import { Link, Outlet } from 'react-router-dom';
 import { useMe } from '../hooks/useUser';
-import { Spinner } from '../components/Spinner';
 import { useSocketContext } from '../hooks/useContext';
 import { ChatPanel } from './Chat/ChatPanel';
-import { Me } from '../components/me';
 import { Navigation } from '../components/navigation';
+import { Button, Dialog, DialogBody, Typography, Spinner } from '@material-tailwind/react';
+import { useStoreDispatchContext } from '../hooks/useContext';
+import { useNavigate } from 'react-router-dom';
 
 export const DashboardLayout = () => {
 	const { isLoading, loggedIn } = useMe();
+	const dispatch = useStoreDispatchContext();
 	const { isConnected, socket } = useSocketContext();
+	const navigate = useNavigate();
 
 	if (isLoading) return <Spinner />;
 
 	if (!loggedIn) {
 		return (
-			<>
-				<h1>Your are not connected yet</h1>
-				<Link to="/login">login</Link>
-			</>
+			<Dialog
+				size="xs"
+				open={true}
+				handler={() => {
+					return;
+				}}
+			>
+				<DialogBody className="flex flex-col items-center justify-center text-center gap-6">
+					<Typography variant="h4">You are not connected yet, please click on the link to login</Typography>
+					<Button
+						variant="gradient"
+						className="mr-1"
+						onClick={() => {
+							navigate('/login');
+						}}
+					>
+						<span>Login</span>
+					</Button>
+				</DialogBody>
+			</Dialog>
 		);
 	}
 
 	return (
-		<>
+		<div className="absolute inset-0 bg-orange-200 flex flex-col h-screen w-screen">
 			<Navigation />
-			{/* <nav className="h-12 bg-green-300 flex flex-row justify-between">
-				<Link to="settings">Settings</Link>
-			</nav> */}
-			<div className="h-screen bg-orange-500"></div>
-			<Outlet />
-			<ChatPanel />
-		</>
+			<div className="flex flex-row justify-end h-full overflow-hidden">
+				<div className="w-full h-full flex flex-col">
+					<Outlet />
+				</div>
+				<ChatPanel />
+			</div>
+		</div>
 	);
 };

@@ -13,4 +13,7 @@ export class Friends {
 
 	@ApiProperty({ type: Number })
 	userB_id: number;
+
+	@ApiProperty({ type: Number })
+	room_id: number;
 }

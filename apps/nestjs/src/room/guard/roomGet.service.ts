@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, ExecutionContext, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Invitation, Member, Room, User } from '@prisma/client';
+import { Invitation, Member, Message, Room, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -92,6 +92,34 @@ export class RoomGetService {
 		}
 		request.userAsMember = userAsMember;
 		return userAsMember;
+	}
+
+	async getMessage(context: ExecutionContext): Promise<Message> {
+		const request = context.switchToHttp().getRequest();
+
+		if (request.message) {
+			return request.message;
+		}
+
+		const room: Room = await this.getRoom(context);
+		const message_id = parseInt(request.params.message_id);
+
+		if (isNaN(message_id)) {
+			throw new BadRequestException('Invalid message id');
+		}
+
+		const message = await this.prisma.message.findFirst({
+			where: {
+				id: message_id,
+				room_id: room.id,
+			},
+		});
+
+		if (!message) {
+			throw new NotFoundException('Message not found');
+		}
+		request.message = message;
+		return message;
 	}
 
 	async getInvitation(context: ExecutionContext): Promise<Invitation> {

@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as argon from 'argon2';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { InvitationDto, RoomDto, RoomJoinDto, RoomMuteDto } from './dto';
+import { InvitationDto, MessageDto, RoomDto, RoomJoinDto, RoomMuteDto } from './dto';
 import { PrismaRoomService } from './prismaRoom.service';
 
 @Injectable()
@@ -182,6 +182,28 @@ export class RoomService {
 			throw new ConflictException('This member is not banned');
 		}
 		return await this.prismaRoom.editMember(member.room_id, member.user_id, null, null, null, false);
+	}
+
+	// MESSAGE
+
+	// Create a message
+	async createMessage(user_id: number, room_id: number, dto: MessageDto) {
+		return await this.prismaRoom.createMessage(room_id, user_id, dto.content);
+	}
+
+	// Get all messages
+	async getAllMessages(room_id: number) {
+		return await this.prismaRoom.getAllMessages(room_id);
+	}
+
+	// Edit a message
+	async editMessage(message_id: number, dto: MessageDto) {
+		return await this.prismaRoom.editMessage(message_id, dto.content);
+	}
+
+	// Delete a message
+	async deleteMessage(message_id: number) {
+		return await this.prismaRoom.deleteMessage(message_id);
 	}
 
 	// INVITATION

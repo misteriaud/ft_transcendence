@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UserDto } from './dto';
 import { Profile } from 'passport';
 import { authenticator } from 'otplib';
+import { e_member_role, e_room_access } from '@prisma/client';
 
 @Injectable()
 export class PrismaUserService {
@@ -26,6 +27,19 @@ export class PrismaUserService {
 				friends: {
 					select: {
 						userB: {
+							select: {
+								id: true,
+								username: true,
+								login42: true,
+								avatar: true,
+								status: true,
+							},
+						},
+					},
+				},
+				friendOf: {
+					select: {
+						userA: {
 							select: {
 								id: true,
 								username: true,
@@ -226,7 +240,7 @@ export class PrismaUserService {
 	}
 
 	// Create friend
-	async createFriend(userA_id: number, userB_id: number) {
+	async createFriend(userA_id: number, userB_id: number, room_id: number) {
 		return await this.prisma.friends.create({
 			data: {
 				userA: {
@@ -239,6 +253,7 @@ export class PrismaUserService {
 						id: userB_id,
 					},
 				},
+				room_id,
 			},
 		});
 	}
@@ -248,8 +263,8 @@ export class PrismaUserService {
 		return await this.prisma.friends.findUnique({
 			where: {
 				userA_id_userB_id: {
-					userA_id: userA_id,
-					userB_id: userB_id,
+					userA_id,
+					userB_id,
 				},
 			},
 		});
@@ -260,8 +275,8 @@ export class PrismaUserService {
 		await this.prisma.friends.delete({
 			where: {
 				userA_id_userB_id: {
-					userA_id: userA_id,
-					userB_id: userB_id,
+					userA_id,
+					userB_id,
 				},
 			},
 		});
