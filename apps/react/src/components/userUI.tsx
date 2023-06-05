@@ -7,7 +7,7 @@ export const UserUI = forwardRef((props: any, ref: any) => {
 	return (
 		<div
 			ref={ref}
-			className="flex justify-center items-center p-3 rounded-md text-blue-gray-500 hover:text-blue-gray-900 bg-white hover:bg-blue-gray-50 hover:bg-opacity-80"
+			className="flex justify-center items-center p-2 rounded-md text-blue-gray-500 hover:text-blue-gray-900 bg-white hover:bg-blue-gray-50 hover:bg-opacity-80"
 			{...otherProps}
 		>
 			{inverse && (

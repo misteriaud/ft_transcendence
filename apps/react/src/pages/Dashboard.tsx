@@ -4,6 +4,7 @@ import { Spinner } from '../components/Spinner';
 import { useSocketContext } from '../hooks/useContext';
 import { ChatPanel } from './Chat/ChatPanel';
 import { Me } from '../components/me';
+import { Navigation } from '../components/navigation';
 
 export const DashboardLayout = () => {
 	const { isLoading, loggedIn } = useMe();
@@ -21,13 +22,14 @@ export const DashboardLayout = () => {
 	}
 
 	return (
-		<div className="absolute inset-0 bg-orange-400 flex flex-col">
-			<nav className="h-12 bg-green-300 flex flex-row justify-between">
+		<>
+			<Navigation />
+			{/* <nav className="h-12 bg-green-300 flex flex-row justify-between">
 				<Link to="settings">Settings</Link>
-				<Me />
-			</nav>
+			</nav> */}
+			<div className="h-screen bg-orange-500"></div>
 			<Outlet />
 			<ChatPanel />
-		</div>
+		</>
 	);
 };

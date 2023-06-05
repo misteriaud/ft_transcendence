@@ -62,7 +62,7 @@ export function Me() {
 	}
 
 	return (
-		<Menu open={openMenu} handler={handleOpenCloseMenu}>
+		<Menu open={openMenu} handler={handleOpenCloseMenu} placement="bottom-end">
 			<MenuHandler>
 				<UserUI username={me.username} avatar={me.avatar} inverse={true} onClick={handleOpenCloseMenu} />
 			</MenuHandler>
