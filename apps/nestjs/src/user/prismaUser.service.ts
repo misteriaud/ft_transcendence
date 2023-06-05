@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserDto } from './dto';
 import { Profile } from 'passport';
@@ -6,7 +7,7 @@ import { authenticator } from 'otplib';
 
 @Injectable()
 export class PrismaUserService {
-	constructor(private prisma: PrismaService) {}
+	constructor(private config: ConfigService, private prisma: PrismaService) {}
 
 	// Get me
 	async getMe(user_id: number, includeSecret: boolean) {
@@ -98,6 +99,7 @@ export class PrismaUserService {
 								access: true,
 							},
 						},
+						role: true,
 					},
 				},
 				createdAt: true,
@@ -107,21 +109,30 @@ export class PrismaUserService {
 	}
 
 	// Edit me
-	async editMe(user_id: number, twoFactorEnabled: boolean, dto: UserDto) {
+	async editMe(user_id: number, twoFactorEnabled: boolean, new_twoFactorEnabled: boolean, dto: UserDto, avatarURL: string | null) {
 		let secret: string | null = null;
-		if (!twoFactorEnabled && dto.twoFactorEnabled) {
+
+		if (!twoFactorEnabled && new_twoFactorEnabled) {
 			secret = authenticator.generateSecret();
 		}
+
+		const data: {
+			username?: string;
+			avatar?: string;
+			twoFactorEnabled?: boolean;
+			twoFactorSecret?: string;
+		} = {
+			...(dto.username !== null && { username: dto.username }),
+			...(avatarURL !== null && { avatar: avatarURL }),
+			...(dto.twoFactorEnabled !== null && { twoFactorEnabled: new_twoFactorEnabled }),
+			...(secret !== null && { twoFactorSecret: secret }),
+		};
 
 		return await this.prisma.user.update({
 			where: {
 				id: user_id,
 			},
-			data: {
-				username: dto.username,
-				twoFactorEnabled: dto.twoFactorEnabled,
-				twoFactorSecret: secret,
-			},
+			data: data,
 			select: {
 				id: true,
 				username: true,
@@ -137,6 +148,19 @@ export class PrismaUserService {
 		await this.prisma.user.delete({
 			where: {
 				id: user_id,
+			},
+		});
+	}
+
+	// Get all users
+	async getAll() {
+		return await this.prisma.user.findMany({
+			select: {
+				id: true,
+				username: true,
+				login42: true,
+				avatar: true,
+				status: true,
 			},
 		});
 	}
@@ -281,6 +305,7 @@ export class PrismaUserService {
 			data: {
 				username: profile.displayName,
 				login42: profile.username,
+				avatar: `http://localhost:${this.config.get('PORT')}/static/uploads/avatar/default.jpg`,
 			},
 			// select: {
 			// 	id: true,

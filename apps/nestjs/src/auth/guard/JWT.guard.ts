@@ -45,14 +45,9 @@ export class JWTGuard extends UnauthorizedJWTGuard {
 		const request = context.switchToHttp().getRequest();
 
 		const { twoFactorEnabled, authorized2fa } = request['jwtPayload'];
-		const { twoFactorEnabled: userTwoFactorEnabled } = request['user'] || {};
 
-		/*
-		unauthorized if:
-			- 2fa is enable and 2fa TOTP wasnt yet validated
-			- twoFactorEnabled is marked as DISABLE in the token and ENABLE in the DB
-		*/
-		if ((userTwoFactorEnabled && !authorized2fa) || twoFactorEnabled !== userTwoFactorEnabled) {
+		// Unauthorized if 2fa is enable and 2fa TOTP wasnt yet validated
+		if (twoFactorEnabled && !authorized2fa) {
 			throw new UnauthorizedException('Invalid 2FA');
 		}
 

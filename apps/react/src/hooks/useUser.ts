@@ -25,6 +25,18 @@ export function useUser(id: string) {
 		isLoading,
 		forbiden,
 		user: data,
-		mutate
+		mutate,
+		error
+	};
+}
+
+export function useUsers() {
+	const { data, mutate, isLoading, error } = useCustomSWR('/users');
+
+	return {
+		users: data,
+		mutate,
+		isLoading,
+		error
 	};
 }

@@ -106,11 +106,35 @@ paths:
               examples:
                 base:
                   value: {"statusCode": 401, "message": "Unauthorized"}
+  /users:
+    get:
+      tags:
+        - users
+      summary: Get all users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: [{"id":1,"username":"userA","login42":"userA","avatar":null,"status":"ONLINE"},{"id":2,"username":"userB","login42":"userB","avatar":null,"status":"OFFLINE"}]
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                base:
+                  value: {"statusCode": 401, "message": "Unauthorized"}
   /users/{id}:
     get:
       tags:
         - users
-      summary: Get user information
+      summary: Get user
       parameters:
         - name: id
           in: path

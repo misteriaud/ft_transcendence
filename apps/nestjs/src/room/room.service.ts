@@ -157,7 +157,7 @@ export class RoomService {
 
 	// Mute member
 	async mute(member: Member, dto: RoomMuteDto) {
-		return await this.prismaRoom.editMember(member.room_id, member.user_id, null, true, new Date(dto.muted_until), null);
+		return await this.prismaRoom.editMember(member.room_id, member.user_id, null, true, dto.mute_until, null);
 	}
 
 	// Unmute member

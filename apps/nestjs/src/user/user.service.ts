@@ -1,11 +1,16 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { PrismaUserService } from './prismaUser.service';
 import { UserDto } from './dto';
 import { Profile } from 'passport';
+import { join } from 'path';
 
 @Injectable()
 export class UserService {
-	constructor(private prismaUser: PrismaUserService) {}
+	constructor(private config: ConfigService, private jwt: JwtService, private prismaUser: PrismaUserService) {}
+
+	// USER
 
 	// Get me
 	async getMe(user_id: number, includeSecret = false) {
@@ -13,13 +18,36 @@ export class UserService {
 	}
 
 	// Edit me
-	async editMe(user_id: number, twoFactorEnabled: boolean, dto: UserDto) {
-		return await this.prismaUser.editMe(user_id, twoFactorEnabled, dto);
+	async editMe(user_id: number, twoFactorEnabled: boolean, dto: UserDto, file?: Express.Multer.File) {
+		let new_avatarURL: string | null;
+		let new_twoFactorEnabled: boolean | null;
+
+		if (!dto.username) {
+			dto.username = null;
+		}
+		if (!file) {
+			new_avatarURL = null;
+		} else {
+			new_avatarURL = `http://localhost:${this.config.get('PORT')}` + join(`/static/uploads/avatar`, file.filename);
+		}
+		if (!dto.twoFactorEnabled) {
+			dto.twoFactorEnabled = null;
+			new_twoFactorEnabled = null;
+		} else {
+			new_twoFactorEnabled = dto.twoFactorEnabled === 'false' ? false : true;
+		}
+
+		return await this.prismaUser.editMe(user_id, twoFactorEnabled, new_twoFactorEnabled, dto, new_avatarURL);
 	}
 
 	// Delete me
 	async deleteMe(user_id: number) {
 		await this.prismaUser.deleteMe(user_id);
+	}
+
+	// Get all users
+	async getAll() {
+		return await this.prismaUser.getAll();
 	}
 
 	// Get user

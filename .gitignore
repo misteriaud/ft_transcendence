@@ -1,4 +1,8 @@
 build/
 node_modules/
 migrations/
-**/.env
+**/uploads/*
+!**/uploads/avatar/
+**/uploads/avatar/*
+!**/uploads/avatar/default.jpg
+.env

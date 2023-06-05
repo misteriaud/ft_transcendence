@@ -1,5 +1,4 @@
-import { Type } from 'class-transformer';
-import { IsNotEmpty, IsString, IsOptional, MaxLength, IsBoolean } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, MaxLength } from 'class-validator';
 
 export class UserDto {
 	@IsString()
@@ -8,9 +7,8 @@ export class UserDto {
 	@IsOptional()
 	username: string;
 
-	@Type(() => Boolean)
-	@IsBoolean()
+	@IsString()
 	@IsNotEmpty()
 	@IsOptional()
-	twoFactorEnabled: boolean;
+	twoFactorEnabled: string;
 }
