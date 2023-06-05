@@ -73,6 +73,12 @@ export class UserController {
 		return this.userService.deleteMe(user_id);
 	}
 
+	// Get all users
+	@Get()
+	getAll() {
+		return this.userService.getAll();
+	}
+
 	// Get user
 	@UseGuards(BlockedGuard, GetOtherGuard)
 	@Get(':id')

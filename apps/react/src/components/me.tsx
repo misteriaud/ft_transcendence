@@ -10,7 +10,7 @@ import { i_me } from './interfaces';
 import { SettingsDialog } from './me-settings';
 import { UserUI } from './userUI';
 
-export function Me() {
+export function Me({ className }: { className?: string }) {
 	const { me, mutate, isLoading, error }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
 	const [openSettingsDialog, setOpenSettingsDialog] = useState(false);
 	const location = useLocation();
@@ -59,7 +59,7 @@ export function Me() {
 	return (
 		<Menu placement="bottom-end">
 			<MenuHandler>
-				<UserUI username={me.username} avatar={me.avatar} inverse={true} />
+				<UserUI className={className} username={me.username} avatar={me.avatar} inverse={true} />
 			</MenuHandler>
 			<MenuList>
 				<MenuItem className="flex items-center gap-2" disabled={disableProfile} onClick={handleProfile}>

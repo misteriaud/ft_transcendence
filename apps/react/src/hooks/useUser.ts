@@ -29,3 +29,14 @@ export function useUser(id: string) {
 		error
 	};
 }
+
+export function useUsers() {
+	const { data, mutate, isLoading, error } = useCustomSWR('/users');
+
+	return {
+		users: data,
+		mutate,
+		isLoading,
+		error
+	};
+}

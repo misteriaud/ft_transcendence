@@ -45,6 +45,11 @@ export class UserService {
 		await this.prismaUser.deleteMe(user_id);
 	}
 
+	// Get all users
+	async getAll() {
+		return await this.prismaUser.getAll();
+	}
+
 	// Get user
 	async get(other_id: number) {
 		return await this.prismaUser.get(other_id);

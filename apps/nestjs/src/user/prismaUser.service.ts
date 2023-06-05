@@ -152,6 +152,19 @@ export class PrismaUserService {
 		});
 	}
 
+	// Get all users
+	async getAll() {
+		return await this.prisma.user.findMany({
+			select: {
+				id: true,
+				username: true,
+				login42: true,
+				avatar: true,
+				status: true,
+			},
+		});
+	}
+
 	// Get
 	async get(user_id: number) {
 		return await this.prisma.user.findUnique({
