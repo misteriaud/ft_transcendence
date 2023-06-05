@@ -44,7 +44,7 @@ import {
 
 function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => void }) {
 	const [name, setName] = useState('');
-	const [access, setAccess] = useState('PRIVATE');
+	const [access, setAccess] = useState('PUBLIC');
 	const [password, setPassword] = useState('');
 	const { me, mutate } = useMe();
 	const api = useApi();
@@ -73,7 +73,7 @@ function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => voi
 	}
 
 	return (
-		<Dialog open={open} handler={handleOpen} size="md">
+		<Dialog open={open} handler={handleOpen} size="xs">
 			<form onSubmit={submit} className="flex flex-col gap-2">
 				<DialogHeader>Create new room</DialogHeader>
 				<DialogBody divider className="flex flex-col gap-2 items-center">
@@ -153,11 +153,11 @@ function Chat({ roomInfo, close }: { roomInfo: Room; close: () => void }) {
 				<div className="flex-shrink min-h-0 overflow-scroll flex flex-col">
 					<ul className="overflow-scroll pt-2 flex flex-col pr-2">
 						{messages.map((message: Message) => (
-							<li
-								key={message.id}
-								className={`flex-shrink min-w-0 self-${message.author.user.id == me.id ? 'end' : 'start'} rounded-md bg-white bg-opacity-90 px-1 py-0.5 m-1`}
-							>
-								{message.content}
+							<li key={message.id} className={`self-${message.author.user.id == me.id ? 'end' : 'start'} m-1 flex flex-col items-end`}>
+								<p className="shrink select-none text-gray-700 text-xs opacity-70 flex gap-1">
+									{new Date(message.createdAt).getHours()}:{new Date(message.createdAt).getMinutes()}
+								</p>
+								<p className="flex-shrink min-w-0 rounded-md bg-white bg-opacity-90 px-1 py-0.5">{message.content}</p>
 							</li>
 						))}
 						<li ref={lastMessageRef}></li>

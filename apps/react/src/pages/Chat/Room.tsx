@@ -5,7 +5,7 @@ import { Menu, MenuHandler, MenuList, MenuItem, Spinner, Dialog, DialogHeader, D
 import { User } from '../../components/User';
 import { Bars3Icon, ChatBubbleOvalLeftEllipsisIcon, EllipsisVerticalIcon, KeyIcon, LockClosedIcon, NoSymbolIcon } from '@heroicons/react/24/outline';
 import { useState, useRef, MutableRefObject, useEffect } from 'react';
-import { useAlertContext } from '../../hooks/useContext';
+import { useNotificationContext } from '../../hooks/useContext';
 
 function RoomMembers({ room }: { room: Room }) {
 	const { data, error, isLoading } = useCustomSWR(`/rooms/${room.id}`);
@@ -78,7 +78,7 @@ export function RoomInfo({ room, onClick }: { room: Room; onClick?: (e: any) => 
 	const api = useApi();
 	const { me, mutate } = useMe();
 	const [openJoinPassDial, setOpenJoinPassDial] = useState(false);
-	const { alert } = useAlertContext();
+	const { notify } = useNotificationContext();
 
 	const handlePassDial = () => setOpenJoinPassDial(!openJoinPassDial);
 
@@ -105,10 +105,10 @@ export function RoomInfo({ room, onClick }: { room: Room; onClick?: (e: any) => 
 					]
 				});
 				roomMutate(roomData);
-				alert({ elem: <h1>You successfully join {room.name}</h1>, color: 'green' });
+				notify({ elem: <h1>You successfully join {room.name}</h1>, color: 'green' });
 			})
 			.catch((error) => {
-				alert({ elem: <h1>Wrong password</h1>, color: 'red' });
+				notify({ elem: <h1>Wrong password</h1>, color: 'red' });
 			});
 	}
 

@@ -5,6 +5,7 @@ export interface Message {
 	updatedAt: Date;
 	author: {
 		user: {
+			username: string;
 			id: number;
 		};
 	};

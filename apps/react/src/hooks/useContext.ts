@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { StoreContext, StoreDispatchContext, SocketContext, StoreAction, AlertContext } from '../context/storeProvider';
+import { StoreContext, StoreDispatchContext, SocketContext, StoreAction, NotificationContext } from '../context/storeProvider';
 
 export function useStoreContext() {
 	return useContext(StoreContext);
@@ -18,8 +18,8 @@ export function useSocketContext() {
 	return { isConnected: !!context.current, socket: context.current };
 }
 
-export function useAlertContext() {
-	const context = useContext(AlertContext);
+export function useNotificationContext() {
+	const context = useContext(NotificationContext);
 	if (!context) throw new Error('socketContext must be used within a StoreProvider');
-	return { alert: context };
+	return { notify: context };
 }
