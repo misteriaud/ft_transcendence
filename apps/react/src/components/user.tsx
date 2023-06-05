@@ -196,13 +196,7 @@ export function MuteDialog({ user, room, mutateRoom, dialogStatus, dialogHandler
 }
 
 const MenuRoomItems = forwardRef((props: any, ref: any) => {
-	const {
-		me,
-		user,
-		room_id,
-		menuHandler: handleOpenCloseMenu,
-		...otherProps
-	}: { me: i_me; user: i_user; room_id: number; menuHandler: any; otherProps?: any } = props;
+	const { me, user, room_id, ...otherProps }: { me: i_me; user: i_user; room_id: number; otherProps?: any } = props;
 	const {
 		room,
 		mutate: mutateRoom,
@@ -255,7 +249,6 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 	const hideUnban = (!isMeOwnerOfRoom && !isMeAdminOfRoom) || !isUserBanned || isUserOwnerOfRoom;
 
 	async function handlePromote() {
-		handleOpenCloseMenu();
 		await api
 			.put(`/rooms/${room_id}/promote/${user.id}`)
 			.then(() => {
@@ -267,7 +260,6 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 	}
 
 	async function handleDemote() {
-		handleOpenCloseMenu();
 		await api
 			.put(`/rooms/${room_id}/demote/${user.id}`)
 			.then(() => {
@@ -279,14 +271,10 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 	}
 
 	function handleMute() {
-		if (openMuteDialog) {
-			handleOpenCloseMenu();
-		}
 		setOpenMuteDialog(!openMuteDialog);
 	}
 
 	async function handleUnmute() {
-		handleOpenCloseMenu();
 		await api
 			.put(`/rooms/${room_id}/unmute/${user.id}`)
 			.then(() => {
@@ -298,7 +286,6 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 	}
 
 	async function handleKick() {
-		handleOpenCloseMenu();
 		await api
 			.delete(`/rooms/${room_id}/kick/${user.id}`)
 			.then(() => {
@@ -310,7 +297,6 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 	}
 
 	async function handleBan() {
-		handleOpenCloseMenu();
 		await api
 			.put(`/rooms/${room_id}/ban/${user.id}`)
 			.then(() => {
@@ -322,7 +308,6 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 	}
 
 	async function handleUnban() {
-		handleOpenCloseMenu();
 		await api
 			.put(`/rooms/${room_id}/unban/${user.id}`)
 			.then(() => {
@@ -394,7 +379,6 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 		isLoading: isLoadingUser,
 		error: errorUser
 	}: { isLoading: boolean; user: i_user; mutate: KeyedMutator<i_user>; error: Error } = useUser(login42);
-	const [openMenu, setOpenMenu] = useState(false);
 	const location = useLocation();
 	const navigate = useNavigate();
 	const api = useApi();
@@ -447,10 +431,6 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 	const hideRemoveFriend = !areMeAndUserFriends;
 	const hideBlock = meBlockUser;
 	const hideUnblock = !meBlockUser;
-
-	function handleOpenCloseMenu() {
-		setOpenMenu(!openMenu);
-	}
 
 	function handleProfile() {
 		navigate(`/dashboard/users/${user.login42}`);
@@ -547,9 +527,9 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 	}
 
 	return (
-		<Menu open={openMenu} handler={handleOpenCloseMenu}>
+		<Menu>
 			<MenuHandler>
-				<UserUI username={user.username} avatar={user.avatar} onClick={handleOpenCloseMenu} />
+				<UserUI username={user.username} avatar={user.avatar} />
 			</MenuHandler>
 			<MenuList className={`${hideAll && 'hidden'}`}>
 				<MenuItem className="flex items-center gap-2 outline-none" disabled={disableProfile} onClick={handleProfile} tabIndex={-1}>
@@ -587,7 +567,7 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 						Invite to Game
 					</Typography>
 				</MenuItem>
-				{room_id && <MenuRoomItems me={me} user={user} room_id={room_id} menuHandler={handleOpenCloseMenu} />}
+				{room_id && <MenuRoomItems me={me} user={user} room_id={room_id} />}
 				<hr className="my-2 border-blue-gray-50" />
 				<MenuItem className={`flex items-center gap-2 outline-none ${hideSendFriendRequest && 'hidden'}`} onClick={handleSendFriendRequest} tabIndex={-1}>
 					<UserPlusIcon strokeWidth={2} className="h-4 w-4" />

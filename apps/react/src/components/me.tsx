@@ -12,7 +12,6 @@ import { UserUI } from './userUI';
 
 export function Me() {
 	const { me, mutate, isLoading, error }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
-	const [openMenu, setOpenMenu] = useState(false);
 	const [openSettingsDialog, setOpenSettingsDialog] = useState(false);
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -42,10 +41,6 @@ export function Me() {
 
 	const disableProfile = isCurrentLocationMeProfile;
 
-	function handleOpenCloseMenu() {
-		setOpenMenu(!openMenu);
-	}
-
 	function handleProfile() {
 		navigate(`/dashboard/users/${me.login42}`);
 	}
@@ -62,9 +57,9 @@ export function Me() {
 	}
 
 	return (
-		<Menu open={openMenu} handler={handleOpenCloseMenu} placement="bottom-end">
+		<Menu placement="bottom-end">
 			<MenuHandler>
-				<UserUI username={me.username} avatar={me.avatar} inverse={true} onClick={handleOpenCloseMenu} />
+				<UserUI username={me.username} avatar={me.avatar} inverse={true} />
 			</MenuHandler>
 			<MenuList>
 				<MenuItem className="flex items-center gap-2" disabled={disableProfile} onClick={handleProfile}>
