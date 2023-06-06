@@ -22,7 +22,7 @@ export class Match {
 	powerUp: boolean;
 
 	@ApiProperty({ enum: e_match_state, enumName: 'e_match_state' })
-	state: e_match_state = e_match_state.PREPARATION;
+	state: e_match_state = e_match_state.FINISHED;
 
 	@ApiProperty({ type: Date })
 	createdAt: Date;
