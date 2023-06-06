@@ -9,7 +9,7 @@ export class PrismaMatchService {
 	// MATCH
 
 	// Create a match
-	async create(player1_id: number, player2_id, score1: number, score2: number, mod: e_match_mod, state: e_match_state) {
+	async create(player1_id: number, player2_id: number, score1: number, score2: number, mod: e_match_mod, state: e_match_state) {
 		return await this.prisma.match.create({
 			data: {
 				playedBy: {
@@ -76,7 +76,7 @@ export class PrismaMatchService {
 	}
 
 	// Edit a match
-	async edit(match_id: number, player1_id: number, player2_id, score1: number, score2: number, mod: e_match_mod, state: e_match_state) {
+	async edit(match_id: number, player1_id: number, player2_id: number, score1: number, score2: number, mod: e_match_mod, state: e_match_state) {
 		return await this.prisma.match.update({
 			where: {
 				id: match_id,

@@ -224,7 +224,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 	endGame(gameIndex: number, state: e_match_state) {
 		const game = this.currentGame[gameIndex];
 
-		this.prismaMatch.create(this.currentGame[gameIndex].playersIds[0], this.currentGame[gameIndex].playersIds[1], game.player1.score, game.player2.score, this.currentGame[gameIndex].mode, state);
+		this.prismaMatch.create(game.playersIds[0], game.playersIds[1], game.player1.score, game.player2.score, game.mode, state);
 
 		this.server.to(game.playersIds.map((id) => id.toString())).emit('pong/gameEnded', game);
 		if (game.gameInterval) {
