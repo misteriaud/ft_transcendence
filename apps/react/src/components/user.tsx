@@ -39,7 +39,13 @@ import { useRoom } from '../hooks/useRoom';
 import { useApi } from '../hooks/useApi';
 import { UserUI } from './userUI';
 
-export function MuteDialog({ user, room, mutateRoom, dialogStatus, dialogHandler }: any) {
+export function MuteDialog({ user, room_id, dialogStatus, dialogHandler }: any) {
+	const {
+		room,
+		mutate: mutateRoom,
+		isLoading: isLoadingRoom,
+		error: errorRoom
+	}: { isLoading: boolean; room: i_room; mutate: KeyedMutator<i_room>; error: Error } = useRoom(room_id);
 	const time = {
 		_5m: 5 * 60 * 1000,
 		_30m: 30 * 60 * 1000,
@@ -70,6 +76,37 @@ export function MuteDialog({ user, room, mutateRoom, dialogStatus, dialogHandler
 			clearInterval(interval);
 		};
 	}, [muteFor]);
+
+	if (isLoadingRoom) {
+		return (
+			<>
+				<Dialog open={dialogStatus} handler={dialogHandler}>
+					<DialogHeader className="justify-center">Mute</DialogHeader>
+					<DialogBody className="flex justify-around  items-center p-8" divider>
+						<Spinner className="h-16 w-16" />
+					</DialogBody>
+				</Dialog>
+			</>
+		);
+	}
+	if (errorRoom) {
+		// error
+		return (
+			<>
+				<Dialog open={dialogStatus} handler={dialogHandler}>
+					<DialogHeader className="justify-center">Mute</DialogHeader>
+					<DialogBody className="flex justify-around  items-center p-8" divider>
+						<div
+							className="flex justify-around w-full rounded-md text-red-500 outline-none hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80"
+							onClick={() => mutateRoom()}
+						>
+							<ExclamationTriangleIcon strokeWidth={2} className="h-16 w-16 text-red-500" />
+						</div>
+					</DialogBody>
+				</Dialog>
+			</>
+		);
+	}
 
 	function handleMuteDialogSelect(value: string | undefined) {
 		if (typeof value === 'undefined' || value === '5m') {
@@ -196,14 +233,20 @@ export function MuteDialog({ user, room, mutateRoom, dialogStatus, dialogHandler
 }
 
 const MenuRoomItems = forwardRef((props: any, ref: any) => {
-	const { me, user, room_id, ...otherProps }: { me: i_me; user: i_user; room_id: number; otherProps?: any } = props;
+	const {
+		me,
+		user,
+		room_id,
+		dialogHandler,
+		onClick,
+		...otherProps
+	}: { me: i_me; user: i_user; room_id: number; dialogHandler: any; onClick?: (event: React.MouseEvent<HTMLElement>) => void; otherProps?: any } = props;
 	const {
 		room,
 		mutate: mutateRoom,
 		isLoading: isLoadingRoom,
 		error: errorRoom
 	}: { isLoading: boolean; room: i_room; mutate: KeyedMutator<i_room>; error: Error } = useRoom(room_id);
-	const [openMuteDialog, setOpenMuteDialog] = useState(false);
 	const api = useApi();
 
 	if (isLoadingRoom) {
@@ -248,7 +291,10 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 	const hideBan = (!isMeOwnerOfRoom && !isMeAdminOfRoom) || isUserBanned || isUserOwnerOfRoom;
 	const hideUnban = (!isMeOwnerOfRoom && !isMeAdminOfRoom) || !isUserBanned || isUserOwnerOfRoom;
 
-	async function handlePromote() {
+	async function handlePromote(onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
 		await api
 			.put(`/rooms/${room_id}/promote/${user.id}`)
 			.then(() => {
@@ -259,7 +305,10 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 			});
 	}
 
-	async function handleDemote() {
+	async function handleDemote(onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
 		await api
 			.put(`/rooms/${room_id}/demote/${user.id}`)
 			.then(() => {
@@ -270,11 +319,17 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 			});
 	}
 
-	function handleMute() {
-		setOpenMuteDialog(!openMuteDialog);
+	function handleMute(onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
+		dialogHandler();
 	}
 
-	async function handleUnmute() {
+	async function handleUnmute(onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
 		await api
 			.put(`/rooms/${room_id}/unmute/${user.id}`)
 			.then(() => {
@@ -285,7 +340,10 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 			});
 	}
 
-	async function handleKick() {
+	async function handleKick(onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
 		await api
 			.delete(`/rooms/${room_id}/kick/${user.id}`)
 			.then(() => {
@@ -296,7 +354,10 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 			});
 	}
 
-	async function handleBan() {
+	async function handleBan(onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
 		await api
 			.put(`/rooms/${room_id}/ban/${user.id}`)
 			.then(() => {
@@ -307,7 +368,10 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 			});
 	}
 
-	async function handleUnban() {
+	async function handleUnban(onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
 		await api
 			.put(`/rooms/${room_id}/unban/${user.id}`)
 			.then(() => {
@@ -324,49 +388,90 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 	return (
 		<>
 			<hr ref={ref} {...otherProps} className="my-2 border-blue-gray-50 outline-none" />
-			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hidePromote && 'hidden'}`} onClick={handlePromote} tabIndex={-1}>
+			<MenuItem
+				ref={ref}
+				{...otherProps}
+				className={`flex items-center gap-2 outline-none ${hidePromote && 'hidden'}`}
+				onClick={(e) => handlePromote(onClick, e)}
+				tabIndex={-1}
+			>
 				<SparklesIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Promote
 				</Typography>
 			</MenuItem>
-			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideDemote && 'hidden'}`} onClick={handleDemote} tabIndex={-1}>
+			<MenuItem
+				ref={ref}
+				{...otherProps}
+				className={`flex items-center gap-2 outline-none ${hideDemote && 'hidden'}`}
+				onClick={(e) => handleDemote(onClick, e)}
+				tabIndex={-1}
+			>
 				<SparklesIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Demote
 				</Typography>
 			</MenuItem>
-			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideMute && 'hidden'}`} onClick={handleMute} tabIndex={-1}>
+			<MenuItem
+				ref={ref}
+				{...otherProps}
+				className={`flex items-center gap-2 outline-none ${hideMute && 'hidden'}`}
+				onClick={(e) => handleMute(onClick, e)}
+				tabIndex={-1}
+			>
 				<SpeakerXMarkIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Mute
 				</Typography>
 			</MenuItem>
-			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideUnmute && 'hidden'}`} onClick={handleUnmute} tabIndex={-1}>
+			<MenuItem
+				ref={ref}
+				{...otherProps}
+				className={`flex items-center gap-2 outline-none ${hideUnmute && 'hidden'}`}
+				onClick={(e) => handleUnmute(onClick, e)}
+				tabIndex={-1}
+			>
 				<SpeakerWaveIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Unmute
 				</Typography>
 			</MenuItem>
-			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideKick && 'hidden'}`} onClick={handleKick} tabIndex={-1}>
+			<MenuItem
+				ref={ref}
+				{...otherProps}
+				className={`flex items-center gap-2 outline-none ${hideKick && 'hidden'}`}
+				onClick={(e) => handleKick(onClick, e)}
+				tabIndex={-1}
+			>
 				<ArrowLeftOnRectangleIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Kick
 				</Typography>
 			</MenuItem>
-			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideBan && 'hidden'}`} onClick={handleBan} tabIndex={-1}>
+			<MenuItem
+				ref={ref}
+				{...otherProps}
+				className={`flex items-center gap-2 outline-none ${hideBan && 'hidden'}`}
+				onClick={(e) => handleBan(onClick, e)}
+				tabIndex={-1}
+			>
 				<ScaleIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Ban
 				</Typography>
 			</MenuItem>
-			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideUnban && 'hidden'}`} onClick={handleUnban} tabIndex={-1}>
+			<MenuItem
+				ref={ref}
+				{...otherProps}
+				className={`flex items-center gap-2 outline-none ${hideUnban && 'hidden'}`}
+				onClick={(e) => handleUnban(onClick, e)}
+				tabIndex={-1}
+			>
 				<ScaleIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Unban
 				</Typography>
 			</MenuItem>
-			<MuteDialog user={user} room={room} mutateRoom={mutateRoom} dialogStatus={openMuteDialog} dialogHandler={handleMute} />
 		</>
 	);
 });
@@ -377,12 +482,14 @@ const MenuSocialItems = forwardRef((props: any, ref: any) => {
 		mutateMe,
 		user,
 		mutateUser,
+		onClick,
 		...otherProps
 	}: {
 		me: i_me;
 		mutateMe: KeyedMutator<i_me>;
 		user: i_user;
 		mutateUser: KeyedMutator<i_user>;
+		onClick?: (event: React.MouseEvent<HTMLElement>) => void;
 		otherProps?: any;
 	} = props;
 	const api = useApi();
@@ -401,7 +508,10 @@ const MenuSocialItems = forwardRef((props: any, ref: any) => {
 	const hideBlock = meBlockUser;
 	const hideUnblock = !meBlockUser;
 
-	async function handleSendFriendRequest() {
+	async function handleSendFriendRequest(onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
 		await api
 			.post(`/users/${user.login42}/friend/request`)
 			.then(() => {
@@ -413,7 +523,10 @@ const MenuSocialItems = forwardRef((props: any, ref: any) => {
 			});
 	}
 
-	async function handleCancelFriendRequest() {
+	async function handleCancelFriendRequest(onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
 		await api
 			.delete(`/users/${user.login42}/friend/request`)
 			.then(() => {
@@ -425,7 +538,10 @@ const MenuSocialItems = forwardRef((props: any, ref: any) => {
 			});
 	}
 
-	async function handleAcceptFriendRequest() {
+	async function handleAcceptFriendRequest(onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
 		await api
 			.post(`/users/${user.login42}/friend/response`)
 			.then(() => {
@@ -437,7 +553,10 @@ const MenuSocialItems = forwardRef((props: any, ref: any) => {
 			});
 	}
 
-	async function handleRejectFriendRequest() {
+	async function handleRejectFriendRequest(onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
 		await api
 			.delete(`/users/${user.login42}/friend/response`)
 			.then(() => {
@@ -449,7 +568,10 @@ const MenuSocialItems = forwardRef((props: any, ref: any) => {
 			});
 	}
 
-	async function handleRemoveFriend() {
+	async function handleRemoveFriend(onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
 		await api
 			.delete(`/users/${user.login42}/friend`)
 			.then(() => {
@@ -461,7 +583,10 @@ const MenuSocialItems = forwardRef((props: any, ref: any) => {
 			});
 	}
 
-	async function handleBlock() {
+	async function handleBlock(onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
 		await api
 			.post(`/users/${user.login42}/block`)
 			.then(() => {
@@ -473,7 +598,10 @@ const MenuSocialItems = forwardRef((props: any, ref: any) => {
 			});
 	}
 
-	async function handleUnblock() {
+	async function handleUnblock(onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
 		await api
 			.delete(`/users/${user.login42}/block`)
 			.then(() => {
@@ -492,7 +620,7 @@ const MenuSocialItems = forwardRef((props: any, ref: any) => {
 				ref={ref}
 				{...otherProps}
 				className={`flex items-center gap-2 outline-none ${hideSendFriendRequest && 'hidden'}`}
-				onClick={handleSendFriendRequest}
+				onClick={(e) => handleSendFriendRequest(onClick, e)}
 				tabIndex={-1}
 			>
 				<UserPlusIcon strokeWidth={2} className="h-4 w-4" />
@@ -504,7 +632,7 @@ const MenuSocialItems = forwardRef((props: any, ref: any) => {
 				ref={ref}
 				{...otherProps}
 				className={`flex items-center gap-2 outline-none ${hideCancelFriendRequest && 'hidden'}`}
-				onClick={handleCancelFriendRequest}
+				onClick={(e) => handleCancelFriendRequest(onClick, e)}
 				tabIndex={-1}
 			>
 				<UserMinusIcon strokeWidth={2} className="h-4 w-4" />
@@ -516,7 +644,7 @@ const MenuSocialItems = forwardRef((props: any, ref: any) => {
 				ref={ref}
 				{...otherProps}
 				className={`flex items-center gap-2 outline-none ${hideAcceptFriendRequest && 'hidden'}`}
-				onClick={handleAcceptFriendRequest}
+				onClick={(e) => handleAcceptFriendRequest(onClick, e)}
 				tabIndex={-1}
 			>
 				<UserPlusIcon strokeWidth={2} className="h-4 w-4" />
@@ -528,7 +656,7 @@ const MenuSocialItems = forwardRef((props: any, ref: any) => {
 				ref={ref}
 				{...otherProps}
 				className={`flex items-center gap-2 outline-none ${hideRejectFriendRequest && 'hidden'}`}
-				onClick={handleRejectFriendRequest}
+				onClick={(e) => handleRejectFriendRequest(onClick, e)}
 				tabIndex={-1}
 			>
 				<UserMinusIcon strokeWidth={2} className="h-4 w-4" />
@@ -540,7 +668,7 @@ const MenuSocialItems = forwardRef((props: any, ref: any) => {
 				ref={ref}
 				{...otherProps}
 				className={`flex items-center gap-2 outline-none ${hideRemoveFriend && 'hidden'}`}
-				onClick={handleRemoveFriend}
+				onClick={(e) => handleRemoveFriend(onClick, e)}
 				tabIndex={-1}
 			>
 				<UserMinusIcon strokeWidth={2} className="h-4 w-4" />
@@ -548,13 +676,25 @@ const MenuSocialItems = forwardRef((props: any, ref: any) => {
 					Remove Friend
 				</Typography>
 			</MenuItem>
-			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideBlock && 'hidden'}`} onClick={handleBlock} tabIndex={-1}>
+			<MenuItem
+				ref={ref}
+				{...otherProps}
+				className={`flex items-center gap-2 outline-none ${hideBlock && 'hidden'}`}
+				onClick={(e) => handleBlock(onClick, e)}
+				tabIndex={-1}
+			>
 				<HandRaisedIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Block User
 				</Typography>
 			</MenuItem>
-			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideUnblock && 'hidden'}`} onClick={handleUnblock} tabIndex={-1}>
+			<MenuItem
+				ref={ref}
+				{...otherProps}
+				className={`flex items-center gap-2 outline-none ${hideUnblock && 'hidden'}`}
+				onClick={(e) => handleUnblock(onClick, e)}
+				tabIndex={-1}
+			>
 				<HandThumbUpIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					Unblock User
@@ -565,7 +705,7 @@ const MenuSocialItems = forwardRef((props: any, ref: any) => {
 });
 
 const MenuBaseItems = forwardRef((props: any, ref: any) => {
-	const { me, user, ...otherProps }: { me: i_me; user: i_user; otherProps?: any } = props;
+	const { me, user, onClick, ...otherProps }: { me: i_me; user: i_user; onClick?: (event: React.MouseEvent<HTMLElement>) => void; otherProps?: any } = props;
 	const location = useLocation();
 	const navigate = useNavigate();
 
@@ -582,7 +722,10 @@ const MenuBaseItems = forwardRef((props: any, ref: any) => {
 	const disableInviteToRoom = !areMeAndUserFriends || !hasMeOneInvitableRooms || meBlockUser || userBlockMe;
 	const disableInviteToGame = !areMeAndUserFriends || true /* !isMeInGame */ || meBlockUser || userBlockMe;
 
-	function handleProfile() {
+	function handleProfile(onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
 		navigate(`/dashboard/users/${user.login42}`);
 	}
 
@@ -594,7 +737,14 @@ const MenuBaseItems = forwardRef((props: any, ref: any) => {
 
 	return (
 		<>
-			<MenuItem ref={ref} {...otherProps} className="flex items-center gap-2 outline-none" disabled={disableProfile} onClick={handleProfile} tabIndex={-1}>
+			<MenuItem
+				ref={ref}
+				{...otherProps}
+				className="flex items-center gap-2 outline-none"
+				disabled={disableProfile}
+				onClick={(e) => handleProfile(onClick, e)}
+				tabIndex={-1}
+			>
 				<UserCircleIcon strokeWidth={2} className="h-4 w-4" />
 				<Typography variant="small" className="font-normal">
 					{user.username}'s Profile
@@ -641,6 +791,7 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 		isLoading: isLoadingUser,
 		error: errorUser
 	}: { isLoading: boolean; user: i_user; mutate: KeyedMutator<i_user>; error: Error } = useUser(login42);
+	const [openMuteDialog, setOpenMuteDialog] = useState(false);
 
 	if (isLoadingMe || isLoadingUser) {
 		return (
@@ -668,6 +819,10 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 
 	const hideAll = isMeUser;
 
+	function handleOpenCloseMuteDialog() {
+		setOpenMuteDialog(!openMuteDialog);
+	}
+
 	return (
 		<Menu>
 			<MenuHandler>
@@ -675,9 +830,10 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 			</MenuHandler>
 			<MenuList className={`${hideAll && 'hidden'}`}>
 				{<MenuBaseItems me={me} user={user} />}
-				{room_id && <MenuRoomItems me={me} user={user} room_id={room_id} />}
+				{room_id && <MenuRoomItems me={me} user={user} room_id={room_id} dialogHandler={handleOpenCloseMuteDialog} />}
 				{<MenuSocialItems me={me} mutateMe={mutateMe} user={user} mutateUser={mutateUser} />}
 			</MenuList>
+			{room_id && <MuteDialog user={user} room_id={room_id} dialogStatus={openMuteDialog} dialogHandler={handleOpenCloseMuteDialog} />}
 		</Menu>
 	);
 }
