@@ -371,58 +371,27 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 	);
 });
 
-export function User({ room_id, login42 }: { room_id?: number; login42: string }) {
-	const { me, mutate: mutateMe, isLoading: isLoadingMe, error: errorMe }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
+const MenuSocialItems = forwardRef((props: any, ref: any) => {
 	const {
+		me,
+		mutateMe,
 		user,
-		mutate: mutateUser,
-		isLoading: isLoadingUser,
-		error: errorUser
-	}: { isLoading: boolean; user: i_user; mutate: KeyedMutator<i_user>; error: Error } = useUser(login42);
-	const location = useLocation();
-	const navigate = useNavigate();
+		mutateUser,
+		...otherProps
+	}: {
+		me: i_me;
+		mutateMe: KeyedMutator<i_me>;
+		user: i_user;
+		mutateUser: KeyedMutator<i_user>;
+		otherProps?: any;
+	} = props;
 	const api = useApi();
-
-	if (isLoadingMe || isLoadingUser) {
-		return (
-			<div className="flex justify-center items-center p-3 bg-white outline-none">
-				<Spinner />
-			</div>
-		);
-	}
-	if (errorMe || errorUser) {
-		// error
-		return (
-			<div
-				className="flex justify-center items-center p-3 rounded-md text-red-500 outline-none hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80"
-				onClick={() => {
-					mutateMe();
-					mutateUser();
-				}}
-			>
-				<ExclamationTriangleIcon strokeWidth={2} className="h-12 w-12" />
-			</div>
-		);
-	}
-
-	const invitableRooms = me.memberOf.filter((m: i_member) => m.role === e_member_role.OWNER || m.role === e_member_role.ADMIN);
-
-	const isMeUser = me.id === user.id;
-	const isCurrentLocationMeProfile = location.pathname === `/dashboard/users/${user.id}` || location.pathname === `/dashboard/users/${user.login42}`;
-	const areMeAndUserFriends = me.friends.some((f: i_friends) => f.userB.id === user.id);
-	const hasMeOneInvitableRooms = invitableRooms.length > 0;
 
 	const meSentFriendRequestToUser = me.friendRequestsSent.some((f: i_friend_requests) => f.userB.id === user.id);
 	const userSentFriendRequestToMe = me.friendRequestsReceived.some((f: i_friend_requests) => f.userB.id === me.id);
+	const areMeAndUserFriends = me.friends.some((f: i_friends) => f.userB.id === user.id);
 	const meBlockUser = me.blocked.some((f: i_blocked) => f.userB.id === user.id);
 	const userBlockMe = me.blockedBy.some((f: i_blocked) => f.userB.id === me.id);
-
-	const hideAll = isMeUser;
-
-	const disableProfile = isCurrentLocationMeProfile || meBlockUser || userBlockMe;
-	const disableSendMessage = !areMeAndUserFriends || meBlockUser || userBlockMe;
-	const disableInviteToRoom = !areMeAndUserFriends || !hasMeOneInvitableRooms || meBlockUser || userBlockMe;
-	const disableInviteToGame = !areMeAndUserFriends || true /* !isMeInGame */ || meBlockUser || userBlockMe;
 
 	const hideSendFriendRequest = areMeAndUserFriends || meSentFriendRequestToUser || userSentFriendRequestToMe || meBlockUser || userBlockMe;
 	const hideCancelFriendRequest = areMeAndUserFriends || !meSentFriendRequestToUser || meBlockUser || userBlockMe;
@@ -431,16 +400,6 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 	const hideRemoveFriend = !areMeAndUserFriends;
 	const hideBlock = meBlockUser;
 	const hideUnblock = !meBlockUser;
-
-	function handleProfile() {
-		navigate(`/dashboard/users/${user.login42}`);
-	}
-
-	// Send Message
-
-	// Invite to Room
-
-	// Invite to Game
 
 	async function handleSendFriendRequest() {
 		await api
@@ -527,90 +486,197 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 	}
 
 	return (
+		<>
+			<hr ref={ref} {...otherProps} className="my-2 border-blue-gray-50" />
+			<MenuItem
+				ref={ref}
+				{...otherProps}
+				className={`flex items-center gap-2 outline-none ${hideSendFriendRequest && 'hidden'}`}
+				onClick={handleSendFriendRequest}
+				tabIndex={-1}
+			>
+				<UserPlusIcon strokeWidth={2} className="h-4 w-4" />
+				<Typography variant="small" className="font-normal">
+					Send Friend Request
+				</Typography>
+			</MenuItem>
+			<MenuItem
+				ref={ref}
+				{...otherProps}
+				className={`flex items-center gap-2 outline-none ${hideCancelFriendRequest && 'hidden'}`}
+				onClick={handleCancelFriendRequest}
+				tabIndex={-1}
+			>
+				<UserMinusIcon strokeWidth={2} className="h-4 w-4" />
+				<Typography variant="small" className="font-normal">
+					Cancel Friend Request
+				</Typography>
+			</MenuItem>
+			<MenuItem
+				ref={ref}
+				{...otherProps}
+				className={`flex items-center gap-2 outline-none ${hideAcceptFriendRequest && 'hidden'}`}
+				onClick={handleAcceptFriendRequest}
+				tabIndex={-1}
+			>
+				<UserPlusIcon strokeWidth={2} className="h-4 w-4" />
+				<Typography variant="small" className="font-normal">
+					Accept Friend Request
+				</Typography>
+			</MenuItem>
+			<MenuItem
+				ref={ref}
+				{...otherProps}
+				className={`flex items-center gap-2 outline-none ${hideRejectFriendRequest && 'hidden'}`}
+				onClick={handleRejectFriendRequest}
+				tabIndex={-1}
+			>
+				<UserMinusIcon strokeWidth={2} className="h-4 w-4" />
+				<Typography variant="small" className="font-normal">
+					Reject Friend Request
+				</Typography>
+			</MenuItem>
+			<MenuItem
+				ref={ref}
+				{...otherProps}
+				className={`flex items-center gap-2 outline-none ${hideRemoveFriend && 'hidden'}`}
+				onClick={handleRemoveFriend}
+				tabIndex={-1}
+			>
+				<UserMinusIcon strokeWidth={2} className="h-4 w-4" />
+				<Typography variant="small" className="font-normal">
+					Remove Friend
+				</Typography>
+			</MenuItem>
+			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideBlock && 'hidden'}`} onClick={handleBlock} tabIndex={-1}>
+				<HandRaisedIcon strokeWidth={2} className="h-4 w-4" />
+				<Typography variant="small" className="font-normal">
+					Block User
+				</Typography>
+			</MenuItem>
+			<MenuItem ref={ref} {...otherProps} className={`flex items-center gap-2 outline-none ${hideUnblock && 'hidden'}`} onClick={handleUnblock} tabIndex={-1}>
+				<HandThumbUpIcon strokeWidth={2} className="h-4 w-4" />
+				<Typography variant="small" className="font-normal">
+					Unblock User
+				</Typography>
+			</MenuItem>
+		</>
+	);
+});
+
+const MenuBaseItems = forwardRef((props: any, ref: any) => {
+	const { me, user, ...otherProps }: { me: i_me; user: i_user; otherProps?: any } = props;
+	const location = useLocation();
+	const navigate = useNavigate();
+
+	const invitableRooms = me.memberOf.filter((m: i_member) => m.role === e_member_role.OWNER || m.role === e_member_role.ADMIN);
+
+	const isCurrentLocationMeProfile = location.pathname === `/dashboard/users/${user.id}` || location.pathname === `/dashboard/users/${user.login42}`;
+	const areMeAndUserFriends = me.friends.some((f: i_friends) => f.userB.id === user.id);
+	const hasMeOneInvitableRooms = invitableRooms.length > 0;
+	const meBlockUser = me.blocked.some((f: i_blocked) => f.userB.id === user.id);
+	const userBlockMe = me.blockedBy.some((f: i_blocked) => f.userB.id === me.id);
+
+	const disableProfile = isCurrentLocationMeProfile || meBlockUser || userBlockMe;
+	const disableSendMessage = !areMeAndUserFriends || meBlockUser || userBlockMe;
+	const disableInviteToRoom = !areMeAndUserFriends || !hasMeOneInvitableRooms || meBlockUser || userBlockMe;
+	const disableInviteToGame = !areMeAndUserFriends || true /* !isMeInGame */ || meBlockUser || userBlockMe;
+
+	function handleProfile() {
+		navigate(`/dashboard/users/${user.login42}`);
+	}
+
+	// Send Message
+
+	// Invite to Room
+
+	// Invite to Game
+
+	return (
+		<>
+			<MenuItem ref={ref} {...otherProps} className="flex items-center gap-2 outline-none" disabled={disableProfile} onClick={handleProfile} tabIndex={-1}>
+				<UserCircleIcon strokeWidth={2} className="h-4 w-4" />
+				<Typography variant="small" className="font-normal">
+					{user.username}'s Profile
+				</Typography>
+			</MenuItem>
+			<MenuItem ref={ref} {...otherProps} className="flex items-center gap-2 outline-none" disabled={disableSendMessage} tabIndex={-1}>
+				<ChatBubbleOvalLeftEllipsisIcon strokeWidth={2} className="h-4 w-4" />
+				<Typography variant="small" className="font-normal">
+					Send Message
+				</Typography>
+			</MenuItem>
+			<Menu ref={ref} {...otherProps} placement="right-start" offset={15}>
+				<MenuHandler>
+					<MenuItem className="flex items-center gap-2 outline-none" disabled={disableInviteToRoom} tabIndex={-1}>
+						<HomeIcon strokeWidth={2} className="h-4 w-4" />
+						<Typography variant="small" className="font-normal">
+							Invite to Room
+						</Typography>
+					</MenuItem>
+				</MenuHandler>
+				<MenuList>
+					{invitableRooms.map((m: i_member) => (
+						<MenuItem key={m.room.id} className="flex items-center gap-2 outline-none" tabIndex={-1}>
+							{m.room.name}
+						</MenuItem>
+					))}
+				</MenuList>
+			</Menu>
+			<MenuItem ref={ref} {...otherProps} className="flex items-center gap-2 outline-none" disabled={disableInviteToGame} tabIndex={-1}>
+				<RocketLaunchIcon strokeWidth={2} className="h-4 w-4" />
+				<Typography variant="small" className="font-normal">
+					Invite to Game
+				</Typography>
+			</MenuItem>
+		</>
+	);
+});
+
+export function User({ room_id, login42 }: { room_id?: number; login42: string }) {
+	const { me, mutate: mutateMe, isLoading: isLoadingMe, error: errorMe }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
+	const {
+		user,
+		mutate: mutateUser,
+		isLoading: isLoadingUser,
+		error: errorUser
+	}: { isLoading: boolean; user: i_user; mutate: KeyedMutator<i_user>; error: Error } = useUser(login42);
+
+	if (isLoadingMe || isLoadingUser) {
+		return (
+			<div className="flex justify-center items-center p-3 bg-white outline-none">
+				<Spinner />
+			</div>
+		);
+	}
+	if (errorMe || errorUser) {
+		// error
+		return (
+			<div
+				className="flex justify-center items-center p-3 rounded-md text-red-500 outline-none hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80"
+				onClick={() => {
+					mutateMe();
+					mutateUser();
+				}}
+			>
+				<ExclamationTriangleIcon strokeWidth={2} className="h-12 w-12" />
+			</div>
+		);
+	}
+
+	const isMeUser = me.id === user.id;
+
+	const hideAll = isMeUser;
+
+	return (
 		<Menu>
 			<MenuHandler>
-				<UserUI username={user.username} avatar={user.avatar} />
+				<UserUI username={user.username} avatar={user.avatar} status={status} />
 			</MenuHandler>
 			<MenuList className={`${hideAll && 'hidden'}`}>
-				<MenuItem className="flex items-center gap-2 outline-none" disabled={disableProfile} onClick={handleProfile} tabIndex={-1}>
-					<UserCircleIcon strokeWidth={2} className="h-4 w-4" />
-					<Typography variant="small" className="font-normal">
-						{user.username}'s Profile
-					</Typography>
-				</MenuItem>
-				<MenuItem className="flex items-center gap-2 outline-none" disabled={disableSendMessage} tabIndex={-1}>
-					<ChatBubbleOvalLeftEllipsisIcon strokeWidth={2} className="h-4 w-4" />
-					<Typography variant="small" className="font-normal">
-						Send Message
-					</Typography>
-				</MenuItem>
-				<Menu placement="right-start" offset={15}>
-					<MenuHandler>
-						<MenuItem className="flex items-center gap-2 outline-none" disabled={disableInviteToRoom} tabIndex={-1}>
-							<HomeIcon strokeWidth={2} className="h-4 w-4" />
-							<Typography variant="small" className="font-normal">
-								Invite to Room
-							</Typography>
-						</MenuItem>
-					</MenuHandler>
-					<MenuList>
-						{invitableRooms.map((m: i_member) => (
-							<MenuItem key={m.room.id} className="flex items-center gap-2 outline-none" tabIndex={-1}>
-								{m.room.name}
-							</MenuItem>
-						))}
-					</MenuList>
-				</Menu>
-				<MenuItem className="flex items-center gap-2 outline-none" disabled={disableInviteToGame} tabIndex={-1}>
-					<RocketLaunchIcon strokeWidth={2} className="h-4 w-4" />
-					<Typography variant="small" className="font-normal">
-						Invite to Game
-					</Typography>
-				</MenuItem>
+				{<MenuBaseItems me={me} user={user} />}
 				{room_id && <MenuRoomItems me={me} user={user} room_id={room_id} />}
-				<hr className="my-2 border-blue-gray-50" />
-				<MenuItem className={`flex items-center gap-2 outline-none ${hideSendFriendRequest && 'hidden'}`} onClick={handleSendFriendRequest} tabIndex={-1}>
-					<UserPlusIcon strokeWidth={2} className="h-4 w-4" />
-					<Typography variant="small" className="font-normal">
-						Send Friend Request
-					</Typography>
-				</MenuItem>
-				<MenuItem className={`flex items-center gap-2 outline-none ${hideCancelFriendRequest && 'hidden'}`} onClick={handleCancelFriendRequest} tabIndex={-1}>
-					<UserMinusIcon strokeWidth={2} className="h-4 w-4" />
-					<Typography variant="small" className="font-normal">
-						Cancel Friend Request
-					</Typography>
-				</MenuItem>
-				<MenuItem className={`flex items-center gap-2 outline-none ${hideAcceptFriendRequest && 'hidden'}`} onClick={handleAcceptFriendRequest} tabIndex={-1}>
-					<UserPlusIcon strokeWidth={2} className="h-4 w-4" />
-					<Typography variant="small" className="font-normal">
-						Accept Friend Request
-					</Typography>
-				</MenuItem>
-				<MenuItem className={`flex items-center gap-2 outline-none ${hideRejectFriendRequest && 'hidden'}`} onClick={handleRejectFriendRequest} tabIndex={-1}>
-					<UserMinusIcon strokeWidth={2} className="h-4 w-4" />
-					<Typography variant="small" className="font-normal">
-						Reject Friend Request
-					</Typography>
-				</MenuItem>
-				<MenuItem className={`flex items-center gap-2 outline-none ${hideRemoveFriend && 'hidden'}`} onClick={handleRemoveFriend} tabIndex={-1}>
-					<UserMinusIcon strokeWidth={2} className="h-4 w-4" />
-					<Typography variant="small" className="font-normal">
-						Remove Friend
-					</Typography>
-				</MenuItem>
-				<MenuItem className={`flex items-center gap-2 outline-none ${hideBlock && 'hidden'}`} onClick={handleBlock} tabIndex={-1}>
-					<HandRaisedIcon strokeWidth={2} className="h-4 w-4" />
-					<Typography variant="small" className="font-normal">
-						Block User
-					</Typography>
-				</MenuItem>
-				<MenuItem className={`flex items-center gap-2 outline-none ${hideUnblock && 'hidden'}`} onClick={handleUnblock} tabIndex={-1}>
-					<HandThumbUpIcon strokeWidth={2} className="h-4 w-4" />
-					<Typography variant="small" className="font-normal">
-						Unblock User
-					</Typography>
-				</MenuItem>
+				{<MenuSocialItems me={me} mutateMe={mutateMe} user={user} mutateUser={mutateUser} />}
 			</MenuList>
 		</Menu>
 	);
