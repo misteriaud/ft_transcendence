@@ -6,10 +6,20 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { SubscribeMessage } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
+import { nanoid } from 'nanoid';
+import { PrismaMatchService } from './prismaMatch.service';
+import { e_match_state } from '@prisma/client';
 
 const CANVAS_HEIGHT = 450;
 const CANVAS_WIDTH = 800;
 const TIME_DIVISION = 10;
+
+type Invitation = {
+	id: string;
+	player1id: number;
+	player2id: number;
+	mode: 'HARDCORE' | 'NORMAL';
+};
 
 class Player {
 	paddleY: number;
@@ -20,7 +30,8 @@ class Player {
 }
 
 class GameState {
-	id: number;
+	id: string;
+	mode: 'HARDCORE' | 'NORMAL';
 	ball: { x: number; y: number; dx: number; dy: number };
 	player1: Player;
 	player2: Player;
@@ -32,7 +43,9 @@ class GameState {
 	timestamp: number;
 	expiration: Date;
 
-	constructor() {
+	constructor(mode: 'HARDCORE' | 'NORMAL') {
+		this.id = nanoid();
+		this.mode = mode;
 		this.ball = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 2, dy: 0 };
 		this.player1 = { paddleY: CANVAS_HEIGHT / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80 };
 		this.player2 = { paddleY: CANVAS_HEIGHT / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80 };
@@ -55,23 +68,55 @@ class GameState {
 
 export class PongWebsocketGateway extends BaseWebsocketGateway {
 	currentGame: GameState[] = [];
-	waitingNormalModePlayerId: number | null;
-	waitingHardcoreModePlayerId: number | null;
-	waitingInvitation: {
-		id: number;
-		player1Id: number;
-		player2Id: number;
-	}[];
+	waitingInvitation: Invitation[] = [];
+	waitingNormalInvitation: Invitation[] = [];
+	waitingHardcoreInvitation: Invitation[] = [];
 
-	constructor(jwtService: JwtService, userService: UserService) {
+	constructor(jwtService: JwtService, userService: UserService, private prismaMatch: PrismaMatchService) {
 		super(jwtService, userService);
 	}
 
-	// 1 - player 1 invite (player 2 | random)
-	// 2 - player2 accept | random invite
-	// 3 - server wait for player1 and player2 ready
-	// 4 - play
-	// 5 - save game in DB
+	@SubscribeMessage('pong/invite')
+	handlePongInvite(client: Socket, { player2Id, mode }: { player2Id?: number; mode: 'HARDCORE' | 'NORMAL' }) {
+		const invitation = {
+			id: nanoid(),
+			player1id: client.data.user.id,
+			player2id: player2Id,
+			mode: mode,
+		};
+		if (player2Id === undefined) {
+			if (mode === 'HARDCORE') this.waitingHardcoreInvitation.push(invitation);
+			else this.waitingNormalInvitation.push(invitation);
+		} else {
+			this.waitingInvitation.push(invitation);
+			this.server.to(player2Id.toString()).emit('pong/invitation', invitation);
+		}
+	}
+
+	@SubscribeMessage('pong/acceptInvite')
+	handlePongAcceptInvite(client: Socket, { invitationId, mode }: { invitationId?: string; mode: 'HARDCORE' | 'NORMAL' }) {
+		let invitationIndex: number;
+		let invitation: Invitation;
+
+		if (invitationId === undefined) {
+			const invitationList = mode === 'HARDCORE' ? this.waitingHardcoreInvitation : this.waitingNormalInvitation;
+			if (invitationList.length === 0) throw new WsException('No invitation found');
+
+			invitationIndex = 0;
+			invitation = invitationList[0];
+			invitationList.splice(0, 1);
+		} else {
+			invitationIndex = this.waitingInvitation.findIndex((invitation) => invitation.id === invitationId);
+			if (invitationIndex === -1) throw new WsException('Invitation not found');
+			invitation = this.waitingInvitation[invitationIndex];
+			this.waitingInvitation.splice(invitationIndex, 1);
+		}
+
+		const newGame = new GameState(invitation.mode);
+		newGame.playersIds.push(invitation.player1id, client.data.user.id);
+		this.currentGame.push(newGame);
+		this.server.to([invitation.player1id, client.data.user.id].map((id) => id.toString())).emit('pong/newGame', { gameId: newGame.id, gameState: newGame });
+	}
 
 	// @SubscribeMessage('pong/playgame')
 	// joinGame(client: Socket, player2id: number | null, mode: number) {
@@ -95,20 +140,18 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 			throw new WsException('Player already in game');
 		}
 		if (gameIndex === -1) {
-			const newGame = new GameState();
-			this.currentGame.push(newGame);
-			newGame.playersIds.push(client.data.user.id);
-			newGame.playersReady[0] = true;
-			client.data.gameIndex = this.currentGame.length - 1;
-			client.data.playerIndex = 0;
-		} else {
-			this.currentGame[gameIndex].playersIds.push(client.data.user.id);
-			this.currentGame[gameIndex].playersReady[1] = true;
-			client.data.gameIndex = gameIndex;
-			client.data.playerIndex = 1;
-			if (this.currentGame[gameIndex].playersReady.every(Boolean)) {
-				this.startGame(gameIndex);
-			}
+			console.log('No game found for this player');
+			throw new WsException('No game found');
+		}
+		const game = this.currentGame[gameIndex];
+		const playerIndex = game.playersIds.indexOf(client.data.user.id);
+		game.playersReady[playerIndex] = true;
+
+		client.data.gameIndex = gameIndex;
+		client.data.playerIndex = playerIndex;
+
+		if (game.playersReady.every(Boolean)) {
+			this.startGame(gameIndex);
 		}
 	}
 
@@ -121,7 +164,24 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 
 	@UsePipes(new ValidationPipe())
 	async handleDisconnect(client: Socket) {
-		super.handleDisconnect(client);
+		const gameIndex = this.currentGame.findIndex((game) => game.playersIds.includes(client.data.user.id));
+
+		if (gameIndex === -1) {
+			console.log('No game found for this player');
+			return;
+		}
+
+		const game = this.currentGame[gameIndex];
+		const playerIndex = game.playersIds.indexOf(client.data.user.id);
+		game.playersReady[playerIndex] = false;
+
+		if (game.playersReady.every((ready) => !ready)) {
+			console.log('Both players disconnected, game abandoned');
+			this.server.to(game.playersIds.map((id) => id.toString())).emit('pong/gameAbandoned', game);
+			this.endGame(gameIndex, e_match_state.ABANDONNED);
+		} else {
+			this.server.to(game.playersIds.filter((id) => id !== client.data.user.id).map((id) => id.toString())).emit('pong/playerDisconnected', client.data.user.id);
+		}
 	}
 
 	@SubscribeMessage('pong/movePaddle')
@@ -154,15 +214,18 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 			this.updatePaddleState(game, deltaTime / 1000);
 
 			if (game.player1.score >= 11 || game.player2.score >= 11) {
-				return this.endGame(gameIndex);
+				return this.endGame(gameIndex, e_match_state.FINISHED);
 			}
 
 			this.sendGameState(game);
 		}, 1000 / TIME_DIVISION);
 	}
 
-	endGame(gameIndex: number) {
+	endGame(gameIndex: number, state: e_match_state) {
 		const game = this.currentGame[gameIndex];
+
+		this.prismaMatch.create(this.currentGame[gameIndex].playersIds[0], this.currentGame[gameIndex].playersIds[1], game.player1.score, game.player2.score, this.currentGame[gameIndex].mode, state);
+
 		this.server.to(game.playersIds.map((id) => id.toString())).emit('pong/gameEnded', game);
 		if (game.gameInterval) {
 			clearInterval(game.gameInterval);
