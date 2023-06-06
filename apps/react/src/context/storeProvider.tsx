@@ -91,14 +91,14 @@ export function StoreProvider() {
 	const addAlert = ({ elem, color = 'blue', icon, timer = 10 }: { elem: ReactElement; color?: AlertColor; icon?: React.ReactNode; timer?: number }) => {
 		const id = nanoid();
 		setAlerts([
-			...alerts,
 			{
 				id,
 				elem,
 				color,
 				icon,
 				timer
-			}
+			},
+			...alerts
 		]);
 		// if (timer > 0)
 		// 	setTimeout(() => {
@@ -130,7 +130,7 @@ export function StoreProvider() {
 				}
 				icon={alert.icon}
 				color={alert.color}
-				className="flex items-center m-2 p-2 shadow-2xl w-full"
+				className="flex items-center my-2 p-2 shadow-2xl w-full"
 				key={alert.id}
 			>
 				<div className="flex justify-center items-center gap-2 pl-2">
@@ -148,7 +148,7 @@ export function StoreProvider() {
 			<StoreDispatchContext.Provider value={dispatch}>
 				<SocketContext.Provider value={socketRef}>
 					<NotificationContext.Provider value={addAlert}>
-						<div className="absolute left-1/2 -translate-x-1/2 z-[10000]">{alertComp}</div>
+						<div className="absolute max-h-[30vh] left-1/2 -translate-x-1/2 flex flex-col-reverse overflow-y-scroll z-[10000]">{alertComp}</div>
 						{outlet}
 					</NotificationContext.Provider>
 				</SocketContext.Provider>
