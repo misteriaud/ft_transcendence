@@ -99,7 +99,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 			})
 			.then((res) => {
 				const username = res.data.username;
-				const avatarURL = `${res.data.avatar}?t=${Date.now()}`;
+				const avatarURL = res.data.avatar;
 				const twoFactorEnabled = res.data.twoFactorEnabled;
 
 				mutate({

@@ -18,7 +18,7 @@ export const UserUI = forwardRef((props: any, ref: any) => {
 				</Typography>
 			)}
 			<Badge containerProps={{ className: 'min-w-fit' }} overlap="circular" placement="bottom-end" color="green">
-				<Avatar variant="circular" alt={username} src={`${avatar}?t=${Date.now()}`} />
+				<Avatar variant="circular" alt={username} src={avatar} />
 			</Badge>
 			{!inverse && (
 				<Typography variant="h5" className="font-normal ml-3 text-ellipsis overflow-hidden">

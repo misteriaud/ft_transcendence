@@ -27,7 +27,7 @@ export class UserService {
 		if (!file) {
 			new_avatarURL = null;
 		} else {
-			new_avatarURL = `http://localhost:${this.config.get('PORT')}` + join(`/static/uploads/avatar`, file.filename);
+			new_avatarURL = `http://localhost:${this.config.get('PORT')}` + join(`/static/uploads/avatar`, file.filename) + `?t=${Date.now()}`;
 		}
 		if (!dto.twoFactorEnabled) {
 			dto.twoFactorEnabled = null;
