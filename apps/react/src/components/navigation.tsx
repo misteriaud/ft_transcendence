@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { KeyedMutator } from 'swr';
-import { Button, Input, List, ListItem, Navbar, Spinner, Typography } from '@material-tailwind/react';
+import { Input, List, ListItem, Navbar, Spinner, Typography } from '@material-tailwind/react';
 import { ExclamationTriangleIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import { i_user } from './interfaces';
 import { useUsers } from '../hooks/useUser';
@@ -24,7 +24,7 @@ export function SearchBar() {
 		return (
 			<div className="col-start-1 col-span-1 flex justify-start items-center">
 				<Input
-					containerProps={{ className: 'min-w-[150px] w-80' }}
+					containerProps={{ className: 'min-w-[150px] max-w-[320px]' }}
 					label="Search for users"
 					icon={<MagnifyingGlassIcon strokeWidth={2} className="h-4 w-4" />}
 					onFocus={handleSearchBarFocus}
@@ -33,7 +33,7 @@ export function SearchBar() {
 				/>
 				<List
 					className={`absolute top-16 w-80 max-h-[50vh] border border-blue-gray-50 rounded-md bg-white shadow-lg shadow-blue-gray-500/10 overflow-scroll transition-all ${
-						!openMenu && 'invisibl'
+						!openMenu && 'invisible'
 					}`}
 					style={{
 						transformOrigin: 'center top 0px',
@@ -53,7 +53,7 @@ export function SearchBar() {
 		return (
 			<div className="col-start-1 col-span-1 flex justify-start items-center">
 				<Input
-					containerProps={{ className: 'min-w-[150px] w-80' }}
+					containerProps={{ className: 'min-w-[150px] max-w-[320px]' }}
 					label="Search for users"
 					icon={<MagnifyingGlassIcon strokeWidth={2} className="h-4 w-4" />}
 					onFocus={handleSearchBarFocus}
@@ -62,7 +62,7 @@ export function SearchBar() {
 				/>
 				<List
 					className={`absolute top-16 w-80 max-h-[50vh] border border-blue-gray-50 rounded-md bg-white shadow-lg shadow-blue-gray-500/10 overflow-scroll transition-all ${
-						!openMenu && 'invisibl'
+						!openMenu && 'invisible'
 					}`}
 					style={{
 						transformOrigin: 'center top 0px',
@@ -102,7 +102,7 @@ export function SearchBar() {
 	return (
 		<div className="col-start-1 col-span-1 flex justify-start items-center">
 			<Input
-				containerProps={{ className: 'min-w-[150px] w-80' }}
+				containerProps={{ className: 'min-w-[150px] max-w-[320px]' }}
 				label="Search for users"
 				icon={<MagnifyingGlassIcon strokeWidth={2} className="h-4 w-4" />}
 				onFocus={handleSearchBarFocus}
@@ -139,7 +139,7 @@ export function SearchBar() {
 
 export function Navigation() {
 	return (
-		<Navbar className="grid grid-cols-3 gap-4 p-2" style={{ gridTemplateColumns: '2fr 1fr 2fr' }} fullWidth={true}>
+		<Navbar className="grid grid-cols-3 gap-4 p-2 z-[999]" style={{ gridTemplateColumns: '2fr 1fr 2fr' }} fullWidth={true}>
 			<SearchBar />
 			<div className="col-start-2 col-span-1 flex justify-center items-center">
 				<GameButton />
