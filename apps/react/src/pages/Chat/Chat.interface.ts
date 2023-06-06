@@ -7,6 +7,7 @@ export interface Message {
 		user: {
 			username: string;
 			id: number;
+			login42: string;
 		};
 	};
 }

@@ -39,6 +39,7 @@ import { useRoom } from '../hooks/useRoom';
 import { useApi } from '../hooks/useApi';
 import { UserUI } from './userUI';
 import { getStatus, usePresenceContext } from '../hooks/useContext';
+import { size } from '@material-tailwind/react/types/components/avatar';
 
 export function MuteDialog({ user, room, mutateRoom, dialogStatus, dialogHandler }: any) {
 	const time = {
@@ -372,7 +373,7 @@ const MenuRoomItems = forwardRef((props: any, ref: any) => {
 	);
 });
 
-export function User({ room_id, login42, clickable = true }: { room_id?: number; login42: string; clickable?: boolean }) {
+export function User({ room_id, login42, size = 'sm', onClick }: { room_id?: number; login42: string; size?: size; onClick?: (e: any) => void }) {
 	const { me, mutate: mutateMe, isLoading: isLoadingMe, error: errorMe }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
 	const {
 		user,
@@ -383,7 +384,7 @@ export function User({ room_id, login42, clickable = true }: { room_id?: number;
 	const location = useLocation();
 	const navigate = useNavigate();
 	const api = useApi();
-	const status = getStatus(user.id);
+	const status = getStatus(user?.id);
 
 	if (isLoadingMe || isLoadingUser) {
 		return (
@@ -407,8 +408,8 @@ export function User({ room_id, login42, clickable = true }: { room_id?: number;
 		);
 	}
 
-	if (!clickable) {
-		return <UserUI username={user.username} avatar={user.avatar} status={status} />;
+	if (onClick) {
+		return <UserUI username={user.username} avatar={user.avatar} status={status} onClick={onClick} size={size} />;
 	}
 
 	const invitableRooms = me.memberOf.filter((m: i_member) => m.role === e_member_role.OWNER || m.role === e_member_role.ADMIN);
@@ -535,7 +536,7 @@ export function User({ room_id, login42, clickable = true }: { room_id?: number;
 	return (
 		<Menu>
 			<MenuHandler>
-				<UserUI username={user.username} avatar={user.avatar} status={status} />
+				<UserUI username={user.username} avatar={user.avatar} status={status} size={size} />
 			</MenuHandler>
 			<MenuList className={`${hideAll && 'hidden'}`}>
 				<MenuItem className="flex items-center gap-2 outline-none" disabled={disableProfile} onClick={handleProfile} tabIndex={-1}>

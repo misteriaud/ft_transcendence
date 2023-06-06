@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { SubscribeMessage } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
+import { e_user_status } from '@prisma/client';
 
 const CANVAS_HEIGHT = 450;
 const CANVAS_WIDTH = 800;
@@ -89,6 +90,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 	handlePongReady(client: Socket) {
 		console.log('Player ready');
 		const gameIndex = this.currentGame.findIndex((game) => game.playersIds.length < 2);
+		this.updateUserStatus(client, e_user_status.INGAME);
 
 		if (gameIndex !== -1 && this.currentGame[gameIndex].playersIds.includes(client.data.user.id)) {
 			console.log('Player already in game');
