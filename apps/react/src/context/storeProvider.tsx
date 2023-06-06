@@ -2,9 +2,10 @@ import React, { createContext, useContext, useEffect, useRef, useState, createEl
 import { useOutlet } from 'react-router-dom';
 import { useLocalStorageReducer } from '../hooks/useLocalStorage';
 import { io, Socket } from 'socket.io-client';
-import { Alert } from '@material-tailwind/react';
+import { Alert, Button, IconButton } from '@material-tailwind/react';
 import { nanoid } from 'nanoid';
 import { CountdownCircleTimer } from 'react-countdown-circle-timer';
+import { XMarkIcon } from '@heroicons/react/24/solid';
 
 export interface StoreState {
 	JWT?: string;
@@ -114,21 +115,27 @@ export function StoreProvider() {
 			<Alert
 				open={true}
 				onClose={() => removeAlert(alert.id)}
+				action={
+					<Button
+						className="static flex justify-center items-center p-2 ml-auto"
+						variant="text"
+						color="white"
+						onClick={(e) => {
+							e.stopPropagation();
+							removeAlert(alert.id);
+						}}
+					>
+						<XMarkIcon className="static h-6 w-6 text-white" />
+					</Button>
+				}
 				icon={alert.icon}
 				color={alert.color}
-				className="m-2 shadow-2xl w-auto max-w-screen-xl flex justify-center"
+				className="flex items-center m-2 p-2 shadow-2xl w-full"
 				key={alert.id}
 			>
-				<div className="flex justify-center gap-2 items-center">
+				<div className="flex justify-center items-center gap-2 pl-2">
 					{alert.timer > 0 && (
-						<CountdownCircleTimer
-							isPlaying
-							duration={alert.timer}
-							colors={'#004777'}
-							size={20}
-							strokeWidth={2}
-							onComplete={() => removeAlert(alert.id)}
-						></CountdownCircleTimer>
+						<CountdownCircleTimer isPlaying duration={alert.timer} colors={'#2196f3'} size={20} strokeWidth={2} onComplete={() => removeAlert(alert.id)} />
 					)}
 					{alert.elem}
 				</div>
@@ -141,7 +148,7 @@ export function StoreProvider() {
 			<StoreDispatchContext.Provider value={dispatch}>
 				<SocketContext.Provider value={socketRef}>
 					<NotificationContext.Provider value={addAlert}>
-						<div className="absolute w-screen flex flex-col justify-center items-center z-50">{alertComp}</div>
+						<div className="absolute left-1/2 -translate-x-1/2 z-[10000]">{alertComp}</div>
 						{outlet}
 					</NotificationContext.Provider>
 				</SocketContext.Provider>
