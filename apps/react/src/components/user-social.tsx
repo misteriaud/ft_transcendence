@@ -4,6 +4,7 @@ import { HandRaisedIcon, HandThumbUpIcon, UserMinusIcon, UserPlusIcon } from '@h
 import { KeyedMutator } from 'swr';
 import { i_blocked, i_friend_requests, i_friends, i_me, i_user } from './interfaces';
 import { useApi } from '../hooks/useApi';
+import { useNotifyError, useNotifySuccess } from '../hooks/notifications';
 
 export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 	const {
@@ -21,6 +22,8 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 		onClick?: (event: React.MouseEvent<HTMLElement>) => void;
 		otherProps?: any;
 	} = props;
+	const notifySuccess = useNotifySuccess();
+	const notifyError = useNotifyError();
 	const api = useApi();
 
 	const meSentFriendRequestToUser = me.friendRequestsSent.some((f: i_friend_requests) => f.userB.id === user.id);
@@ -46,9 +49,10 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 			.then(() => {
 				mutateMe();
 				mutateUser();
+				notifySuccess(`A friend request has been sent to ${user.username}.`);
 			})
 			.catch(() => {
-				// error
+				notifyError();
 			});
 	}
 
@@ -61,9 +65,10 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 			.then(() => {
 				mutateMe();
 				mutateUser();
+				notifySuccess(`Friend request sent to ${user.username} has been cancelled.`);
 			})
 			.catch(() => {
-				// error
+				notifyError();
 			});
 	}
 
@@ -76,9 +81,10 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 			.then(() => {
 				mutateMe();
 				mutateUser();
+				notifySuccess(`${user.username}'s friend request has been accepted.`);
 			})
 			.catch(() => {
-				// error
+				notifyError();
 			});
 	}
 
@@ -91,9 +97,10 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 			.then(() => {
 				mutateMe();
 				mutateUser();
+				notifySuccess(`${user.username}'s friend request has been rejected.`);
 			})
 			.catch(() => {
-				// error
+				notifyError();
 			});
 	}
 
@@ -106,9 +113,10 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 			.then(() => {
 				mutateMe();
 				mutateUser();
+				notifySuccess(`${user.username} has been removed from friends.`);
 			})
 			.catch(() => {
-				// error
+				notifyError();
 			});
 	}
 
@@ -121,9 +129,10 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 			.then(() => {
 				mutateMe();
 				mutateUser();
+				notifySuccess(`${user.username} has been blocked`);
 			})
 			.catch(() => {
-				// error
+				notifyError();
 			});
 	}
 
@@ -136,9 +145,10 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 			.then(() => {
 				mutateMe();
 				mutateUser();
+				notifySuccess(`${user.username} has been unblocked`);
 			})
 			.catch(() => {
-				// error
+				notifyError();
 			});
 	}
 

@@ -5,6 +5,7 @@ import { KeyedMutator } from 'swr';
 import { i_room } from './interfaces';
 import { useRoom } from '../hooks/useRoom';
 import { useApi } from '../hooks/useApi';
+import { useNotifyError, useNotifySuccess } from '../hooks/notifications';
 
 export function MuteDialog({ user, room_id, dialogStatus, dialogHandler }: any) {
 	const {
@@ -30,6 +31,8 @@ export function MuteDialog({ user, room_id, dialogStatus, dialogHandler }: any) 
 	};
 	const [muteFor, setMuteFor] = useState(time._5m);
 	const [muteUntil, setMuteUntil] = useState(new Date(Date.now() + time._5m));
+	const notifySuccess = useNotifySuccess();
+	const notifyError = useNotifyError();
 	const api = useApi();
 
 	useEffect(() => {
@@ -57,7 +60,7 @@ export function MuteDialog({ user, room_id, dialogStatus, dialogHandler }: any) 
 		);
 	}
 	if (errorRoom) {
-		// error
+		notifyError();
 		return (
 			<>
 				<Dialog open={dialogStatus} handler={dialogHandler}>
@@ -129,10 +132,11 @@ export function MuteDialog({ user, room_id, dialogStatus, dialogHandler }: any) 
 			.put(`/rooms/${room.id}/mute/${user.id}`, { mute_until: muteUntil })
 			.then(() => {
 				mutateRoom();
+				notifySuccess(`${user.username} has been muted.`);
 				dialogHandler();
 			})
 			.catch(() => {
-				// error
+				notifyError();
 			});
 	}
 
@@ -145,9 +149,9 @@ export function MuteDialog({ user, room_id, dialogStatus, dialogHandler }: any) 
 				unmount: { scale: 0.9, y: -100 }
 			}}
 		>
-			<DialogHeader className="justify-center">Mute</DialogHeader>
-			<DialogBody className="flex justify-around  items-center p-8" divider>
-				<div className="mr-8">
+			<DialogHeader className="justify-center text-center">Mute</DialogHeader>
+			<DialogBody className="flex justify-around items-center flex-wrap p-8 gap-4" divider>
+				<div>
 					<Select label="Mute for" value="5m" onChange={handleMuteDialogSelect}>
 						<Option value="5m">5 minutes</Option>
 						<Option value="30m">30 minutes</Option>

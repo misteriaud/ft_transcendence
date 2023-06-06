@@ -6,6 +6,7 @@ import { i_me, i_member, i_room, i_user } from './interfaces';
 import { e_member_role } from './interfaces';
 import { useRoom } from '../hooks/useRoom';
 import { useApi } from '../hooks/useApi';
+import { useNotifyError, useNotifySuccess } from '../hooks/notifications';
 
 export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 	const {
@@ -22,6 +23,8 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 		isLoading: isLoadingRoom,
 		error: errorRoom
 	}: { isLoading: boolean; room: i_room; mutate: KeyedMutator<i_room>; error: Error } = useRoom(room_id);
+	const notifySuccess = useNotifySuccess();
+	const notifyError = useNotifyError();
 	const api = useApi();
 
 	if (isLoadingRoom) {
@@ -35,7 +38,7 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 		);
 	}
 	if (errorRoom) {
-		// error
+		notifyError();
 		return (
 			<>
 				<hr ref={ref} {...otherProps} className="my-2 border-blue-gray-50 outline-none" />
@@ -74,9 +77,10 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 			.put(`/rooms/${room_id}/promote/${user.id}`)
 			.then(() => {
 				mutateRoom();
+				notifySuccess(`${user.username} has been promoted.`);
 			})
 			.catch(() => {
-				// error
+				notifyError();
 			});
 	}
 
@@ -88,9 +92,10 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 			.put(`/rooms/${room_id}/demote/${user.id}`)
 			.then(() => {
 				mutateRoom();
+				notifySuccess(`${user.username} has been demoted.`);
 			})
 			.catch(() => {
-				// error
+				notifyError();
 			});
 	}
 
@@ -109,9 +114,10 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 			.put(`/rooms/${room_id}/unmute/${user.id}`)
 			.then(() => {
 				mutateRoom();
+				notifySuccess(`${user.username} has been unmuted.`);
 			})
 			.catch(() => {
-				// error
+				notifyError();
 			});
 	}
 
@@ -123,9 +129,10 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 			.delete(`/rooms/${room_id}/kick/${user.id}`)
 			.then(() => {
 				mutateRoom();
+				notifySuccess(`${user.username} has been kicked.`);
 			})
 			.catch(() => {
-				// error
+				notifyError();
 			});
 	}
 
@@ -137,9 +144,10 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 			.put(`/rooms/${room_id}/ban/${user.id}`)
 			.then(() => {
 				mutateRoom();
+				notifySuccess(`${user.username} has been banned.`);
 			})
 			.catch(() => {
-				// error
+				notifyError();
 			});
 	}
 
@@ -151,9 +159,10 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 			.put(`/rooms/${room_id}/unban/${user.id}`)
 			.then(() => {
 				mutateRoom();
+				notifySuccess(`${user.username} has been unbanned.`);
 			})
 			.catch(() => {
-				// error
+				notifyError();
 			});
 	}
 
