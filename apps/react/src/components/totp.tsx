@@ -5,6 +5,7 @@ import { StoreActionType } from '../context/storeProvider';
 import { useStoreDispatchContext } from '../hooks/useContext';
 import { useApi } from '../hooks/useApi';
 import { useNotifyError, useNotifySuccess } from '../hooks/notifications';
+import { AxiosError, AxiosResponse, isAxiosError } from 'axios';
 
 export function Totp() {
 	const [state, setState] = useState('initial');
@@ -20,7 +21,7 @@ export function Totp() {
 			.post('auth/2fa', {
 				totp
 			})
-			.then((res) => {
+			.then((res: AxiosResponse) => {
 				notifySuccess('You are logged in.');
 				setTotp('');
 				setState('initial');
@@ -29,8 +30,15 @@ export function Totp() {
 					content: res.data.jwt
 				});
 			})
-			.catch(() => {
-				notifyError('Invalid TOTP.');
+			.catch((error: Error | AxiosError) => {
+				let message: string | undefined;
+
+				if (isAxiosError(error)) {
+					if (error.response?.status && 400 <= error.response.status && error.response.status <= 499) {
+						message = 'Two-factor authentication failed.';
+					}
+				}
+				notifyError(message);
 				setTotp('');
 				setState('signing-in');
 			});
