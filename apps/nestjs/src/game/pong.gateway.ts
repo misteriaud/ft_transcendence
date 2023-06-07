@@ -14,11 +14,23 @@ const CANVAS_HEIGHT = 450;
 const CANVAS_WIDTH = 800;
 const TIME_DIVISION = 10;
 
+enum GameMode {
+	NORMAL = 0,
+	HARDCORE = 1,
+}
+
+enum GameStatus {
+	PREPARATION,
+	INPROGRESS,
+	FINISHED = 'FINISHED',
+	ABANDONED = 'ABANDONED',
+}
+
 type Invitation = {
 	id: string;
 	player1id: number;
 	player2id: number;
-	mode: 'HARDCORE' | 'NORMAL';
+	mode: GameMode;
 };
 
 class Player {
@@ -27,32 +39,32 @@ class Player {
 	paddleSpeed: number;
 	paddleDirection: 'up' | 'down' | 'stop';
 	paddleHeight: number;
+	ready: boolean;
 }
 
 class GameState {
 	id: string;
-	mode: 'HARDCORE' | 'NORMAL';
+	mode: GameMode;
 	ball: { x: number; y: number; dx: number; dy: number };
-	player1: Player;
-	player2: Player;
+	players: Map<number, Player> = new Map();
+	readonly playerIds: string[];
 	paddleWidth: number;
 	ballRadius: number;
-	playersIds: number[];
-	playersReady: boolean[];
 	gameInterval: NodeJS.Timeout | null;
 	timestamp: number;
 	expiration: Date;
+	// private ready = false;
+	status: GameStatus = GameStatus.PREPARATION;
 
-	constructor(mode: 'HARDCORE' | 'NORMAL') {
+	constructor(mode: GameMode, player1id: number, player2id: number, private emit: (path: 'gameState' | 'gameEnded', state: GameState) => void) {
 		this.id = nanoid();
 		this.mode = mode;
 		this.ball = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 2, dy: 0 };
-		this.player1 = { paddleY: CANVAS_HEIGHT / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80 };
-		this.player2 = { paddleY: CANVAS_HEIGHT / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80 };
+		this.players.set(player1id, { paddleY: CANVAS_HEIGHT / 3, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80, ready: false });
+		this.players.set(player2id, { paddleY: CANVAS_HEIGHT / 3, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80, ready: false });
+		this.playerIds = [String(player1id), String(player2id)];
 		this.paddleWidth = 10;
 		this.ballRadius = 6;
-		this.playersIds = [];
-		this.playersReady = [false, false];
 		this.gameInterval = null;
 		this.timestamp = Date.now();
 	}
@@ -64,216 +76,213 @@ class GameState {
 		this.ball.dy = 0;
 		return this.ball;
 	}
+
+	setPlayerReady(userId: number, state: boolean) {
+		this.players.get(userId).ready = state;
+
+		if (this.status === GameStatus.PREPARATION && Array.from(this.players.values()).every((player) => player.ready)) {
+			this.startGame();
+		}
+		if (this.status === GameStatus.INPROGRESS && Array.from(this.players.values()).every((player) => !player.ready)) {
+			this.endGame(GameStatus.ABANDONED);
+		}
+	}
+
+	movePaddle(userId: number, direction: 'up' | 'down' | 'stop') {
+		if (this.status !== GameStatus.INPROGRESS) return;
+		this.players.get(userId).paddleDirection = direction;
+	}
+
+	startGame() {
+		this.gameInterval = setInterval(() => {
+			this.timestamp = Date.now();
+			const deltaTime = this.timestamp - this.timestamp;
+			this.UpdateBallState(deltaTime / 1000);
+			this.updatePaddleState(deltaTime / 1000);
+
+			const playerIter = this.players.values();
+
+			if (playerIter.next().value().score >= 11 || playerIter.next().value().score >= 11) {
+				return this.endGame(GameStatus.FINISHED);
+			}
+
+			this.emit('gameState', this);
+		}, 1000 / TIME_DIVISION);
+	}
+
+	endGame(status: GameStatus) {
+		this.status = status;
+		if (this.gameInterval) {
+			clearInterval(this.gameInterval);
+		}
+		this.emit('gameEnded', this);
+		// this.server.to(this.players)).emit('pong/gameEnded', this);
+	}
+
+	updatePaddleState(deltaTime: number) {
+		this.players.forEach((player: Player) => {
+			if (player.paddleDirection === 'up') {
+				player.paddleY = Math.max(player.paddleY - player.paddleSpeed * deltaTime, 0);
+			} else if (player.paddleDirection === 'down') {
+				player.paddleY = Math.min(player.paddleY + player.paddleSpeed * deltaTime, CANVAS_HEIGHT - player.paddleHeight);
+			}
+		});
+	}
+
+	UpdateBallState(deltaTime: number) {
+		// ball movement
+		this.ball.x += this.ball.dx * deltaTime;
+		this.ball.y += this.ball.dy * deltaTime;
+
+		const playerIter = this.players.entries();
+		const player1 = playerIter.next().value();
+		const player2 = playerIter.next().value();
+
+		// horizontal
+		if (this.ball.x > CANVAS_WIDTH || this.ball.x < 0) {
+			// right side collision
+			if (this.ball.x > CANVAS_WIDTH / 2 && this.ball.y >= player2.paddleY && this.ball.y <= player2.paddleY + player2.paddleHeight) {
+				this.ball.dx = -this.ball.dx;
+				const deltaY = this.ball.y - (player2.paddleY + player2.paddleHeight / 2);
+				this.ball.dy = deltaY * 0.35;
+			}
+			// left side collision
+			else if (this.ball.x < CANVAS_WIDTH / 2 && this.ball.y >= player1.paddleY && this.ball.y <= player1.paddleY + player1.paddleHeight) {
+				this.ball.dx = -this.ball.dx;
+				const deltaY = this.ball.y - (player1.paddleY + player1.paddleHeight / 2);
+				this.ball.dy = deltaY * 0.35;
+			} else {
+				if (this.ball.x < CANVAS_WIDTH / 2) {
+					player2.score++;
+				} else {
+					player1.score++;
+				}
+				this.resetBall();
+			}
+		}
+
+		// vertical
+		if (this.ball.y > CANVAS_HEIGHT || this.ball.y < 0) {
+			this.ball.dy = -this.ball.dy;
+		}
+	}
+
+	// isReady(): boolean {
+	// 	return this.isReady
+	// }
 }
 
 export class PongWebsocketGateway extends BaseWebsocketGateway {
 	currentGame: GameState[] = [];
 	waitingInvitation: Invitation[] = [];
-	waitingNormalInvitation: Invitation[] = [];
-	waitingHardcoreInvitation: Invitation[] = [];
+	waitingPlayer: number[];
 
 	constructor(jwtService: JwtService, userService: UserService, private prismaMatch: PrismaMatchService) {
 		super(jwtService, userService);
 	}
 
+	async handleConnection(client: Socket) {
+		await super.handleConnection(client);
+		this.currentGame.forEach((game: GameState, index: number) => {
+			if (game.players.has(client.data.user.id)) {
+				client.data.gameIndex = index;
+			}
+		});
+	}
+
 	@SubscribeMessage('pong/invite')
-	handlePongInvite(client: Socket, { player2Id, mode }: { player2Id?: number; mode: 'HARDCORE' | 'NORMAL' }) {
+	handlePongInvite(client: Socket, { player2Id, mode }: { player2Id?: number; mode: GameMode }) {
 		const invitation = {
 			id: nanoid(),
 			player1id: client.data.user.id,
 			player2id: player2Id,
 			mode: mode,
 		};
-		if (player2Id === undefined) {
-			if (mode === 'HARDCORE') this.waitingHardcoreInvitation.push(invitation);
-			else this.waitingNormalInvitation.push(invitation);
+		if (player2Id) {
+			const index = this.waitingInvitation.findIndex((invitation) => invitation.player1id === player2Id && invitation.player2id === client.data.user.id);
+			if (index !== -1) {
+				this.createGame(this.waitingInvitation[index].mode, this.waitingInvitation[index].player1id, this.waitingInvitation[index].player2id);
+				this.waitingInvitation.splice(index);
+			} else {
+				this.waitingInvitation.push(invitation);
+				this.server.to(player2Id.toString()).emit('pong/invitation', invitation);
+			}
 		} else {
-			this.waitingInvitation.push(invitation);
-			this.server.to(player2Id.toString()).emit('pong/invitation', invitation);
+			// if already someone in queue
+			if (this.waitingPlayer[mode]) {
+				this.createGame(mode, this.waitingPlayer[mode], client.data.user.id);
+			} else {
+				this.waitingPlayer[mode] = client.data.user.id;
+			}
 		}
 	}
 
 	@SubscribeMessage('pong/acceptInvite')
-	handlePongAcceptInvite(client: Socket, { invitationId, mode }: { invitationId?: string; mode: 'HARDCORE' | 'NORMAL' }) {
-		let invitationIndex: number;
-		let invitation: Invitation;
-
-		if (invitationId === undefined) {
-			const invitationList = mode === 'HARDCORE' ? this.waitingHardcoreInvitation : this.waitingNormalInvitation;
-			if (invitationList.length === 0) throw new WsException('No invitation found');
-
-			invitationIndex = 0;
-			invitation = invitationList[0];
-			invitationList.splice(0, 1);
-		} else {
-			invitationIndex = this.waitingInvitation.findIndex((invitation) => invitation.id === invitationId);
-			if (invitationIndex === -1) throw new WsException('Invitation not found');
-			invitation = this.waitingInvitation[invitationIndex];
-			this.waitingInvitation.splice(invitationIndex, 1);
+	handlePongAcceptInvite(client: Socket, invitationId: string) {
+		const index = this.waitingInvitation.findIndex((invitation) => invitation.id === invitationId);
+		if (index !== -1) {
+			this.createGame(this.waitingInvitation[index].mode, this.waitingInvitation[index].player1id, this.waitingInvitation[index].player2id);
+			this.waitingInvitation.splice(index);
 		}
-
-		const newGame = new GameState(invitation.mode);
-		newGame.playersIds.push(invitation.player1id, client.data.user.id);
-		this.currentGame.push(newGame);
-		this.server.to([invitation.player1id, client.data.user.id].map((id) => id.toString())).emit('pong/newGame', { gameId: newGame.id, gameState: newGame });
 	}
 
-	// @SubscribeMessage('pong/playgame')
-	// joinGame(client: Socket, player2id: number | null, mode: number) {
-	// 	// no player2 given
-	// 	if (this.waitingHardcoreModePlayerId) {
-	// 		// create new game
-	// 		new_game_id
-	// 		this.server.to([client.data.user.id, this.waitingHardcoreModePlayerId]).emit('pong/newGame', new_game);
-	// 		this.waitingHardcoreModePlayerId = null;
-	// 	} else this.waitingHardcoreModePlayerId = client.data.user.id;
-	// }
+	createGame(mode: GameMode, player1id: number, player2id: number) {
+		const newGame = new GameState(mode, player1id, player2id, this.sendGameState);
+		this.currentGame.push(newGame);
+		this.server.to([player1id, player2id].map((id) => id.toString())).emit('pong/newGame', { gameId: newGame.id, gameState: newGame });
+	}
 
 	@UsePipes(new ValidationPipe())
 	@SubscribeMessage('pong/ready')
-	handlePongReady(client: Socket) {
+	handlePongReady(client: Socket, gameId: string) {
 		console.log('Player ready');
-		const gameIndex = this.currentGame.findIndex((game) => game.playersIds.length < 2);
+		const gameIndex = this.currentGame.findIndex((game) => game.id === gameId);
 
-		if (gameIndex !== -1 && this.currentGame[gameIndex].playersIds.includes(client.data.user.id)) {
-			console.log('Player already in game');
-			throw new WsException('Player already in game');
+		if (client.data.gameIndex && client.data.gameIndex !== gameIndex) {
+			console.log('User already playing another game');
+			return;
 		}
 		if (gameIndex === -1) {
-			console.log('No game found for this player');
-			throw new WsException('No game found');
+			console.log("Game doesn't exist");
+			return;
 		}
 		const game = this.currentGame[gameIndex];
-		const playerIndex = game.playersIds.indexOf(client.data.user.id);
-		game.playersReady[playerIndex] = true;
+		if (!game.players.has(client.data.user.id)) {
+			console.log('User is not player in this game');
+			return;
+		}
 
 		client.data.gameIndex = gameIndex;
-		client.data.playerIndex = playerIndex;
-
-		if (game.playersReady.every(Boolean)) {
-			this.startGame(gameIndex);
-		}
+		game.setPlayerReady(client.data.user.id, true);
 	}
 
-	@SubscribeMessage('pong/sendGameState')
-	sendGameState(currentGame: GameState) {
-		currentGame.timestamp = Date.now();
-		this.server.to(currentGame.playersIds.map((id) => id.toString())).emit('pong/gameState', currentGame);
-		//console.log(currentGame);
+	// @SubscribeMessage('pong/sendGameState')
+	sendGameState(path: 'gameState' | 'gameEnded', currentGame: GameState) {
+		this.server.to(currentGame.playerIds).emit('pong/gameState', currentGame);
+		if (path === 'gameEnded') {
+			const index = this.currentGame.findIndex((game) => game.id === currentGame.id);
+			const playerIter = currentGame.players.values();
+			const player1 = playerIter.next().value();
+			const player2 = playerIter.next().value();
+
+			this.prismaMatch.create(player1.id, player2.id, player1.score, player2.score, currentGame.mode === GameMode.NORMAL ? 'NORMAL' : 'HARDCORE', currentGame.status as e_match_state);
+			this.currentGame.splice(index, 1);
+		} else {
+		}
 	}
 
 	@UsePipes(new ValidationPipe())
 	async handleDisconnect(client: Socket) {
-		const gameIndex = this.currentGame.findIndex((game) => game.playersIds.includes(client.data.user.id));
+		await super.handleDisconnect(client);
+		//const gameIndex = this.currentGame.findIndex((game) => game.playersIds.includes(client.data.user.id));
+		const gameIndex = client.data.gameIndex;
 
-		if (gameIndex === -1) {
+		if (!gameIndex) {
 			console.log('No game found for this player');
 			return;
 		}
 
 		const game = this.currentGame[gameIndex];
-		const playerIndex = game.playersIds.indexOf(client.data.user.id);
-		game.playersReady[playerIndex] = false;
-
-		if (game.playersReady.every((ready) => !ready)) {
-			console.log('Both players disconnected, game abandoned');
-			this.server.to(game.playersIds.map((id) => id.toString())).emit('pong/gameAbandoned', game);
-			this.endGame(gameIndex, e_match_state.ABANDONNED);
-		} else {
-			this.server.to(game.playersIds.filter((id) => id !== client.data.user.id).map((id) => id.toString())).emit('pong/playerDisconnected', client.data.user.id);
-		}
-	}
-
-	@SubscribeMessage('pong/movePaddle')
-	handlePaddleMove(client: Socket, direction: 'up' | 'down' | 'stop') {
-		const currentGame = this.currentGame[client.data.gameIndex];
-		const currentPlayer = currentGame[`player${client.data.playerIndex + 1}`];
-
-		if (!currentGame || !currentGame.playersReady.every(Boolean)) {
-			console.log('Not all players are ready or game does not exist');
-			return;
-		}
-
-		if (!currentPlayer) {
-			console.log('Player does not exist');
-			return;
-		}
-
-		currentPlayer.paddleDirection = direction;
-	}
-
-	startGame(gameIndex: number) {
-		this.currentGame[gameIndex].gameInterval = setInterval(() => {
-			const game = this.currentGame[gameIndex];
-			if (game && !game.playersReady.every((player) => player === true)) return;
-
-			const now = Date.now();
-			const deltaTime = now - game.timestamp;
-			game.timestamp = now;
-			this.UpdateBallState(game, deltaTime / 1000);
-			this.updatePaddleState(game, deltaTime / 1000);
-
-			if (game.player1.score >= 11 || game.player2.score >= 11) {
-				return this.endGame(gameIndex, e_match_state.FINISHED);
-			}
-
-			this.sendGameState(game);
-		}, 1000 / TIME_DIVISION);
-	}
-
-	endGame(gameIndex: number, state: e_match_state) {
-		const game = this.currentGame[gameIndex];
-
-		this.prismaMatch.create(game.playersIds[0], game.playersIds[1], game.player1.score, game.player2.score, game.mode, state);
-
-		this.server.to(game.playersIds.map((id) => id.toString())).emit('pong/gameEnded', game);
-		if (game.gameInterval) {
-			clearInterval(game.gameInterval);
-		}
-		this.currentGame.splice(gameIndex, 1);
-	}
-
-	updatePaddleState(game: GameState, deltaTime: number) {
-		for (const player of [game.player1, game.player2]) {
-			if (player.paddleDirection === 'up') {
-				player.paddleY = Math.max(player.paddleY - player.paddleSpeed * deltaTime, 0);
-			} else if (player.paddleDirection === 'down') {
-				player.paddleY = Math.min(player.paddleY + player.paddleSpeed * deltaTime, CANVAS_HEIGHT - player.paddleHeight);
-			}
-		}
-	}
-
-	UpdateBallState(game: GameState, deltaTime: number) {
-		// ball movement
-		game.ball.x += game.ball.dx * deltaTime;
-		game.ball.y += game.ball.dy * deltaTime;
-
-		// horizontal
-		if (game.ball.x > CANVAS_WIDTH || game.ball.x < 0) {
-			// right side collision
-			if (game.ball.x > CANVAS_WIDTH / 2 && game.ball.y >= game.player2.paddleY && game.ball.y <= game.player2.paddleY + game.player2.paddleHeight) {
-				game.ball.dx = -game.ball.dx;
-				const deltaY = game.ball.y - (game.player2.paddleY + game.player2.paddleHeight / 2);
-				game.ball.dy = deltaY * 0.35;
-			}
-			// left side collision
-			else if (game.ball.x < CANVAS_WIDTH / 2 && game.ball.y >= game.player1.paddleY && game.ball.y <= game.player1.paddleY + game.player1.paddleHeight) {
-				game.ball.dx = -game.ball.dx;
-				const deltaY = game.ball.y - (game.player1.paddleY + game.player1.paddleHeight / 2);
-				game.ball.dy = deltaY * 0.35;
-			} else {
-				if (game.ball.x < CANVAS_WIDTH / 2) {
-					game.player2.score++;
-				} else {
-					game.player1.score++;
-				}
-				game.resetBall();
-			}
-		}
-
-		// vertical
-		if (game.ball.y > CANVAS_HEIGHT || game.ball.y < 0) {
-			game.ball.dy = -game.ball.dy;
-		}
+		game.setPlayerReady(client.data.user.id, false);
 	}
 }

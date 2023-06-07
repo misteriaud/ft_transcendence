@@ -142,7 +142,7 @@ enum e_match_mod {
 
 enum e_match_state {
 	FINISHED
-	ABANDONNED
+	ABANDONED
 }
 
 enum e_room_access {
