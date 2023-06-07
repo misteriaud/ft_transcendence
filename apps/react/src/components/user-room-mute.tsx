@@ -36,6 +36,9 @@ export function MuteDialog({ user, room_id, dialogStatus, dialogHandler }: any) 
 	const api = useApi();
 
 	useEffect(() => {
+		if (isLoadingRoom || errorRoom) {
+			return;
+		}
 		const interval = setInterval(() => {
 			if (muteFor !== time._infinity) {
 				setMuteUntil(new Date(Date.now() + muteFor));
