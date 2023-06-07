@@ -31,6 +31,7 @@ export interface i_friend_requests {
 	userA_id: number;
 	userB: i_user;
 	userB_id: number;
+	room_id: number;
 }
 
 export interface i_friends {
@@ -105,13 +106,13 @@ export enum e_user_status {
 }
 
 export enum e_match_map {
-	CLASSIC = 'CLASSIC'
+	NORMAL = 'NORMAL',
+	HARDCORE = 'HARDCORE'
 }
 
 export enum e_match_state {
-	PREPARATION = 'PREPARATION',
-	INPROGRESS = 'INPROGRESS',
-	FINISHED = 'FINISHED'
+	FINISHED = 'FINISHED',
+	ABANDONNED = 'ABANDONNED'
 }
 
 export enum e_room_access {

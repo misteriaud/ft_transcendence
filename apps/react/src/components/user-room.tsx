@@ -38,7 +38,6 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 		);
 	}
 	if (errorRoom) {
-		notifyError();
 		return (
 			<>
 				<hr ref={ref} {...otherProps} className="my-2 border-blue-gray-50 outline-none" />

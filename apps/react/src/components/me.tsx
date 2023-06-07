@@ -10,13 +10,11 @@ import { i_me } from './interfaces';
 import { SettingsDialog } from './me-settings';
 import { UserUI } from './userUI';
 import { SocialDialog } from './SocialDialog';
-import { useNotifyError } from '../hooks/notifications';
 
 export function Me({ className }: { className?: string }) {
 	const { me, mutate, isLoading, error }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
 	const [openSettingsDialog, setOpenSettingsDialog] = useState(false);
 	const [openSocialDialog, setOpenSocialDialog] = useState(false);
-	const notifyError = useNotifyError();
 	const location = useLocation();
 	const navigate = useNavigate();
 	const dispatch = useStoreDispatchContext();
@@ -29,7 +27,6 @@ export function Me({ className }: { className?: string }) {
 		);
 	}
 	if (error) {
-		notifyError();
 		return (
 			<div
 				className="flex justify-center items-center p-3 rounded-md text-red-500 hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80"

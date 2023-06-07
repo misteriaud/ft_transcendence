@@ -63,7 +63,6 @@ export function MuteDialog({ user, room_id, dialogStatus, dialogHandler }: any) 
 		);
 	}
 	if (errorRoom) {
-		notifyError();
 		return (
 			<>
 				<Dialog open={dialogStatus} handler={dialogHandler}>

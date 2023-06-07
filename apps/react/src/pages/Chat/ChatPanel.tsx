@@ -41,6 +41,11 @@ import {
 	XMarkIcon,
 	LockClosedIcon
 } from '@heroicons/react/24/outline';
+import { useNotifyError, useNotifySuccess } from '../../hooks/notifications';
+import { i_me, i_member, i_room } from '../../components/interfaces';
+import { KeyedMutator } from 'swr';
+import { useRoom } from '../../hooks/useRoom';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 
 function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => void }) {
 	const [name, setName] = useState('');
@@ -105,6 +110,63 @@ function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => voi
 	);
 }
 
+function RoomInvitation({ room_invitation_string }: { room_invitation_string: string }) {
+	const { me, mutate: mutateMe, isLoading: isLoadingMe, error: errorMe }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
+	const notifySuccess = useNotifySuccess();
+	const notifyError = useNotifyError();
+	const api = useApi();
+
+	if (isLoadingMe) {
+		return (
+			<div className="flex flex-col items-center gap-1 min-w-0 p-2 rounded-md bg-white bg-opacity-90 break-all">
+				<Spinner />
+			</div>
+		);
+	}
+	if (errorMe) {
+		return (
+			<div
+				className="flex flex-col items-center gap-1 min-w-0 p-2 rounded-md bg-white bg-opacity-90 break-all text-red-500 outline-none hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80"
+				onClick={() => mutateMe()}
+			>
+				<ExclamationTriangleIcon strokeWidth={2} className="h-6 w-6 text-red-500" />
+			</div>
+		);
+	}
+
+	const room_invitation_prefix = '[room-invitation]';
+	const room_invitation_string_without_prefix = room_invitation_string.substring(room_invitation_prefix.length);
+	const separator = '[separator]';
+	const [room_name, room_id, user_id, invitation_token] = room_invitation_string_without_prefix.split(separator, 4);
+
+	const isMeIssuer = `${me.id}` === user_id;
+	const isMeInRoom = typeof me.memberOf.find((m: i_member) => `${m.room.id}` === room_id) !== 'undefined';
+
+	async function handleInvitationButton() {
+		await api
+			.post(`/rooms/${room_id}/join/${invitation_token}`)
+			.then(() => {
+				mutateMe();
+				// should mutate /rooms
+				notifySuccess(`You have joined ${room_name}.`);
+			})
+			.catch(() => {
+				notifyError();
+			});
+	}
+
+	return (
+		<div className="flex flex-col items-center gap-1 min-w-0 p-2 rounded-md bg-white bg-opacity-90 break-all">
+			<Typography variant="small" className="font-normal">
+				Invitation to join the room:
+			</Typography>
+			<Button className="w-fit" size="sm" onClick={handleInvitationButton} disabled={!isMeIssuer || isMeInRoom}>
+				{room_name}
+			</Button>
+		</div>
+	);
+}
+
 function Chat({ roomInfo, close }: { roomInfo: Room; close: () => void }) {
 	const [isFold, setIsFold] = useState(false);
 	const [chatInput, setChatInput] = useState('');
@@ -157,7 +219,11 @@ function Chat({ roomInfo, close }: { roomInfo: Room; close: () => void }) {
 								<p className="shrink select-none text-gray-700 text-xs opacity-70 flex gap-1">
 									{new Date(message.createdAt).getHours()}:{new Date(message.createdAt).getMinutes()}
 								</p>
-								<p className="flex-shrink min-w-0 rounded-md bg-white bg-opacity-90 px-1 py-0.5">{message.content}</p>
+								{message.content.startsWith('[room-invitation]') ? (
+									<RoomInvitation room_invitation_string={message.content} />
+								) : (
+									<p className="flex-shrink min-w-0 rounded-md bg-white bg-opacity-90 px-1 py-0.5 break-all">{message.content}</p>
+								)}
 							</li>
 						))}
 						<li ref={lastMessageRef}></li>

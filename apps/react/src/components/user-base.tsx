@@ -2,15 +2,26 @@ import { forwardRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Menu, MenuHandler, MenuItem, MenuList, Typography } from '@material-tailwind/react';
 import { ChatBubbleOvalLeftEllipsisIcon, HomeIcon, RocketLaunchIcon, UserCircleIcon } from '@heroicons/react/24/solid';
-import { i_blocked, i_friends, i_me, i_member, i_user } from './interfaces';
-import { e_member_role } from './interfaces';
+import { e_member_role, e_room_access, i_blocked, i_friends, i_me, i_member, i_room, i_user } from './interfaces';
+import { useNotifyError, useNotifySuccess } from '../hooks/notifications';
+import { useSocketContext } from '../hooks/useContext';
+import { useApi } from '../hooks/useApi';
 
 export const MenuBaseItems = forwardRef((props: any, ref: any) => {
 	const { me, user, onClick, ...otherProps }: { me: i_me; user: i_user; onClick?: (event: React.MouseEvent<HTMLElement>) => void; otherProps?: any } = props;
 	const location = useLocation();
 	const navigate = useNavigate();
+	const notifySuccess = useNotifySuccess();
+	const notifyError = useNotifyError();
+	const { isConnected, socket } = useSocketContext();
+	const api = useApi();
 
-	const invitableRooms = me.memberOf.filter((m: i_member) => m.role === e_member_role.OWNER || m.role === e_member_role.ADMIN);
+	const invitableRooms = me.memberOf.filter(
+		(m: i_member) =>
+			(m.role === e_member_role.OWNER || m.role === e_member_role.ADMIN) &&
+			m.room.access !== e_room_access.DIRECT_MESSAGE &&
+			typeof m.room.members.find((member: i_member) => member.user_id === user.id) === 'undefined'
+	);
 
 	const isCurrentLocationMeProfile = location.pathname === `/dashboard/users/${user.id}` || location.pathname === `/dashboard/users/${user.login42}`;
 	const areMeAndUserFriends = me.friends.some((f: i_friends) => f.userB.id === user.id);
@@ -30,9 +41,31 @@ export const MenuBaseItems = forwardRef((props: any, ref: any) => {
 		navigate(`/dashboard/users/${user.login42}`);
 	}
 
-	// Send Message
-
-	// Invite to Room
+	async function handleInviteToRoom(room: i_room, onClick?: (event: React.MouseEvent<HTMLElement>) => void, e?: React.MouseEvent<HTMLElement>) {
+		if (onClick && e) {
+			onClick(e);
+		}
+		if (isConnected) {
+			await api
+				.post(`/rooms/${room.id}/invitation`, {
+					sub: user.id
+				})
+				.then((res) => {
+					socket.emit('chat/postMessage', {
+						roomId: me.memberOf.filter(
+							(m: i_member) => m.room.access === e_room_access.DIRECT_MESSAGE && m.room.members.find((member: i_member) => member.user_id === user.id)
+						)?.[0]?.room.id,
+						content: `[room-invitation]${room.name}[separator]${room.id}[separator]${user.id}[separator]${res.data.token}`
+					});
+					notifySuccess('Invitation sent.');
+				})
+				.catch(() => {
+					notifyError();
+				});
+		} else {
+			notifyError();
+		}
+	}
 
 	// Invite to Game
 
@@ -68,7 +101,7 @@ export const MenuBaseItems = forwardRef((props: any, ref: any) => {
 				</MenuHandler>
 				<MenuList>
 					{invitableRooms.map((m: i_member) => (
-						<MenuItem key={m.room.id} className="flex items-center gap-2 outline-none" tabIndex={-1}>
+						<MenuItem key={m.room.id} className="flex items-center gap-2 outline-none" onClick={(e) => handleInviteToRoom(m.room, onClick, e)} tabIndex={-1}>
 							{m.room.name}
 						</MenuItem>
 					))}

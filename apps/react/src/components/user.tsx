@@ -9,7 +9,6 @@ import { MenuBaseItems } from './user-base';
 import { MenuRoomItems } from './user-room';
 import { MenuSocialItems } from './user-social';
 import { MuteDialog } from './user-room-mute';
-import { useNotifyError } from '../hooks/notifications';
 
 export function User({ room_id, login42 }: { room_id?: number; login42: string }) {
 	const { me, mutate: mutateMe, isLoading: isLoadingMe, error: errorMe }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
@@ -20,7 +19,6 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 		error: errorUser
 	}: { isLoading: boolean; user: i_user; mutate: KeyedMutator<i_user>; error: Error } = useUser(login42);
 	const [openMuteDialog, setOpenMuteDialog] = useState(false);
-	const notifyError = useNotifyError();
 
 	if (isLoadingMe || isLoadingUser) {
 		return (
@@ -30,7 +28,6 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 		);
 	}
 	if (errorMe || errorUser) {
-		notifyError();
 		return (
 			<div
 				className="flex justify-center items-center p-3 rounded-md text-red-500 outline-none hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80"

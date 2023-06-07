@@ -8,7 +8,6 @@ import { useUsers } from '../hooks/useUser';
 import { UserUI } from './userUI';
 import { Me } from './me';
 import { GameButton } from '../components/Queue';
-import { useNotifyError } from '../hooks/notifications';
 
 export function SearchBar() {
 	const {
@@ -19,7 +18,6 @@ export function SearchBar() {
 	}: { users: i_user[]; mutate: KeyedMutator<i_user[]>; isLoading: boolean; error: Error } = useUsers();
 	const [openMenu, setOpenMenu] = useState(false);
 	const [filter, setFilter] = useState('');
-	const notifyError = useNotifyError();
 	const navigate = useNavigate();
 
 	if (isLoadingUsers) {
@@ -51,7 +49,6 @@ export function SearchBar() {
 		);
 	}
 	if (errorUsers) {
-		notifyError();
 		return (
 			<div className="col-start-1 col-span-1 flex justify-start items-center">
 				<Input
