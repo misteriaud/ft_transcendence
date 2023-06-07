@@ -80,9 +80,9 @@ function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => voi
 	return (
 		<Dialog open={open} handler={handleOpen} size="xs">
 			<form onSubmit={submit} className="flex flex-col gap-2">
-				<DialogHeader>Create new room</DialogHeader>
+				<DialogHeader className="flex justify-center">Create new room</DialogHeader>
 				<DialogBody divider className="flex flex-col gap-2 items-center">
-					<div className="flex">
+					<div className="flex flex-wrap justify-center">
 						<Radio id="PUBLIC" value="PUBLIC" name="type" label="Public" onChange={(e) => setAccess(e.target.value)} checked={access === 'PUBLIC'} />
 						<Radio id="PRIVATE" value="PRIVATE" name="type" label="Private" onChange={(e) => setAccess(e.target.value)} checked={access === 'PRIVATE'} />
 						<Radio
@@ -97,7 +97,7 @@ function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => voi
 					<Input value={name} onChange={(e) => setName(e.target.value)} label="name"></Input>
 					{access == 'PROTECTED' && <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} label="password"></Input>}
 				</DialogBody>
-				<DialogFooter className="flex flex-row">
+				<DialogFooter className="flex flex-row justify-center">
 					<Button variant="text" color="red" onClick={handleOpen} className="mr-1">
 						<span>Cancel</span>
 					</Button>
