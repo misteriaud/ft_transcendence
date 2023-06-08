@@ -3,7 +3,7 @@
   }
 
   .background-img {
-	background-image: url('https://media1.ledevoir.com/images_galerie/nwd_132675_102056/image.jpg');
+	background-image: url('../images/backgroundHomePage.jpg');
 	background-size: cover;
 	background-position: center;
 	height: 100vh;

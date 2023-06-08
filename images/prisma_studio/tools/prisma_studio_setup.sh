@@ -26,6 +26,7 @@ cd app
 # do
 # 	sleep 1;
 # done
+npx prisma db push --force-reset
 
 # Start the Prisma studio application.
 exec prisma studio --port $PORT --browser none
