@@ -51,12 +51,11 @@ class GameState {
 	paddleWidth: number;
 	ballRadius: number;
 	gameInterval: NodeJS.Timeout | null;
-	timestamp: number;
+	dt: number;
 	expiration: Date;
-	// private ready = false;
 	status: GameStatus = GameStatus.PREPARATION;
 
-	constructor(mode: GameMode, player1id: number, player2id: number, private emit: (path: 'gameState' | 'gameEnded', state: GameState) => void) {
+	constructor(mode: GameMode, player1id: number, player2id: number, private emitGameState: (path: 'gameState' | 'gameEnded', state: GameState) => void) {
 		this.id = nanoid();
 		this.mode = mode;
 		this.ball = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 2, dy: 0 };
@@ -66,7 +65,7 @@ class GameState {
 		this.paddleWidth = 10;
 		this.ballRadius = 6;
 		this.gameInterval = null;
-		this.timestamp = Date.now();
+		this.dt = Date.now();
 	}
 
 	resetBall() {
@@ -78,6 +77,7 @@ class GameState {
 	}
 
 	setPlayerReady(userId: number, state: boolean) {
+		if (!this.players.get(userId)) return;
 		this.players.get(userId).ready = state;
 
 		if (this.status === GameStatus.PREPARATION && Array.from(this.players.values()).every((player) => player.ready)) {
@@ -88,15 +88,17 @@ class GameState {
 		}
 	}
 
+	//@SubscribeMessage('pong/movePaddle')
 	movePaddle(userId: number, direction: 'up' | 'down' | 'stop') {
 		if (this.status !== GameStatus.INPROGRESS) return;
+		if (!this.players.get(userId)) return;
 		this.players.get(userId).paddleDirection = direction;
 	}
 
 	startGame() {
 		this.gameInterval = setInterval(() => {
-			this.timestamp = Date.now();
-			const deltaTime = this.timestamp - this.timestamp;
+			this.dt = Date.now();
+			const deltaTime = this.dt - this.dt;
 			this.UpdateBallState(deltaTime / 1000);
 			this.updatePaddleState(deltaTime / 1000);
 
@@ -106,7 +108,7 @@ class GameState {
 				return this.endGame(GameStatus.FINISHED);
 			}
 
-			this.emit('gameState', this);
+			this.emitGameState('gameState', this);
 		}, 1000 / TIME_DIVISION);
 	}
 
@@ -115,8 +117,7 @@ class GameState {
 		if (this.gameInterval) {
 			clearInterval(this.gameInterval);
 		}
-		this.emit('gameEnded', this);
-		// this.server.to(this.players)).emit('pong/gameEnded', this);
+		this.emitGameState('gameEnded', this);
 	}
 
 	updatePaddleState(deltaTime: number) {
@@ -166,10 +167,6 @@ class GameState {
 			this.ball.dy = -this.ball.dy;
 		}
 	}
-
-	// isReady(): boolean {
-	// 	return this.isReady
-	// }
 }
 
 export class PongWebsocketGateway extends BaseWebsocketGateway {
@@ -214,6 +211,14 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 			} else {
 				this.waitingPlayer[mode] = client.data.user.id;
 			}
+		}
+	}
+
+	@SubscribeMessage('pong/cancelInvite')
+	handlePongCancelInvite(client: Socket, invitationId: string) {
+		const index = this.waitingInvitation.findIndex((invitation) => invitation.id === invitationId);
+		if (index !== -1) {
+			this.waitingInvitation.splice(index);
 		}
 	}
 
@@ -274,7 +279,6 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 	@UsePipes(new ValidationPipe())
 	async handleDisconnect(client: Socket) {
 		await super.handleDisconnect(client);
-		//const gameIndex = this.currentGame.findIndex((game) => game.playersIds.includes(client.data.user.id));
 		const gameIndex = client.data.gameIndex;
 
 		if (!gameIndex) {
