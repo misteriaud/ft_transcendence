@@ -1,5 +1,5 @@
 //pong.gateway.ts
-import { WsException } from '@nestjs/websockets';
+import { WebSocketGateway, WsException } from '@nestjs/websockets';
 import { Injectable, UsePipes, ValidationPipe } from '@nestjs/common';
 import { BaseWebsocketGateway } from 'src/utils/websocket.utils';
 import { JwtService } from '@nestjs/jwt';
@@ -56,7 +56,7 @@ class GameState {
 	expiration: Date;
 	status: GameStatus = GameStatus.PREPARATION;
 
-	constructor(mode: GameMode, player1id: number, player2id: number, private emitGameState: (path: 'gameState' | 'gameEnded', state: GameState) => void) {
+	constructor(mode: GameMode, player1id: number, player2id: number) {
 		this.id = nanoid();
 		this.mode = mode;
 		this.ball = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 2, dy: 0 };
@@ -84,18 +84,18 @@ class GameState {
 		return this.players.every((player: Player) => player.ready);
 	}
 
-	setPlayerReady(userId: number, state: boolean) {
-		const index = this.players.findIndex((player) => player.id === userId);
-		if (index === -1) return;
-		this.players[index].ready = state;
+	// setPlayerReady(userId: number, state: boolean) {
+	// 	const index = this.players.findIndex((player) => player.id === userId);
+	// 	if (index === -1) return;
+	// 	this.players[index].ready = state;
 
-		if (this.status === GameStatus.PREPARATION && this.allReady()) {
-			this.startGame();
-		}
-		if (this.status === GameStatus.INPROGRESS && this.players.every((player: Player) => !player.ready)) {
-			this.endGame(GameStatus.ABANDONED);
-		}
-	}
+	// 	if (this.status === GameStatus.PREPARATION && this.allReady()) {
+	// 		this.startGame();
+	// 	}
+	// 	if (this.status === GameStatus.INPROGRESS && this.players.every((player: Player) => !player.ready)) {
+	// 		this.endGame(GameStatus.ABANDONED);
+	// 	}
+	// }
 
 	//@SubscribeMessage('pong/movePaddle')
 	movePaddle(userId: number, direction: 'up' | 'down' | 'stop') {
@@ -106,30 +106,28 @@ class GameState {
 		this.players[index].paddleDirection = direction;
 	}
 
-	startGame() {
-		this.gameInterval = setInterval(() => {
-			const now = Date.now();
-			const deltaTime = (now - this.dt) / 1000;
-			this.dt = now;
-			this.UpdateBallState(deltaTime);
-			this.updatePaddleState(deltaTime);
+	//startGame() {
+	// this.gameInterval = setInterval(() => {
+	// 	const now = Date.now();
+	// 	const deltaTime = (now - this.dt) / 1000;
+	// 	this.dt = now;
+	// 	this.UpdateBallState(deltaTime);
+	// 	this.updatePaddleState(deltaTime);
+	// 	if (this.players.some((player: Player) => player.score >= 2)) {
+	// 		return this.endGame(GameStatus.FINISHED);
+	// 	}
+	// 	this.emitGameState('gameState', this);
+	// }, 1000 / TIME_DIVISION);
+	// this.status = GameStatus.INPROGRESS;
+	//}
 
-			if (this.players.some((player: Player) => player.score >= 2)) {
-				return this.endGame(GameStatus.FINISHED);
-			}
-
-			this.emitGameState('gameState', this);
-		}, 1000 / TIME_DIVISION);
-		this.status = GameStatus.INPROGRESS;
-	}
-
-	endGame(status: GameStatus) {
-		this.status = status;
-		if (this.gameInterval) {
-			clearInterval(this.gameInterval);
-		}
-		this.emitGameState('gameEnded', this);
-	}
+	// endGame(status: GameStatus) {
+	// 	// this.status = status;
+	// 	// if (this.gameInterval) {
+	// 	// 	clearInterval(this.gameInterval);
+	// 	// }
+	// 	// this.emitGameState('gameEnded', this);
+	// }
 
 	updatePaddleState(deltaTime: number) {
 		this.players.forEach((player: Player) => {
@@ -178,6 +176,7 @@ class GameState {
 	}
 }
 
+@WebSocketGateway()
 export class PongWebsocketGateway extends BaseWebsocketGateway {
 	currentGame: GameState[] = [];
 	waitingInvitation: Invitation[] = [];
@@ -185,6 +184,44 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 
 	constructor(jwtService: JwtService, userService: UserService, private prismaMatch: PrismaMatchService) {
 		super(jwtService, userService);
+	}
+
+	startGame(game: GameState) {
+		game.gameInterval = setInterval(() => {
+			const now = Date.now();
+			const deltaTime = (now - game.dt) / 1000;
+			game.dt = now;
+			game.UpdateBallState(deltaTime);
+			game.updatePaddleState(deltaTime);
+			if (game.players.some((player: Player) => player.score >= 2)) {
+				return this.endGame(game, GameStatus.FINISHED);
+			}
+			this.server.to(game.players.map((player) => player.stringId)).emit('pong/gameState', game);
+		}, 1000 / TIME_DIVISION);
+		game.status = GameStatus.INPROGRESS;
+	}
+
+	async endGame(game: GameState, status: GameStatus) {
+		if (game.gameInterval) {
+			clearInterval(game.gameInterval);
+		}
+		this.server.to(game.players.map((player) => player.stringId)).emit(`pong/${status == GameStatus.FINISHED ? 'gameEnded' : 'gameAbandoned'}`, game);
+		await this.prismaMatch.create(game.players[0].id, game.players[1].id, game.players[0].score, game.players[1].score, game.mode === GameMode.NORMAL ? 'NORMAL' : 'HARDCORE', status as e_match_state);
+		const index = this.currentGame.findIndex((tmp) => tmp.id === game.id);
+		this.currentGame.splice(index, 1);
+	}
+
+	setPlayerReady(game: GameState, userId: number, state: boolean) {
+		const index = game.players.findIndex((player) => player.id === userId);
+		if (index === -1) return;
+		game.players[index].ready = state;
+
+		if (game.status === GameStatus.PREPARATION && game.allReady()) {
+			this.startGame(game);
+		}
+		if (game.status === GameStatus.INPROGRESS && game.players.every((player: Player) => !player.ready)) {
+			this.endGame(game, GameStatus.ABANDONED);
+		}
 	}
 
 	async handleConnection(client: Socket) {
@@ -248,7 +285,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 	}
 
 	createGame(mode: GameMode, player1id: number, player2id: number) {
-		const newGame = new GameState(mode, player1id, player2id, this.sendGameState.bind(this));
+		const newGame = new GameState(mode, player1id, player2id);
 		this.currentGame.push(newGame);
 		this.server.to([player1id.toString(), player2id.toString()]).emit('pong/newGame', newGame.id);
 	}
@@ -274,7 +311,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		}
 
 		client.data.gameIndex = gameIndex;
-		game.setPlayerReady(client.data.user.id, true);
+		this.setPlayerReady(game, client.data.user.id, true);
 	}
 
 	@SubscribeMessage('pong/movePaddle')
@@ -283,26 +320,27 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		game.movePaddle(client.data.user.id, direction);
 	}
 
-	sendGameState(path: 'gameState' | 'gameEnded', currentGame: GameState) {
-		this.server.to(currentGame.players.map((player) => player.stringId)).emit('pong/gameState', currentGame);
-		if (path === 'gameEnded') {
-			const index = this.currentGame.findIndex((game) => game.id === currentGame.id);
-			try {
-				this.prismaMatch.create(
-					currentGame.players[0].id,
-					currentGame.players[1].id,
-					currentGame.players[0].score,
-					currentGame.players[1].score,
-					currentGame.mode === GameMode.NORMAL ? 'NORMAL' : 'HARDCORE',
-					currentGame.status as e_match_state,
-				);
-			} catch (error) {
-				console.log('Error writing to database');
-			}
-			this.currentGame.splice(index, 1);
-		} else {
-		}
-	}
+	// sendGameState(path: 'gameState' | 'gameEnded', currentGame: GameState) {
+	// 	this.server.to(currentGame.players.map((player) => player.stringId)).emit('pong/gameState', currentGame);
+	// 	if (path === 'gameEnded') {
+	// 		const index = this.currentGame.findIndex((game) => game.id === currentGame.id);
+	// 		try {
+	// 			this.prismaMatch.create(
+	// 				currentGame.players[0].id,
+	// 				currentGame.players[1].id,
+	// 				currentGame.players[0].score,
+	// 				currentGame.players[1].score,
+	// 				currentGame.mode === GameMode.NORMAL ? 'NORMAL' : 'HARDCORE',
+	// 				currentGame.status as e_match_state,
+	// 			);
+	// 		} catch (error) {
+	// 			console.log('Error writing to database');
+	// 		}
+	// 		this.currentGame.splice(index, 1);
+	// 	} else {
+	// 		//send to prisma ABANDONAIDENT
+	// 	}
+	// }
 
 	@UsePipes(new ValidationPipe())
 	async handleDisconnect(client: Socket) {
@@ -315,6 +353,6 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		}
 
 		const game = this.currentGame[gameIndex];
-		game.setPlayerReady(client.data.user.id, false);
+		this.setPlayerReady(game, client.data.user.id, false);
 	}
 }
