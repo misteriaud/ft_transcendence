@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { KeyedMutator } from 'swr';
 import { Button, Input, List, ListItem, Navbar, Spinner, Typography } from '@material-tailwind/react';
@@ -8,6 +8,7 @@ import { useUsers } from '../hooks/useUser';
 import { UserUI } from './userUI';
 import { Me } from './me';
 import { GameButton } from '../components/Queue';
+import { PresenceContext } from '../context/storeProvider';
 
 export function SearchBar() {
 	const {
@@ -19,6 +20,7 @@ export function SearchBar() {
 	const [openMenu, setOpenMenu] = useState(false);
 	const [filter, setFilter] = useState('');
 	const navigate = useNavigate();
+	const presences = useContext(PresenceContext);
 
 	if (isLoadingUsers) {
 		return (
@@ -122,7 +124,7 @@ export function SearchBar() {
 				{filteredUsers.length > 0 ? (
 					filteredUsers.map((u: i_user) => (
 						<ListItem key={u.id} className="p-0" onClick={() => handleUserClick(u.login42)}>
-							<UserUI className="w-full" username={u.username} avatar={u.avatar} />
+							<UserUI className="w-full" username={u.username} avatar={u.avatar} status={presences.get(u.id)} />
 						</ListItem>
 					))
 				) : (

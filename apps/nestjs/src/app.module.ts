@@ -7,7 +7,6 @@ import { UserModule } from './user/user.module';
 import { RoomModule } from './room/room.module';
 import { PongModule } from './game/pong.module';
 import { StaticModule } from './static/static.module';
-import { PresenceModule } from './presence/presence.module';
 
 @Module({
 	imports: [
@@ -23,7 +22,6 @@ import { PresenceModule } from './presence/presence.module';
 		RoomModule,
 		PongModule,
 		StaticModule,
-		PresenceModule,
 	],
 })
 export class AppModule {}

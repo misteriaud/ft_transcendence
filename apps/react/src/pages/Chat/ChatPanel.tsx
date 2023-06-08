@@ -41,6 +41,7 @@ import {
 	XMarkIcon,
 	LockClosedIcon
 } from '@heroicons/react/24/outline';
+import { User } from '../../components/user';
 
 function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => void }) {
 	const [name, setName] = useState('');
@@ -142,7 +143,7 @@ function Chat({ roomInfo, close }: { roomInfo: Room; close: () => void }) {
 	return (
 		<li className="self-end flex flex-col justify-content w-56 max-h-80 mr-2 border-2 border-black/20 shadow-lg overflow-hidden rounded-t-lg backdrop-blur-sm  transition-all duration-500">
 			<div className="flex justify-around items-center px-2 py-1 bg-black bg-opacity-5 cursor-pointer hover:bg-opacity-10" onClick={() => setIsFold(!isFold)}>
-				<RoomInfo room={roomInfo} />
+				<RoomInfo room={roomInfo} onClick={() => setIsFold(!isFold)} />
 				{close && (
 					<IconButton onClick={close} variant="text" color="blue-gray">
 						<XMarkIcon className="h-5 w-5" />
@@ -153,11 +154,14 @@ function Chat({ roomInfo, close }: { roomInfo: Room; close: () => void }) {
 				<div className="flex-shrink min-h-0 overflow-scroll flex flex-col">
 					<ul className="overflow-scroll pt-2 flex flex-col pr-2">
 						{messages.map((message: Message) => (
-							<li key={message.id} className={`self-${message.author.user.id == me.id ? 'end' : 'start'} m-1 flex flex-col items-end`}>
-								<p className="shrink select-none text-gray-700 text-xs opacity-70 flex gap-1">
-									{new Date(message.createdAt).getHours()}:{new Date(message.createdAt).getMinutes()}
-								</p>
-								<p className="flex-shrink min-w-0 rounded-md bg-white bg-opacity-90 px-1 py-0.5">{message.content}</p>
+							<li key={message.id} className={`self-${message.author.user.id == me.id ? 'end' : 'start'} m-1 flex gap-2`}>
+								<User room_id={roomInfo.id} login42={message.author.user.login42} size="xs" />
+								<div className="flex flex-col items-end">
+									<p className="shrink select-none text-gray-700 text-xs opacity-70 flex gap-1">
+										{new Date(message.createdAt).getHours()}:{new Date(message.createdAt).getMinutes()}
+									</p>
+									<p className="flex-shrink min-w-0 rounded-md bg-white bg-opacity-90 px-1 py-0.5">{message.content}</p>
+								</div>
 							</li>
 						))}
 						<li ref={lastMessageRef}></li>

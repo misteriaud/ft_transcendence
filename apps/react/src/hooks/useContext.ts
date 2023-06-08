@@ -28,30 +28,30 @@ export function useNotificationContext() {
 export function usePresenceContext() {
 	const presences = useContext(PresenceContext);
 
-	const offline: number[] = [];
-	const online: number[] = [];
-	const inQueue: number[] = [];
-	const inGame: number[] = [];
+	const offlineIds: number[] = [];
+	const onlineIds: number[] = [];
+	const inQueueIds: number[] = [];
+	const inGameIds: number[] = [];
 
 	presences.forEach((status, id) => {
 		switch (status) {
 			case e_user_status.ONLINE:
-				online.push(id);
+				onlineIds.push(id);
 				break;
 			case e_user_status.INGAME:
-				inGame.push(id);
+				inGameIds.push(id);
 				break;
 			case e_user_status.INQUEUE:
-				inQueue.push(id);
+				inQueueIds.push(id);
 				break;
 
 			default:
-				offline.push(id);
+				offlineIds.push(id);
 				break;
 		}
 	});
 
-	return { offline, online, inGame, inQueue };
+	return { offlineIds, onlineIds, inGameIds, inQueueIds };
 }
 
 export function getStatus(id: number) {

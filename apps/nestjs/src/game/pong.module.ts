@@ -5,9 +5,10 @@ import { UserService } from 'src/user/user.service';
 import { PrismaUserService } from 'src/user/prismaUser.service';
 //import { PrismaRoomService } from 'src/room/prismaRoom.service';
 import { PrismaMatchService } from './prismaMatch.service';
+import { PrismaRoomService } from 'src/room/prismaRoom.service';
 
 @Module({
 	imports: [UserModule],
-	providers: [PongWebsocketGateway, UserService, PrismaUserService, PrismaMatchService],
+	providers: [PongWebsocketGateway, UserService, PrismaUserService, PrismaRoomService, PrismaMatchService],
 })
 export class PongModule {}

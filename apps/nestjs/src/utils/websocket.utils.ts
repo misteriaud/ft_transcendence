@@ -4,11 +4,18 @@ import { Socket, Server } from 'socket.io';
 import { i_JWTPayload } from 'src/auth/interface/jwt';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
+import { e_user_status } from '@prisma/client';
+
+export interface StatusUpdate {
+	id: number;
+	status: e_user_status;
+}
 
 @WebSocketGateway()
 export class BaseWebsocketGateway {
 	@WebSocketServer()
 	server: Server;
+	static status: Map<number, e_user_status> = new Map();
 
 	private readonly logger = new Logger(BaseWebsocketGateway.name);
 
@@ -35,8 +42,30 @@ export class BaseWebsocketGateway {
 		if (!client.data['user'] || (client.data['user'].twoFactorEnabled && !payload.authorized2fa) || payload.twoFactorEnabled != client.data['user'].twoFactorEnabled) {
 			return client.disconnect();
 		}
+
+		// user join is personal room
 		client.join(payload.id.toString());
+
+		// setting initial presence
+		this.updateUserStatus(client, e_user_status.ONLINE);
+		// sending
+		client.emit('presence/init', Array.from(BaseWebsocketGateway.status));
 	}
 
-	async handleDisconnect(client: Socket) {}
+	async handleDisconnect(client: Socket) {
+		this.updateUserStatus(client, e_user_status.OFFLINE);
+	}
+
+	async updateUserStatus(client: Socket, status: e_user_status) {
+		if (!client.data?.user?.id) return;
+		const id = client.data.user.id;
+
+		if (status === e_user_status.OFFLINE) BaseWebsocketGateway.status.delete(id);
+		else BaseWebsocketGateway.status.set(id, status);
+
+		this.server.emit('presence/update', {
+			id: client.data.user.id,
+			status,
+		});
+	}
 }

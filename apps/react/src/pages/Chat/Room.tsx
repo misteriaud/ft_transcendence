@@ -74,15 +74,6 @@ export function PassDialog({ open, handleOpen, room, join }: any) {
 	);
 }
 
-function DirectMessageRoom({ user, onClick }: any) {
-	const status = getStatus(user.id);
-	return (
-		<div className="w-full flex justify-between" onClick={onClick}>
-			<UserUI username={user.username} avatar={user.avatar} className="text-xs" status={status} />
-		</div>
-	);
-}
-
 export function RoomInfo({ room, onClick }: { room: Room; onClick?: (e: any) => void }) {
 	const { data: roomData, error: roomError, isLoading, mutate: roomMutate } = useCustomSWR(`/rooms/${room.id}`);
 	const api = useApi();
@@ -142,7 +133,7 @@ export function RoomInfo({ room, onClick }: { room: Room; onClick?: (e: any) => 
 	if (room.access === 'DIRECT_MESSAGE') {
 		if (roomError) return <NoSymbolIcon />;
 		const user = roomData.members.find((member: any) => member.user.id != me.id)?.user;
-		return <DirectMessageRoom user={user} onClick={onClick} />;
+		return <User room_id={room.id} login42={user.login42} onClick={onClick} />;
 	}
 
 	let icon;
