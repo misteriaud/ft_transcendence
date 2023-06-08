@@ -353,6 +353,6 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		}
 
 		const game = this.currentGame[gameIndex];
-		this.setPlayerReady(game, client.data.user.id, false);
+		if (game) this.setPlayerReady(game, client.data.user.id, false);
 	}
 }
