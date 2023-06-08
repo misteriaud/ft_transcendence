@@ -15,7 +15,7 @@ export const router = createBrowserRouter(
 			<Route path="/login_fake" element={<LoginFakePage />} />
 			<Route path="/dashboard" element={<DashboardLayout />}>
 				<Route path="users/:username" element={<ProfilePage />} />
-				<Route path="pong" element={<Pong />} />
+				<Route path="pong/:gameId" element={<Pong />} />
 			</Route>
 		</Route>
 	)

@@ -3,9 +3,11 @@ import { Button, Dialog, DialogHeader, DialogBody, DialogFooter, Select, Option,
 import { XMarkIcon } from '@heroicons/react/24/solid';
 import { useSocketContext } from '../hooks/useContext';
 import { format } from 'date-fns';
+import { NavigateOptions, useNavigate } from 'react-router-dom';
 //import { useMe } from '../hooks/useUser';
 
 export function GameButton() {
+	const navigate = useNavigate();
 	const { isConnected, socket } = useSocketContext();
 	const [open, setOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -15,6 +17,22 @@ export function GameButton() {
 		mode: 0
 	});
 
+	useEffect(() => {
+		if (!isConnected) return;
+		console.log('listening on newGame');
+		socket.on('pong/newGame', (gameId: string) => {
+			setLoading(false);
+			console.log('invitation received');
+			//navigate(pathname: '/pong',
+			//option: '?=${gameId}');
+			navigate(`/dashboard/pong/${gameId}`);
+		});
+
+		return () => {
+			socket.off('pong/newGame');
+		};
+	}, [socket, isConnected, navigate]);
+
 	function handleMode() {
 		setInvitation({
 			...invitation,
@@ -23,14 +41,13 @@ export function GameButton() {
 	}
 
 	function handleSelect(e: any) {
-		if (e === 'Rand') {
-			setInvitation({
-				//player should be null ?
-				...invitation
-			});
-		} else {
-			// logic for inviting a specific player
-		}
+		setInvitation({
+			...invitation,
+			player2id: e === 'Rand' ? null : e
+		});
+		// } else {
+		// 	// logic for inviting a specific player
+		// }
 	}
 
 	function useInterval(callback: () => void, delay: number | null) {
@@ -78,17 +95,6 @@ export function GameButton() {
 		setTimer(0);
 		socket.emit('pong/cancelInvite', invitation);
 	};
-
-	//useEffect(() => {
-	//	socket.on('pong/newGame	', () => {
-	//		setLoading(false);
-	//		//push to /pong
-	//	});
-
-	//	return () => {
-	//		socket.off('pong/newGame');
-	//	};
-	//}, [socket]);
 
 	const timerDate = new Date(timer * 1000);
 

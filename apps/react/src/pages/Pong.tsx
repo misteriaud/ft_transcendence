@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useSocketContext } from '../hooks/useContext';
 import { Button } from '@material-tailwind/react';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { DashboardLayout } from './Dashboard';
 
 interface Ball {
 	x: number;
@@ -21,14 +23,14 @@ interface Player {
 
 interface GameState {
 	ball: Ball;
-	player1: Player;
-	player2: Player;
+	players: Player[];
 	paddleWidth: number;
 	ballRadius: number;
 	playersReady: boolean[];
 }
 
 const Pong = () => {
+	const { gameId } = useParams();
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const { isConnected, socket } = useSocketContext();
 	const [isReady, setIsReady] = useState(false);
@@ -46,7 +48,7 @@ const Pong = () => {
 	// Handlers
 	const handleReadyClick = useCallback(() => {
 		if (!isReady) {
-			socket.emit('pong/ready');
+			socket.emit('pong/ready', gameId);
 			setIsReady(true);
 		}
 	}, [isReady, socket]);
@@ -104,13 +106,13 @@ const Pong = () => {
 		const context = canvasRef.current.getContext('2d');
 		if (!context) return;
 		drawField(context, canvasRef.current);
-		drawPaddle(context, 10, state.player1.paddleY, state.paddleWidth, state.player1.paddleHeight);
-		drawPaddle(context, canvasRef.current.width - state.paddleWidth - 10, state.player2.paddleY, state.paddleWidth, state.player2.paddleHeight);
+		drawPaddle(context, 10, state.players[0].paddleY, state.paddleWidth, state.players[0].paddleHeight);
+		drawPaddle(context, canvasRef.current.width - state.paddleWidth - 10, state.players[1].paddleY, state.paddleWidth, state.players[1].paddleHeight);
 
 		const predictedBall = predictBallPosition(state.ball, Date.now());
 		drawBall(context, predictedBall.x, predictedBall.y, state.ballRadius);
-		drawScore(context, state.player1.score, canvasRef.current.width / 4, 30);
-		drawScore(context, state.player2.score, (canvasRef.current.width * 3) / 4, 30);
+		drawScore(context, state.players[0].score, canvasRef.current.width / 4, 30);
+		drawScore(context, state.players[1].score, (canvasRef.current.width * 3) / 4, 30);
 	}
 
 	// Effects

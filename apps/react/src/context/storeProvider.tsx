@@ -88,6 +88,10 @@ export function StoreProvider() {
 			setPresences(new Map(initialPresenses));
 			console.log('presence/init', new Map(initialPresenses));
 		});
+		// socketRef.current.onAny((eventName: string, ...args) => {
+		// 	console.log('LOGS: ', eventName, args);
+		// 	// ...
+		// });
 		return () => {
 			console.log('unset socket');
 			socketRef.current.close();

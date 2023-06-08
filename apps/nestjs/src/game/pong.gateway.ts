@@ -1,6 +1,6 @@
 //pong.gateway.ts
 import { WsException } from '@nestjs/websockets';
-import { UsePipes, ValidationPipe } from '@nestjs/common';
+import { Injectable, UsePipes, ValidationPipe } from '@nestjs/common';
 import { BaseWebsocketGateway } from 'src/utils/websocket.utils';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
@@ -34,6 +34,8 @@ type Invitation = {
 };
 
 class Player {
+	id: number;
+	stringId: string;
 	paddleY: number;
 	score: number;
 	paddleSpeed: number;
@@ -46,8 +48,7 @@ class GameState {
 	id: string;
 	mode: GameMode;
 	ball: { x: number; y: number; dx: number; dy: number };
-	players: Map<number, Player> = new Map();
-	readonly playerIds: string[];
+	players: Player[] = new Array(2);
 	paddleWidth: number;
 	ballRadius: number;
 	gameInterval: NodeJS.Timeout | null;
@@ -59,9 +60,8 @@ class GameState {
 		this.id = nanoid();
 		this.mode = mode;
 		this.ball = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 2, dy: 0 };
-		this.players.set(player1id, { paddleY: CANVAS_HEIGHT / 3, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80, ready: false });
-		this.players.set(player2id, { paddleY: CANVAS_HEIGHT / 3, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80, ready: false });
-		this.playerIds = [String(player1id), String(player2id)];
+		this.players[0] = { id: player1id, stringId: player1id.toString(), paddleY: CANVAS_HEIGHT / 3, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80, ready: false };
+		this.players[1] = { id: player2id, stringId: player2id.toString(), paddleY: CANVAS_HEIGHT / 3, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80, ready: false };
 		this.paddleWidth = 10;
 		this.ballRadius = 6;
 		this.gameInterval = null;
@@ -76,14 +76,23 @@ class GameState {
 		return this.ball;
 	}
 
-	setPlayerReady(userId: number, state: boolean) {
-		if (!this.players.get(userId)) return;
-		this.players.get(userId).ready = state;
+	playerExist(userId: number) {
+		return this.players.some((player) => player.id === userId);
+	}
 
-		if (this.status === GameStatus.PREPARATION && Array.from(this.players.values()).every((player) => player.ready)) {
+	allReady() {
+		return this.players.every((player: Player) => player.ready);
+	}
+
+	setPlayerReady(userId: number, state: boolean) {
+		const index = this.players.findIndex((player) => player.id === userId);
+		if (index === -1) return;
+		this.players[index].ready = state;
+
+		if (this.status === GameStatus.PREPARATION && this.allReady()) {
 			this.startGame();
 		}
-		if (this.status === GameStatus.INPROGRESS && Array.from(this.players.values()).every((player) => !player.ready)) {
+		if (this.status === GameStatus.INPROGRESS && this.players.every((player: Player) => !player.ready)) {
 			this.endGame(GameStatus.ABANDONED);
 		}
 	}
@@ -91,25 +100,27 @@ class GameState {
 	//@SubscribeMessage('pong/movePaddle')
 	movePaddle(userId: number, direction: 'up' | 'down' | 'stop') {
 		if (this.status !== GameStatus.INPROGRESS) return;
-		if (!this.players.get(userId)) return;
-		this.players.get(userId).paddleDirection = direction;
+		const index = this.players.findIndex((player) => player.id === userId);
+		if (index === -1) return;
+		// console.log('move paddle');
+		this.players[index].paddleDirection = direction;
 	}
 
 	startGame() {
 		this.gameInterval = setInterval(() => {
-			this.dt = Date.now();
-			const deltaTime = this.dt - this.dt;
-			this.UpdateBallState(deltaTime / 1000);
-			this.updatePaddleState(deltaTime / 1000);
+			const now = Date.now();
+			const deltaTime = (now - this.dt) / 1000;
+			this.dt = now;
+			this.UpdateBallState(deltaTime);
+			this.updatePaddleState(deltaTime);
 
-			const playerIter = this.players.values();
-
-			if (playerIter.next().value().score >= 11 || playerIter.next().value().score >= 11) {
+			if (this.players.some((player: Player) => player.score >= 2)) {
 				return this.endGame(GameStatus.FINISHED);
 			}
 
 			this.emitGameState('gameState', this);
 		}, 1000 / TIME_DIVISION);
+		this.status = GameStatus.INPROGRESS;
 	}
 
 	endGame(status: GameStatus) {
@@ -134,10 +145,8 @@ class GameState {
 		// ball movement
 		this.ball.x += this.ball.dx * deltaTime;
 		this.ball.y += this.ball.dy * deltaTime;
-
-		const playerIter = this.players.entries();
-		const player1 = playerIter.next().value();
-		const player2 = playerIter.next().value();
+		const player1 = this.players[0];
+		const player2 = this.players[1];
 
 		// horizontal
 		if (this.ball.x > CANVAS_WIDTH || this.ball.x < 0) {
@@ -172,7 +181,7 @@ class GameState {
 export class PongWebsocketGateway extends BaseWebsocketGateway {
 	currentGame: GameState[] = [];
 	waitingInvitation: Invitation[] = [];
-	waitingPlayer: number[];
+	waitingPlayer: Array<number | null> = [null, null];
 
 	constructor(jwtService: JwtService, userService: UserService, private prismaMatch: PrismaMatchService) {
 		super(jwtService, userService);
@@ -181,7 +190,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 	async handleConnection(client: Socket) {
 		await super.handleConnection(client);
 		this.currentGame.forEach((game: GameState, index: number) => {
-			if (game.players.has(client.data.user.id)) {
+			if (game.players.some((player) => player.id === client.data.user.id)) {
 				client.data.gameIndex = index;
 			}
 		});
@@ -189,26 +198,33 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 
 	@SubscribeMessage('pong/invite')
 	handlePongInvite(client: Socket, { player2Id, mode }: { player2Id?: number; mode: GameMode }) {
-		const invitation = {
-			id: nanoid(),
-			player1id: client.data.user.id,
-			player2id: player2Id,
-			mode: mode,
-		};
 		if (player2Id) {
 			const index = this.waitingInvitation.findIndex((invitation) => invitation.player1id === player2Id && invitation.player2id === client.data.user.id);
+			// si une invitation inverse existe deja
 			if (index !== -1) {
 				this.createGame(this.waitingInvitation[index].mode, this.waitingInvitation[index].player1id, this.waitingInvitation[index].player2id);
 				this.waitingInvitation.splice(index);
-			} else {
+			}
+			// si aucune invitation inverse existe
+			else {
+				const invitation = {
+					id: nanoid(),
+					player1id: client.data.user.id,
+					player2id: player2Id,
+					mode: mode,
+				};
 				this.waitingInvitation.push(invitation);
 				this.server.to(player2Id.toString()).emit('pong/invitation', invitation);
 			}
 		} else {
+			console.log('invite random');
 			// if already someone in queue
 			if (this.waitingPlayer[mode]) {
+				console.log('already someone in queue');
 				this.createGame(mode, this.waitingPlayer[mode], client.data.user.id);
+				this.waitingPlayer[mode] = null;
 			} else {
+				console.log('nobody in queue');
 				this.waitingPlayer[mode] = client.data.user.id;
 			}
 		}
@@ -232,9 +248,9 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 	}
 
 	createGame(mode: GameMode, player1id: number, player2id: number) {
-		const newGame = new GameState(mode, player1id, player2id, this.sendGameState);
+		const newGame = new GameState(mode, player1id, player2id, this.sendGameState.bind(this));
 		this.currentGame.push(newGame);
-		this.server.to([player1id, player2id].map((id) => id.toString())).emit('pong/newGame', { gameId: newGame.id, gameState: newGame });
+		this.server.to([player1id.toString(), player2id.toString()]).emit('pong/newGame', newGame.id);
 	}
 
 	@UsePipes(new ValidationPipe())
@@ -252,7 +268,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 			return;
 		}
 		const game = this.currentGame[gameIndex];
-		if (!game.players.has(client.data.user.id)) {
+		if (!game.players.some((player) => player.id === client.data.user.id)) {
 			console.log('User is not player in this game');
 			return;
 		}
@@ -261,16 +277,28 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		game.setPlayerReady(client.data.user.id, true);
 	}
 
-	// @SubscribeMessage('pong/sendGameState')
+	@SubscribeMessage('pong/movePaddle')
+	movePaddle(client: Socket, direction: 'up' | 'down' | 'stop') {
+		const game = this.currentGame[client.data.gameIndex];
+		game.movePaddle(client.data.user.id, direction);
+	}
+
 	sendGameState(path: 'gameState' | 'gameEnded', currentGame: GameState) {
-		this.server.to(currentGame.playerIds).emit('pong/gameState', currentGame);
+		this.server.to(currentGame.players.map((player) => player.stringId)).emit('pong/gameState', currentGame);
 		if (path === 'gameEnded') {
 			const index = this.currentGame.findIndex((game) => game.id === currentGame.id);
-			const playerIter = currentGame.players.values();
-			const player1 = playerIter.next().value();
-			const player2 = playerIter.next().value();
-
-			this.prismaMatch.create(player1.id, player2.id, player1.score, player2.score, currentGame.mode === GameMode.NORMAL ? 'NORMAL' : 'HARDCORE', currentGame.status as e_match_state);
+			try {
+				this.prismaMatch.create(
+					currentGame.players[0].id,
+					currentGame.players[1].id,
+					currentGame.players[0].score,
+					currentGame.players[1].score,
+					currentGame.mode === GameMode.NORMAL ? 'NORMAL' : 'HARDCORE',
+					currentGame.status as e_match_state,
+				);
+			} catch (error) {
+				console.log('Error writing to database');
+			}
 			this.currentGame.splice(index, 1);
 		} else {
 		}
