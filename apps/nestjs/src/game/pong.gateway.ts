@@ -44,6 +44,13 @@ class Player {
 	ready: boolean;
 }
 
+class Wall {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
 class GameState {
 	id: string;
 	mode: GameMode;
@@ -55,6 +62,7 @@ class GameState {
 	dt: number;
 	expiration: Date;
 	status: GameStatus = GameStatus.PREPARATION;
+	wall: Wall | null = null;
 
 	constructor(mode: GameMode, player1id: number, player2id: number) {
 		this.id = nanoid();
@@ -66,6 +74,9 @@ class GameState {
 		this.ballRadius = 6;
 		this.gameInterval = null;
 		this.dt = Date.now();
+		if (this.mode === GameMode.HARDCORE) {
+			this.wall = { x: CANVAS_WIDTH / 2, y: (CANVAS_HEIGHT - CANVAS_HEIGHT / 2) / 2, width: 10, height: CANVAS_HEIGHT / 2 };
+		}
 	}
 
 	resetBall() {
@@ -146,6 +157,10 @@ class GameState {
 		const player1 = this.players[0];
 		const player2 = this.players[1];
 
+		// collision with wall
+		if (this.ball.x + this.ballRadius > this.wall?.x && this.ball.x - this.ballRadius < this.wall?.x + this.wall?.width && this.ball.y + this.ballRadius > this.wall?.y && this.ball.y - this.ballRadius < this.wall?.y + this.wall?.height) {
+			this.ball.dx = -this.ball.dx;
+		}
 		// horizontal
 		if (this.ball.x > CANVAS_WIDTH || this.ball.x < 0) {
 			// right side collision
@@ -161,8 +176,14 @@ class GameState {
 				this.ball.dy = deltaY * 0.35;
 			} else {
 				if (this.ball.x < CANVAS_WIDTH / 2) {
+					if (this.mode === GameMode.HARDCORE) {
+						player2.paddleHeight -= 5;
+					}
 					player2.score++;
 				} else {
+					if (this.mode === GameMode.HARDCORE) {
+						player1.paddleHeight -= 5;
+					}
 					player1.score++;
 				}
 				this.resetBall();
@@ -193,7 +214,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 			game.dt = now;
 			game.UpdateBallState(deltaTime);
 			game.updatePaddleState(deltaTime);
-			if (game.players.some((player: Player) => player.score >= 2)) {
+			if (game.players.some((player: Player) => player.score >= 10)) {
 				return this.endGame(game, GameStatus.FINISHED);
 			}
 			this.server.to(game.players.map((player) => player.stringId)).emit('pong/gameState', game);

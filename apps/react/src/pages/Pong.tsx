@@ -1,7 +1,7 @@
 //Pong.tsx
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, Fragment } from 'react';
 import { useSocketContext } from '../hooks/useContext';
-import { Button } from '@material-tailwind/react';
+import { Button, DialogHeader, Dialog, DialogBody, DialogFooter } from '@material-tailwind/react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { DashboardLayout } from './Dashboard';
 
@@ -27,15 +27,22 @@ interface GameState {
 	paddleWidth: number;
 	ballRadius: number;
 	playersReady: boolean[];
+	wall: { x: number; y: number; width: number; height: number } | null;
 }
 
 const Pong = () => {
 	const { gameId } = useParams();
+	const navigate = useNavigate();
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const { isConnected, socket } = useSocketContext();
 	const [isReady, setIsReady] = useState(false);
 	const [gameState, setGameState] = useState<GameState | null>(null);
 	const intervalId: React.MutableRefObject<number | null> = useRef(null);
+	const [open, setOpen] = useState(false);
+	const handleOpen = () => setOpen(!open);
+	const handleConfirm = () => {
+		navigate(`/dashboard/`);
+	};
 
 	// Ball predict
 	const predictBallPosition = (ball: Ball, time: number) => {
@@ -100,6 +107,11 @@ const Pong = () => {
 		context.fillText(`Score: ${score}`, x, y);
 	}, []);
 
+	const drawWall = useCallback((context: CanvasRenderingContext2D, wall: { x: number; y: number; width: number; height: number }) => {
+		context.fillStyle = 'white';
+		context.fillRect(wall.x, wall.y, wall.width, wall.height);
+	}, []);
+
 	function drawGame(state: GameState) {
 		if (!canvasRef.current || !state) return;
 
@@ -108,6 +120,9 @@ const Pong = () => {
 		drawField(context, canvasRef.current);
 		drawPaddle(context, 10, state.players[0].paddleY, state.paddleWidth, state.players[0].paddleHeight);
 		drawPaddle(context, canvasRef.current.width - state.paddleWidth - 10, state.players[1].paddleY, state.paddleWidth, state.players[1].paddleHeight);
+		if (state.wall) {
+			drawWall(context, state.wall);
+		}
 
 		const predictedBall = predictBallPosition(state.ball, Date.now());
 		drawBall(context, predictedBall.x, predictedBall.y, state.ballRadius);
@@ -125,7 +140,8 @@ const Pong = () => {
 			});
 
 			socket.on('pong/gameEnded', () => {
-				alert('Game has ended');
+				setOpen(true);
+				//alert('Game has ended');
 				setIsReady(false);
 			});
 
@@ -175,6 +191,24 @@ const Pong = () => {
 						</Button>
 					</div>
 				)}
+				<Fragment>
+					<Dialog open={open} handler={handleOpen} size="xs">
+						<DialogHeader>Game Ended</DialogHeader>
+						<DialogBody divider>
+							<span className="text-x1 font-bold text-blue-600">
+								Player 1 : {gameState?.players[0].score} points <br />
+							</span>
+							<span className="text-x1 font-bold text-red-600">
+								Player 2 : {gameState?.players[1].score} points <br />
+							</span>
+						</DialogBody>
+						<DialogFooter>
+							<Button variant="gradient" color="green" onClick={handleConfirm}>
+								<span>Return to Lobby</span>
+							</Button>
+						</DialogFooter>
+					</Dialog>
+				</Fragment>
 			</div>
 		</div>
 	);
