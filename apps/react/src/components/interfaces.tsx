@@ -53,8 +53,7 @@ export interface i_match {
 	playedBy: i_user[];
 	score1: number;
 	score2: number;
-	map: e_match_map;
-	powerUp: boolean;
+	mod: e_match_mod;
 	state: e_match_state;
 	createdAt: Date;
 	updatedAt: Date;
@@ -105,7 +104,7 @@ export enum e_user_status {
 	OFFLINE = 'OFFLINE'
 }
 
-export enum e_match_map {
+export enum e_match_mod {
 	NORMAL = 'NORMAL',
 	HARDCORE = 'HARDCORE'
 }

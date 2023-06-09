@@ -220,7 +220,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 								<List className="mx-auto px-8">
 									<ListItem ripple={false} className="p-1 pointer-events-none">
 										<ListItemPrefix className="mr-2">
-											<CubeTransparentIcon className="h-5 w-5 my-2 text-blue-gray-500" />
+											<CubeTransparentIcon className="h-5 w-5 my-2 text-blue-gray-700" />
 										</ListItemPrefix>
 										<Typography>Type:</Typography>
 										<ListItemSuffix className="inline-flex pl-4">
@@ -229,7 +229,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 									</ListItem>
 									<ListItem ripple={false} className="p-1 pointer-events-none">
 										<ListItemPrefix className="mr-2">
-											<HashtagIcon className="h-5 w-5 my-2 text-blue-gray-500" />
+											<HashtagIcon className="h-5 w-5 my-2 text-blue-gray-600" />
 										</ListItemPrefix>
 										<Typography>Digits:</Typography>
 										<ListItemSuffix className="inline-flex pl-4">
@@ -238,7 +238,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 									</ListItem>
 									<ListItem ripple={false} className="p-1 pointer-events-none">
 										<ListItemPrefix className="mr-2">
-											<ArrowPathIcon className="h-5 w-5 my-2 text-blue-gray-500" />
+											<ArrowPathIcon className="h-5 w-5 my-2 text-blue-gray-600" />
 										</ListItemPrefix>
 										<Typography>Interval:</Typography>
 										<ListItemSuffix className="inline-flex pl-4">
@@ -247,7 +247,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 									</ListItem>
 									<ListItem ripple={false} className="p-1 pointer-events-none">
 										<ListItemPrefix className="mr-2">
-											<VariableIcon className="h-5 w-5 my-2 text-blue-gray-500" />
+											<VariableIcon className="h-5 w-5 my-2 text-blue-gray-600" />
 										</ListItemPrefix>
 										<Typography>Algorithm:</Typography>
 										<ListItemSuffix className="inline-flex pl-4">

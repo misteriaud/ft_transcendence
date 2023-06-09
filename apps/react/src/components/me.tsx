@@ -11,7 +11,7 @@ import { SettingsDialog } from './me-settings';
 import { UserUI } from './userUI';
 import { SocialDialog } from './SocialDialog';
 
-export function Me({ className }: { className?: string }) {
+export function Me({ inverse, ignoreHoverStyle, className }: { inverse?: boolean; ignoreHoverStyle?: boolean; className?: string }) {
 	const { me, mutate, isLoading, error }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
 	const [openSettingsDialog, setOpenSettingsDialog] = useState(false);
 	const [openSocialDialog, setOpenSocialDialog] = useState(false);
@@ -64,7 +64,7 @@ export function Me({ className }: { className?: string }) {
 	return (
 		<Menu placement="bottom-end">
 			<MenuHandler>
-				<UserUI className={className} username={me.username} avatar={me.avatar} inverse={true} />
+				<UserUI className={className} username={me.username} avatar={me.avatar} inverse={inverse} ignoreHoverStyle={ignoreHoverStyle} />
 			</MenuHandler>
 			<MenuList>
 				<MenuItem className="flex items-center gap-2" disabled={disableProfile} onClick={handleProfile}>

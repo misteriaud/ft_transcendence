@@ -22,7 +22,7 @@ export function SearchBar() {
 
 	if (isLoadingUsers) {
 		return (
-			<div className="col-start-1 col-span-1 flex justify-start items-center">
+			<>
 				<Input
 					containerProps={{ className: 'min-w-[150px] max-w-[320px]' }}
 					label="Search for users"
@@ -45,12 +45,12 @@ export function SearchBar() {
 						<Spinner className="h-8 w-8" />
 					</ListItem>
 				</List>
-			</div>
+			</>
 		);
 	}
 	if (errorUsers) {
 		return (
-			<div className="col-start-1 col-span-1 flex justify-start items-center">
+			<>
 				<Input
 					containerProps={{ className: 'min-w-[150px] max-w-[320px]' }}
 					label="Search for users"
@@ -76,7 +76,7 @@ export function SearchBar() {
 						<ExclamationTriangleIcon strokeWidth={2} className="h-8 w-8 text-red-500" />
 					</ListItem>
 				</List>
-			</div>
+			</>
 		);
 	}
 
@@ -99,7 +99,7 @@ export function SearchBar() {
 	}
 
 	return (
-		<div className="col-start-1 col-span-1 flex justify-start items-center">
+		<>
 			<Input
 				containerProps={{ className: 'min-w-[150px] max-w-[320px]' }}
 				label="Search for users"
@@ -132,19 +132,21 @@ export function SearchBar() {
 					</ListItem>
 				)}
 			</List>
-		</div>
+		</>
 	);
 }
 
 export function Navigation() {
 	return (
 		<Navbar className="grid grid-cols-3 gap-4 p-2 z-[999]" style={{ gridTemplateColumns: '2fr 1fr 2fr' }} fullWidth={true}>
-			<SearchBar />
+			<div className="col-start-1 col-span-1 flex justify-start items-center">
+				<SearchBar />
+			</div>
 			<div className="col-start-2 col-span-1 flex justify-center items-center">
 				<GameButton />
 			</div>
 			<div className="col-start-3 col-span-1 flex justify-end items-center">
-				<Me className="rounded-md text-blue-gray-500 hover:text-blue-gray-900 bg-white hover:bg-blue-gray-50 hover:bg-opacity-80 cursor-pointer" />
+				<Me inverse={true} />
 			</div>
 		</Navbar>
 	);

@@ -6,14 +6,21 @@ export const UserUI = forwardRef((props: any, ref: any) => {
 		username,
 		avatar,
 		inverse,
+		ignoreHoverStyle,
 		className,
 		...otherProps
-	}: { username: string; avatar: string | undefined; inverse?: boolean; className: string; otherProps: any } = props;
+	}: { username: string; avatar: string | undefined; inverse?: boolean; ignoreHoverStyle?: boolean; className?: string; otherProps: any } = props;
 
 	return (
-		<div ref={ref} className={`flex ${!inverse ? 'justify-start' : 'justify-end'} items-center p-2 ${className}`} {...otherProps}>
+		<div
+			ref={ref}
+			className={`flex ${!inverse ? 'justify-start' : 'justify-end'} items-center p-2 rounded-md text-blue-gray-700 bg-white ${
+				!ignoreHoverStyle && 'hover:text-blue-gray-900 hover:bg-blue-gray-50 hover:bg-opacity-80 cursor-pointer'
+			} ${className}`}
+			{...otherProps}
+		>
 			{inverse && (
-				<Typography variant="h5" className="font-normal mr-3">
+				<Typography variant="h5" className="font-normal mr-3 text-ellipsis overflow-hidden">
 					{username}
 				</Typography>
 			)}

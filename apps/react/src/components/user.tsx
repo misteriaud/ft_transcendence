@@ -10,7 +10,19 @@ import { MenuRoomItems } from './user-room';
 import { MenuSocialItems } from './user-social';
 import { MuteDialog } from './user-room-mute';
 
-export function User({ room_id, login42 }: { room_id?: number; login42: string }) {
+export function User({
+	room_id,
+	login42,
+	inverse,
+	ignoreHoverStyle,
+	className
+}: {
+	room_id?: number;
+	login42: string;
+	inverse?: boolean;
+	ignoreHoverStyle?: boolean;
+	className?: string;
+}) {
 	const { me, mutate: mutateMe, isLoading: isLoadingMe, error: errorMe }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
 	const {
 		user,
@@ -23,7 +35,7 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 	if (isLoadingMe || isLoadingUser) {
 		return (
 			<div className="flex justify-center items-center p-3 bg-white outline-none">
-				<Spinner />
+				<Spinner className="h-10 w-10" />
 			</div>
 		);
 	}
@@ -36,7 +48,7 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 					mutateUser();
 				}}
 			>
-				<ExclamationTriangleIcon strokeWidth={2} className="h-12 w-12" />
+				<ExclamationTriangleIcon strokeWidth={2} className="h-10 w-10" />
 			</div>
 		);
 	}
@@ -52,7 +64,7 @@ export function User({ room_id, login42 }: { room_id?: number; login42: string }
 	return (
 		<Menu>
 			<MenuHandler>
-				<UserUI username={user.username} avatar={user.avatar} status={status} />
+				<UserUI className={className} username={user.username} avatar={user.avatar} inverse={inverse} ignoreHoverStyle={ignoreHoverStyle} />
 			</MenuHandler>
 			<MenuList className={`${hideAll && 'hidden'}`}>
 				{<MenuBaseItems me={me} user={user} />}

@@ -16,13 +16,10 @@ export class Match {
 	score2: number;
 
 	@ApiProperty({ enum: e_match_map, enumName: 'e_match_map' })
-	map: e_match_map = e_match_map.CLASSIC;
-
-	@ApiProperty({ type: Boolean })
-	powerUp: boolean;
+	mod: e_match_map = e_match_map.NORMAL;
 
 	@ApiProperty({ enum: e_match_state, enumName: 'e_match_state' })
-	state: e_match_state = e_match_state.PREPARATION;
+	state: e_match_state = e_match_state.FINISHED;
 
 	@ApiProperty({ type: Date })
 	createdAt: Date;

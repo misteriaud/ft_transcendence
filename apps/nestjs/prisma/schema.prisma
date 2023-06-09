@@ -71,9 +71,8 @@ model Match {
 	playedBy	User[]
 	score1		Int				@default(0)
 	score2		Int				@default(0)
-	map			e_match_map		@default(CLASSIC)
-	powerUp		Boolean			@default(false)
-	state		e_match_state	@default(PREPARATION)
+	mod			e_match_map		@default(NORMAL)
+	state		e_match_state	@default(FINISHED)
 	createdAt	DateTime		@default(now())
 	updatedAt	DateTime		@updatedAt
 
@@ -136,13 +135,13 @@ enum e_user_status {
 }
 
 enum e_match_map {
-	CLASSIC
+	NORMAL
+	HARDCORE
 }
 
 enum e_match_state {
-	PREPARATION
-	INPROGRESS
 	FINISHED
+	ABANDONNED
 }
 
 enum e_room_access {
