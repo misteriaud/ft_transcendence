@@ -12,7 +12,7 @@ import { e_match_state } from '@prisma/client';
 
 const CANVAS_HEIGHT = 450;
 const CANVAS_WIDTH = 800;
-const TIME_DIVISION = 10;
+const TIME_DIVISION = 20;
 
 enum GameMode {
 	NORMAL = 0,
@@ -95,50 +95,12 @@ class GameState {
 		return this.players.every((player: Player) => player.ready);
 	}
 
-	// setPlayerReady(userId: number, state: boolean) {
-	// 	const index = this.players.findIndex((player) => player.id === userId);
-	// 	if (index === -1) return;
-	// 	this.players[index].ready = state;
-
-	// 	if (this.status === GameStatus.PREPARATION && this.allReady()) {
-	// 		this.startGame();
-	// 	}
-	// 	if (this.status === GameStatus.INPROGRESS && this.players.every((player: Player) => !player.ready)) {
-	// 		this.endGame(GameStatus.ABANDONED);
-	// 	}
-	// }
-
-	//@SubscribeMessage('pong/movePaddle')
 	movePaddle(userId: number, direction: 'up' | 'down' | 'stop') {
 		if (this.status !== GameStatus.INPROGRESS) return;
 		const index = this.players.findIndex((player) => player.id === userId);
 		if (index === -1) return;
-		// console.log('move paddle');
 		this.players[index].paddleDirection = direction;
 	}
-
-	//startGame() {
-	// this.gameInterval = setInterval(() => {
-	// 	const now = Date.now();
-	// 	const deltaTime = (now - this.dt) / 1000;
-	// 	this.dt = now;
-	// 	this.UpdateBallState(deltaTime);
-	// 	this.updatePaddleState(deltaTime);
-	// 	if (this.players.some((player: Player) => player.score >= 2)) {
-	// 		return this.endGame(GameStatus.FINISHED);
-	// 	}
-	// 	this.emitGameState('gameState', this);
-	// }, 1000 / TIME_DIVISION);
-	// this.status = GameStatus.INPROGRESS;
-	//}
-
-	// endGame(status: GameStatus) {
-	// 	// this.status = status;
-	// 	// if (this.gameInterval) {
-	// 	// 	clearInterval(this.gameInterval);
-	// 	// }
-	// 	// this.emitGameState('gameEnded', this);
-	// }
 
 	updatePaddleState(deltaTime: number) {
 		this.players.forEach((player: Player) => {
@@ -207,52 +169,38 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		super(jwtService, userService);
 	}
 
-	startGame(game: GameState) {
-		game.gameInterval = setInterval(() => {
-			const now = Date.now();
-			const deltaTime = (now - game.dt) / 1000;
-			game.dt = now;
-			game.UpdateBallState(deltaTime);
-			game.updatePaddleState(deltaTime);
-			if (game.players.some((player: Player) => player.score >= 10)) {
-				return this.endGame(game, GameStatus.FINISHED);
-			}
-			this.server.to(game.players.map((player) => player.stringId)).emit('pong/gameState', game);
-		}, 1000 / TIME_DIVISION);
-		game.status = GameStatus.INPROGRESS;
-	}
-
-	async endGame(game: GameState, status: GameStatus) {
-		if (game.gameInterval) {
-			clearInterval(game.gameInterval);
-		}
-		this.server.to(game.players.map((player) => player.stringId)).emit(`pong/${status == GameStatus.FINISHED ? 'gameEnded' : 'gameAbandoned'}`, game);
-		await this.prismaMatch.create(game.players[0].id, game.players[1].id, game.players[0].score, game.players[1].score, game.mode === GameMode.NORMAL ? 'NORMAL' : 'HARDCORE', status as e_match_state);
-		const index = this.currentGame.findIndex((tmp) => tmp.id === game.id);
-		this.currentGame.splice(index, 1);
-	}
-
-	setPlayerReady(game: GameState, userId: number, state: boolean) {
-		const index = game.players.findIndex((player) => player.id === userId);
-		if (index === -1) return;
-		game.players[index].ready = state;
-
-		if (game.status === GameStatus.PREPARATION && game.allReady()) {
-			this.startGame(game);
-		}
-		if (game.status === GameStatus.INPROGRESS && game.players.every((player: Player) => !player.ready)) {
-			this.endGame(game, GameStatus.ABANDONED);
-		}
-	}
+	/**
+	 * CONNECTIONS AND DISCONNECTIONS
+	 */
 
 	async handleConnection(client: Socket) {
 		await super.handleConnection(client);
-		this.currentGame.forEach((game: GameState, index: number) => {
+		this.currentGame.forEach((game: GameState) => {
 			if (game.players.some((player) => player.id === client.data.user.id)) {
-				client.data.gameIndex = index;
+				this.handlePongReady(client, game.id);
+				// client.join(`pong:${game.id}`);
+				// client.data.gameIndex = index;
 			}
 		});
 	}
+
+	@UsePipes(new ValidationPipe())
+	async handleDisconnect(client: Socket) {
+		await super.handleDisconnect(client);
+		const gameIndex = client.data.gameIndex;
+
+		if (gameIndex === undefined) {
+			console.log('No game found for this player');
+			return;
+		}
+
+		const game = this.currentGame[gameIndex];
+		if (game) this.setPlayerReady(game, client.data.user.id, false);
+	}
+
+	/**
+	 * INVITATIONS
+	 */
 
 	@SubscribeMessage('pong/invite')
 	handlePongInvite(client: Socket, { player2Id, mode }: { player2Id?: number; mode: GameMode }) {
@@ -305,7 +253,13 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		}
 	}
 
+	/**
+	 * SETTING UP GAME
+	 */
+
 	createGame(mode: GameMode, player1id: number, player2id: number) {
+		// TOCHECK
+		if (player1id === player2id) return;
 		const newGame = new GameState(mode, player1id, player2id);
 		this.currentGame.push(newGame);
 		this.server.to([player1id.toString(), player2id.toString()]).emit('pong/newGame', newGame.id);
@@ -333,47 +287,56 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 
 		client.data.gameIndex = gameIndex;
 		this.setPlayerReady(game, client.data.user.id, true);
+		client.join(`pong:${game.id}`);
+	}
+
+	setPlayerReady(game: GameState, userId: number, state: boolean) {
+		const index = game.players.findIndex((player) => player.id === userId);
+		if (index === -1) return;
+		game.players[index].ready = state;
+
+		console.log(game.status, `is ready: ${state}`);
+		if (game.status === GameStatus.PREPARATION && game.allReady()) {
+			console.log('start game');
+			this.startGame(game);
+		}
+		if (game.status === GameStatus.INPROGRESS && game.players.every((player: Player) => !player.ready)) {
+			this.endGame(game, GameStatus.ABANDONED);
+		}
+	}
+
+	/**
+	 * GAME ROUTINE
+	 */
+
+	startGame(game: GameState) {
+		game.gameInterval = setInterval(() => {
+			const now = Date.now();
+			const deltaTime = (now - game.dt) / 1000;
+			game.dt = now;
+			game.UpdateBallState(deltaTime);
+			game.updatePaddleState(deltaTime);
+			if (game.players.some((player: Player) => player.score >= 10)) {
+				return this.endGame(game, GameStatus.FINISHED);
+			}
+			this.server.to(`pong:${game.id}`).emit('pong/gameState', game);
+		}, 1000 / TIME_DIVISION);
+		game.status = GameStatus.INPROGRESS;
+	}
+
+	async endGame(game: GameState, status: GameStatus) {
+		if (game.gameInterval) {
+			clearInterval(game.gameInterval);
+		}
+		this.server.to(`pong:${game.id}`).emit(`pong/${status == GameStatus.FINISHED ? 'gameEnded' : 'gameAbandoned'}`, game);
+		await this.prismaMatch.create(game.id, game.players[0].id, game.players[1].id, game.players[0].score, game.players[1].score, game.mode === GameMode.NORMAL ? 'NORMAL' : 'HARDCORE', status as e_match_state);
+		const index = this.currentGame.findIndex((tmp) => tmp.id === game.id);
+		this.currentGame.splice(index, 1);
 	}
 
 	@SubscribeMessage('pong/movePaddle')
 	movePaddle(client: Socket, direction: 'up' | 'down' | 'stop') {
 		const game = this.currentGame[client.data.gameIndex];
 		game.movePaddle(client.data.user.id, direction);
-	}
-
-	// sendGameState(path: 'gameState' | 'gameEnded', currentGame: GameState) {
-	// 	this.server.to(currentGame.players.map((player) => player.stringId)).emit('pong/gameState', currentGame);
-	// 	if (path === 'gameEnded') {
-	// 		const index = this.currentGame.findIndex((game) => game.id === currentGame.id);
-	// 		try {
-	// 			this.prismaMatch.create(
-	// 				currentGame.players[0].id,
-	// 				currentGame.players[1].id,
-	// 				currentGame.players[0].score,
-	// 				currentGame.players[1].score,
-	// 				currentGame.mode === GameMode.NORMAL ? 'NORMAL' : 'HARDCORE',
-	// 				currentGame.status as e_match_state,
-	// 			);
-	// 		} catch (error) {
-	// 			console.log('Error writing to database');
-	// 		}
-	// 		this.currentGame.splice(index, 1);
-	// 	} else {
-	// 		//send to prisma ABANDONAIDENT
-	// 	}
-	// }
-
-	@UsePipes(new ValidationPipe())
-	async handleDisconnect(client: Socket) {
-		await super.handleDisconnect(client);
-		const gameIndex = client.data.gameIndex;
-
-		if (!gameIndex) {
-			console.log('No game found for this player');
-			return;
-		}
-
-		const game = this.currentGame[gameIndex];
-		if (game) this.setPlayerReady(game, client.data.user.id, false);
 	}
 }

@@ -3,8 +3,8 @@ import { e_match_mod, e_match_state } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class Match {
-	@ApiProperty({ type: Number })
-	id: number;
+	@ApiProperty({ type: String })
+	id: string;
 
 	@ApiProperty({ isArray: true, type: () => User })
 	playedBy: User[];

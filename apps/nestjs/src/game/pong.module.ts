@@ -6,8 +6,10 @@ import { PrismaUserService } from 'src/user/prismaUser.service';
 //import { PrismaRoomService } from 'src/room/prismaRoom.service';
 import { PrismaMatchService } from './prismaMatch.service';
 import { PrismaRoomService } from 'src/room/prismaRoom.service';
+import { GameController } from './game.controller';
 
 @Module({
+	controllers: [GameController],
 	imports: [UserModule],
 	providers: [PongWebsocketGateway, UserService, PrismaUserService, PrismaRoomService, PrismaMatchService],
 })

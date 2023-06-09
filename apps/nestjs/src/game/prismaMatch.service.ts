@@ -9,9 +9,10 @@ export class PrismaMatchService {
 	// MATCH
 
 	// Create a match
-	async create(player1_id: number, player2_id: number, score1: number, score2: number, mod: e_match_mod, state: e_match_state) {
+	async create(id: string, player1_id: number, player2_id: number, score1: number, score2: number, mod: e_match_mod, state: e_match_state) {
 		return await this.prisma.match.create({
 			data: {
+				id,
 				playedBy: {
 					connect: [
 						{
@@ -50,30 +51,30 @@ export class PrismaMatchService {
 	}
 
 	// Get a match
-	//async get(match_id: number) {
-	//	return await this.prisma.match.findUnique({
-	//		where: {
-	//			id: match_id,
-	//		},
-	//		select: {
-	//			playedBy: {
-	//				select: {
-	//					id: true,
-	//					username: true,
-	//					login42: true,
-	//					avatar: true,
-	//					status: true,
-	//				},
-	//			},
-	//			score1: true,
-	//			score2: true,
-	//			mod: true,
-	//			state: true,
-	//			createdAt: true,
-	//			updatedAt: true,
-	//		},
-	//	});
-	//}
+	async get(id: string) {
+		return await this.prisma.match.findUnique({
+			where: {
+				id,
+			},
+			select: {
+				playedBy: {
+					select: {
+						id: true,
+						username: true,
+						login42: true,
+						avatar: true,
+						status: true,
+					},
+				},
+				score1: true,
+				score2: true,
+				mod: true,
+				state: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+	}
 
 	// Edit a match
 	//async edit(match_id: number, player1_id: number, player2_id: number, score1: number, score2: number, mod: e_match_mod, state: e_match_state) {
