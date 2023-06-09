@@ -45,7 +45,7 @@ import { useNotifyError, useNotifySuccess } from '../../hooks/notifications';
 import { i_me, i_member, i_room } from '../../components/interfaces';
 import { KeyedMutator } from 'swr';
 import { useRoom } from '../../hooks/useRoom';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
+import { ExclamationTriangleIcon, HomeIcon } from '@heroicons/react/24/solid';
 
 function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => void }) {
 	const [name, setName] = useState('');
@@ -157,10 +157,8 @@ function RoomInvitation({ room_invitation_string }: { room_invitation_string: st
 
 	return (
 		<div className="flex flex-col items-center gap-1 min-w-0 p-2 rounded-md bg-white bg-opacity-90 break-all">
-			<Typography variant="small" className="font-normal">
-				Invitation to join the room:
-			</Typography>
-			<Button className="w-fit" size="sm" onClick={handleInvitationButton} disabled={!isMeIssuer || isMeInRoom}>
+			<Button className="flex justify-center items-center gap-1 w-fit" size="sm" onClick={handleInvitationButton} disabled={!isMeIssuer || isMeInRoom}>
+				<HomeIcon strokeWidth={2} className="h-4 w-4" />
 				{room_name}
 			</Button>
 		</div>
