@@ -46,6 +46,8 @@ import { i_me, i_member, i_room } from '../../components/interfaces';
 import { KeyedMutator } from 'swr';
 import { useRoom } from '../../hooks/useRoom';
 import { ExclamationTriangleIcon, HomeIcon } from '@heroicons/react/24/solid';
+import moment from 'moment';
+import Moment from 'react-moment';
 
 function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => void }) {
 	const [name, setName] = useState('');
@@ -108,6 +110,32 @@ function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => voi
 			</form>
 		</Dialog>
 	);
+}
+
+function RelativeTimestamp({ timestamp }: { timestamp: Date }) {
+	const messageTime = moment(timestamp);
+	const today = moment().startOf('day');
+	const yesterday = moment().subtract(1, 'days').startOf('day');
+
+	if (messageTime.isSame(today, 'd')) {
+		return (
+			<>
+				Today at <Moment format="hh:mm A">{timestamp}</Moment>
+			</>
+		);
+	} else if (messageTime.isSame(yesterday, 'd')) {
+		return (
+			<>
+				Yesterday at <Moment format="hh:mm A">{timestamp}</Moment>
+			</>
+		);
+	} else {
+		return (
+			<>
+				<Moment format="MM/DD/YYYY hh:mm A">{timestamp}</Moment>
+			</>
+		);
+	}
 }
 
 function RoomInvitation({ room_invitation_string }: { room_invitation_string: string }) {
@@ -215,7 +243,7 @@ function Chat({ roomInfo, close }: { roomInfo: Room; close: () => void }) {
 						{messages.map((message: Message) => (
 							<li key={message.id} className={`self-${message.author.user.id == me.id ? 'end' : 'start'} m-1 flex flex-col items-end`}>
 								<p className="shrink select-none text-gray-700 text-xs opacity-70 flex gap-1">
-									{new Date(message.createdAt).getHours()}:{new Date(message.createdAt).getMinutes()}
+									<RelativeTimestamp timestamp={message.createdAt} />
 								</p>
 								{message.content.startsWith('[room-invitation]') ? (
 									<RoomInvitation room_invitation_string={message.content} />
