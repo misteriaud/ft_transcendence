@@ -36,7 +36,7 @@ export function MuteDialog({ user, room_id, dialogStatus, dialogHandler }: any) 
 	const api = useApi();
 
 	useEffect(() => {
-		if (isLoadingRoom || errorRoom) {
+		if (!dialogStatus || isLoadingRoom || errorRoom) {
 			return;
 		}
 		const interval = setInterval(() => {
@@ -48,7 +48,7 @@ export function MuteDialog({ user, room_id, dialogStatus, dialogHandler }: any) 
 		return () => {
 			clearInterval(interval);
 		};
-	}, [muteFor]);
+	}, [dialogStatus, isLoadingRoom, errorRoom, muteFor]);
 
 	if (isLoadingRoom) {
 		return (
