@@ -3,8 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Carousel, Spinner, Typography, Progress } from '@material-tailwind/react';
 import { useMe, useUser } from '../hooks/useUser';
 import { User } from '../components/user';
-import { i_match, i_user } from '../components/interfaces';
-import { useState } from 'react';
+import { i_user } from '../components/interfaces';
 
 function CarouselUserData({ user }: { user: i_user }) {
 	const formattedDate = new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' });
