@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardBody, CardFooter, Typography, Button, Spinner } from '@material-tailwind/react';
-//import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useCustomSWR } from '../hooks/useApi';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -7,13 +7,13 @@ export function PongResultPage() {
 	const { gameId } = useParams();
 	const navigate = useNavigate();
 	const { data, error, isLoading } = useCustomSWR(`/pong/${gameId}`);
-
 	const navigateTo = () => {
 		navigate(`/dashboard`);
 	};
 
-	if (isLoading) return <Spinner />;
-	if (error) return <div className="flex items-center justify-center h-screen">Failed to load results. Please try again later.</div>;
+	if (isLoading || !data || error) {
+		return <Spinner />;
+	}
 
 	return (
 		<div className="flex flex-col items-center justify-center h-screen">
@@ -26,10 +26,10 @@ export function PongResultPage() {
 						SCORES
 					</Typography>
 					<Typography color="green" className="text-x1 text-center font-extrabold">
-						Player 1 : {data?.score1} PTS
+						{data.playedBy[1].username}: {data.score1} PTS
 					</Typography>
 					<Typography color="red" className="text-x1 text-center font-extrabold">
-						Player 2 : {data?.score2} PTS
+						{data.playedBy[0].username}: {data.score2} PTS
 					</Typography>
 				</CardBody>
 				<CardFooter className="pt-0">

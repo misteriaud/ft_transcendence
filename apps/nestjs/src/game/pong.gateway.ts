@@ -67,8 +67,8 @@ class GameState {
 	constructor(mode: GameMode, player1id: number, player2id: number) {
 		this.id = nanoid();
 		this.mode = mode;
-		this.ball = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 2, dy: 0 };
-		this.players[0] = { id: player1id, stringId: player1id.toString(), paddleY: CANVAS_HEIGHT / 3, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80, ready: false };
+		this.ball = { x: CANVAS_WIDTH / 2 + 10, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 2, dy: 0 };
+		this.players[0] = { id: player1id, stringId: player1id.toString(), paddleY: CANVAS_HEIGHT / 3, score: -1, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80, ready: false };
 		this.players[1] = { id: player2id, stringId: player2id.toString(), paddleY: CANVAS_HEIGHT / 3, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80, ready: false };
 		this.paddleWidth = 10;
 		this.ballRadius = 6;
@@ -79,10 +79,10 @@ class GameState {
 		}
 	}
 
-	resetBall() {
-		this.ball.x = CANVAS_WIDTH / 2;
+	resetBall(direction: number, x: number) {
+		this.ball.x = x;
 		this.ball.y = CANVAS_HEIGHT / 2;
-		this.ball.dx = CANVAS_HEIGHT / 2;
+		this.ball.dx = direction;
 		this.ball.dy = 0;
 		return this.ball;
 	}
@@ -142,13 +142,14 @@ class GameState {
 						player2.paddleHeight -= 5;
 					}
 					player2.score++;
+					this.resetBall(-CANVAS_HEIGHT / 2, CANVAS_WIDTH / 2 - 10);
 				} else {
 					if (this.mode === GameMode.HARDCORE) {
 						player1.paddleHeight -= 5;
 					}
 					player1.score++;
+					this.resetBall(CANVAS_HEIGHT / 2, CANVAS_WIDTH / 2 + 10);
 				}
-				this.resetBall();
 			}
 		}
 
