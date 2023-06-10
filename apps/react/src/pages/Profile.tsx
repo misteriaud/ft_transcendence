@@ -3,11 +3,11 @@ import { useParams } from 'react-router-dom';
 import { Carousel, Spinner, Typography, Progress } from '@material-tailwind/react';
 import { useMe, useUser } from '../hooks/useUser';
 import { User } from '../components/user';
-import { i_user } from '../components/interfaces';
+import { i_match, i_user } from '../components/interfaces';
 import { useState } from 'react';
 
 function CarouselUserData({ user }: { user: i_user }) {
-	const formattedDate = new Date(user.createdAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'numeric', day: 'numeric' });
+	const formattedDate = new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' });
 	return (
 		// <div className="bg-gradient-to-r from-deep-orange-200 to-amber-100 absolute inset-0 grid h-full w-full place-items-center">
 		<div className="bg-gradient-to-r from-blue-gray-100 to-blue-gray-50 absolute inset-0 grid h-full w-full place-items-center">
@@ -24,7 +24,7 @@ function CarouselUserData({ user }: { user: i_user }) {
 							{user.login42}
 						</Typography>
 						<Typography color="gray" className="mt-4 italic truncate max-w-full font-normal font-mono text-xl">
-							member since:
+							Member since:
 						</Typography>
 						<Typography color="gray" className=" italic truncate max-w-full font-normal font-mono text-lg">
 							{formattedDate}
@@ -42,30 +42,32 @@ function ProgressBar({ winrate }: { winrate: number }) {
 			<Typography color="gray" variant="h6" className="text-center">
 				win rate
 			</Typography>
-			{winrate >= 50 ? (
-				<>
-					<Progress value={winrate} variant="gradient" size="md" color="teal" />
-					<Typography color="teal" variant="h6" className="text-center">
-						{winrate}%
-					</Typography>
-				</>
-			) : (
-				<>
-					<Progress value={winrate} variant="gradient" size="md" color="red" />
-					<Typography color="red" variant="h6" className="text-center">
-						{winrate}%
-					</Typography>
-				</>
-			)}
+			<Progress value={winrate} variant="gradient" size="md" color="teal" className="bg-red-500" barProps={{ className: 'rounded-none' }} />
+			<Typography color={winrate >= 50 ? 'teal' : 'red'} variant="h6" className="text-center">
+				{winrate}%
+			</Typography>
 		</div>
 	);
 }
 
 function CarouselStats({ user }: { user: i_user }) {
-	const [wins, setWins] = useState(24);
-	const [loses, setLoses] = useState(8);
-	// const winrate = wins !== 0 || loses !== 0 ? ((wins * 100) / (wins + loses)).toFixed(1) : null;
+	function returnStats(user: i_user) {
+		let wins = 0;
+		let loses = 0;
+
+		for (const match of user.history) {
+			if ((user.id === match.playedBy[0].id && match.score1 > match.score2) || (user.id === match.playedBy[1].id && match.score2 > match.score1)) {
+				++wins;
+			} else {
+				++loses;
+			}
+		}
+		return [wins, loses];
+	}
+
+	const [wins, loses] = returnStats(user);
 	const winrate: number = wins !== 0 || loses !== 0 ? parseFloat(((wins * 100) / (wins + loses)).toFixed(0)) : 0;
+
 	return (
 		// <div className="h-full w-full bg-gradient-to-l from-deep-orange-200 to-amber-100 p-16 flex justify-center items-center">
 		<div className="h-full w-full bg-gradient-to-l from-blue-gray-100 to-blue-gray-50 p-16 flex justify-center items-center">
@@ -123,7 +125,7 @@ export function ProfilePage() {
 	if (!user) {
 		return <h2>User not Found</h2>;
 	}
-	console.log(user.username);
+
 	return (
 		<div className="h-screen bg-gray-200">
 			<div className="flex flex-col">

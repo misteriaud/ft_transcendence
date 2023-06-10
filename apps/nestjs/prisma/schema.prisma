@@ -1,159 +1,158 @@
 generator client {
-	provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-	provider = "postgresql"
-	url = env("DATABASE_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
 generator prismaClassGenerator {
-    provider = "prisma-class-generator"
-	dryRun = false
-	useSwagger = true
+    provider   = "prisma-class-generator"
+    dryRun     = false
+    useSwagger = true
 }
 
 model User {
-	id						Int					@id @default(autoincrement())
-	username				String				@unique
-	login42					String				@unique
-	avatar					String?
-	twoFactorEnabled		Boolean				@default(false)
-	twoFactorSecret			String?
-	status					e_user_status		@default(ONLINE)
-	friends					Friends[]			@relation("FriendsA")
-	friendOf				Friends[]			@relation("FriendsB")
-	blocked					Blocked[]			@relation("BlockedA")
-	blockedBy				Blocked[]			@relation("BlockedB")
-	friendRequestsSent		FriendRequests[]	@relation("FriendRequestsA")
-	friendRequestsReceived	FriendRequests[]	@relation("FriendRequestsB")
-	memberOf				Member[]
-	history					Match[]
-	createdAt				DateTime			@default(now())
-	updatedAt				DateTime			@updatedAt
+    id                     Int              @id @default(autoincrement())
+    username               String           @unique
+    login42                String           @unique
+    avatar                 String?
+    twoFactorEnabled       Boolean          @default(false)
+    twoFactorSecret        String?
+    status                 e_user_status    @default(ONLINE)
+    friends                Friends[]        @relation("FriendsA")
+    friendOf               Friends[]        @relation("FriendsB")
+    blocked                Blocked[]        @relation("BlockedA")
+    blockedBy              Blocked[]        @relation("BlockedB")
+    friendRequestsSent     FriendRequests[] @relation("FriendRequestsA")
+    friendRequestsReceived FriendRequests[] @relation("FriendRequestsB")
+    memberOf               Member[]
+    history                Match[]
+    createdAt              DateTime         @default(now())
+    updatedAt              DateTime         @updatedAt
 
-	@@map("users")
+    @@map("users")
 }
 
 model Friends {
-	userA		User	@relation("FriendsA", fields: [userA_id], references: [id], onDelete: Cascade)
-	userA_id	Int
-	userB		User	@relation("FriendsB", fields: [userB_id], references: [id], onDelete: Cascade)
-	userB_id	Int
-	room_id		Int
+    userA    User @relation("FriendsA", fields: [userA_id], references: [id], onDelete: Cascade)
+    userA_id Int
+    userB    User @relation("FriendsB", fields: [userB_id], references: [id], onDelete: Cascade)
+    userB_id Int
+    room_id  Int
 
-	@@id([userA_id, userB_id])
-	@@map("_Friends")
+    @@id([userA_id, userB_id])
+    @@map("_Friends")
 }
 
 model Blocked {
-	userA		User	@relation("BlockedA", fields: [userA_id], references: [id], onDelete: Cascade)
-	userA_id	Int
-	userB		User	@relation("BlockedB", fields: [userB_id], references: [id], onDelete: Cascade)
-	userB_id	Int
+    userA    User @relation("BlockedA", fields: [userA_id], references: [id], onDelete: Cascade)
+    userA_id Int
+    userB    User @relation("BlockedB", fields: [userB_id], references: [id], onDelete: Cascade)
+    userB_id Int
 
-	@@id([userA_id, userB_id])
-	@@map("_Blocked")
+    @@id([userA_id, userB_id])
+    @@map("_Blocked")
 }
 
 model FriendRequests {
-	userA		User	@relation("FriendRequestsA", fields: [userA_id], references: [id], onDelete: Cascade)
-	userA_id	Int
-	userB		User	@relation("FriendRequestsB", fields: [userB_id], references: [id], onDelete: Cascade)
-	userB_id	Int
+    userA    User @relation("FriendRequestsA", fields: [userA_id], references: [id], onDelete: Cascade)
+    userA_id Int
+    userB    User @relation("FriendRequestsB", fields: [userB_id], references: [id], onDelete: Cascade)
+    userB_id Int
 
-	@@id([userA_id, userB_id])
-	@@map("_FriendRequests")
+    @@id([userA_id, userB_id])
+    @@map("_FriendRequests")
 }
 
 model Match {
-	id			Int				@id @default(autoincrement())
-	playedBy	User[]
-	score1		Int				@default(0)
-	score2		Int				@default(0)
-	mod			e_match_mod		@default(NORMAL)
-	powerUp		Boolean			@default(false)
-	state		e_match_state	@default(FINISHED)
-	createdAt	DateTime		@default(now())
-	updatedAt	DateTime		@updatedAt
+    id        Int           @id @default(autoincrement())
+    playedBy  User[]
+    score1    Int           @default(0)
+    score2    Int           @default(0)
+    mod       e_match_mod   @default(NORMAL)
+    state     e_match_state @default(FINISHED)
+    createdAt DateTime      @default(now())
+    updatedAt DateTime      @updatedAt
 
-	@@map("matches")
+    @@map("matches")
 }
 
 model Room {
-	id		Int				@id @default(autoincrement())
-	name	String?
-	access	e_room_access	@default(PUBLIC)
-	hash	String?
-	members	Member[]
+    id      Int           @id @default(autoincrement())
+    name    String?
+    access  e_room_access @default(PUBLIC)
+    hash    String?
+    members Member[]
 
-	@@map("rooms")
+    @@map("rooms")
 }
 
 model Member {
-	room		Room			@relation(fields: [room_id], references: [id], onDelete: Cascade)
-	room_id		Int
-	user		User			@relation(fields: [user_id], references: [id], onDelete: Cascade)
-	user_id		Int
-	role		e_member_role	@default(MEMBER)
-	muted		Boolean			@default(false)
-	muted_until	DateTime		@default(now())
-	banned		Boolean			@default(false)
-	messages	Message[]
-	invitations	Invitation[]
+    room        Room          @relation(fields: [room_id], references: [id], onDelete: Cascade)
+    room_id     Int
+    user        User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    user_id     Int
+    role        e_member_role @default(MEMBER)
+    muted       Boolean       @default(false)
+    muted_until DateTime      @default(now())
+    banned      Boolean       @default(false)
+    messages    Message[]
+    invitations Invitation[]
 
-	@@id([room_id, user_id])
-	@@map("members")
+    @@id([room_id, user_id])
+    @@map("members")
 }
 
 model Message {
-	id			Int			@id @default(autoincrement())
-	author		Member		@relation(fields: [room_id, user_id], references: [room_id, user_id], onDelete: Cascade)
-	room_id		Int
-	user_id		Int
-	content		String
-	createdAt	DateTime	@default(now())
-	updatedAt	DateTime	@updatedAt
+    id        Int      @id @default(autoincrement())
+    author    Member   @relation(fields: [room_id, user_id], references: [room_id, user_id], onDelete: Cascade)
+    room_id   Int
+    user_id   Int
+    content   String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-	@@map("messages")
+    @@map("messages")
 }
 
 model Invitation {
-	id			Int		@id @default(autoincrement())
-	iss			Member	@relation(fields: [room_id, user_id], references: [room_id, user_id])
-	room_id		Int
-	user_id		Int
-	token		String	@unique
+    id      Int    @id @default(autoincrement())
+    iss     Member @relation(fields: [room_id, user_id], references: [room_id, user_id])
+    room_id Int
+    user_id Int
+    token   String @unique
 
-	@@map("invitations")
+    @@map("invitations")
 }
 
 enum e_user_status {
-	ONLINE
-	INQUEUE
-	INGAME
-	OFFLINE
+    ONLINE
+    INQUEUE
+    INGAME
+    OFFLINE
 }
 
 enum e_match_mod {
-	NORMAL
-	HARDCORE
+    NORMAL
+    HARDCORE
 }
 
 enum e_match_state {
-	FINISHED
-	ABANDONED
+    FINISHED
+    ABANDONED
 }
 
 enum e_room_access {
-	PUBLIC
-	PROTECTED
-	PRIVATE
-	DIRECT_MESSAGE
+    PUBLIC
+    PROTECTED
+    PRIVATE
+    DIRECT_MESSAGE
 }
 
 enum e_member_role {
-	OWNER
-	ADMIN
-	MEMBER
+    OWNER
+    ADMIN
+    MEMBER
 }

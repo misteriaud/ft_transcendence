@@ -285,7 +285,6 @@ function FriendsTab({ me }: { me: i_me }) {
 type BarStatus = 'Friends' | 'Requests' | 'Blocked';
 
 export function SocialDialog({ dialogStatus, dialogHandler }: any) {
-	const [open, setOpen] = useState(false);
 	const [navTabName, setNavTabName] = useState<BarStatus>('Friends');
 	const { me, mutate: mutateMe, isLoading: isLoadingMe, error: errorMe }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
 
@@ -329,8 +328,8 @@ export function SocialDialog({ dialogStatus, dialogHandler }: any) {
 					<XMarkIcon className="h-6 w-6" strokeWidth={2} />
 				</IconButton>
 			</div>
-			<SocialDialogNavBar handleTabClick={handleTabClick} />
 			<DialogBody className="max-h-[25rem] min-h-[25rem] overflow-y-auto p-0">
+				<SocialDialogNavBar handleTabClick={handleTabClick} />
 				{navTabName === 'Friends' && <FriendsTab me={me} />}
 				{navTabName === 'Requests' && <RequestsTab me={me} />}
 				{navTabName === 'Blocked' && <BlockedTab me={me} />}

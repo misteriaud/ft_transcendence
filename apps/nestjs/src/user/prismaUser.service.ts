@@ -238,7 +238,26 @@ export class PrismaUserService {
 				login42: true,
 				avatar: true,
 				status: true,
-				history: true,
+				history: {
+                    select: {
+                        id: true,
+                        playedBy: {
+                            select: {
+                                id: true,
+                                username: true,
+                                login42: true,
+                                avatar: true,
+                                status: true,
+                            },
+                        },
+                        score1: true,
+                        score2: true,
+                        mod: true,
+                        state: true,
+                        createdAt: true,
+                        updatedAt: true,
+                    },
+                },
 				createdAt: true,
 			},
 		});
