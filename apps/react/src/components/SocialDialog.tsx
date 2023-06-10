@@ -1,15 +1,14 @@
-import React from 'react';
-import { Fragment, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
 	Button,
 	Dialog,
 	DialogBody,
 	DialogFooter,
+	DialogHeader,
 	Navbar,
 	Collapse,
 	Typography,
 	IconButton,
-	Avatar,
 	Spinner,
 	Tabs,
 	TabsHeader,
@@ -18,10 +17,10 @@ import {
 	TabPanel
 } from '@material-tailwind/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import defaultImg2 from '../images/pingpong-map.jpg';
 import { i_me } from './interfaces';
 import { useMe } from '../hooks/useUser';
 import { KeyedMutator } from 'swr';
+import { User } from './user';
 
 /* ////////////////////// Component navigation bar  ////////////////////// */
 
@@ -109,24 +108,23 @@ function SocialDialogNavBar({ handleTabClick }: { handleTabClick: (tab: BarStatu
 
 /* ////////////////////// Display each user line ////////////////////// */
 
-function UserBlock({ avatar, username, login42, userStatus }: { avatar: string | undefined; username: string; login42: string; userStatus: string }) {
+function UserBlock({ login42, handleCheck, handleCross }: { login42: string; handleCheck: null | (() => void); handleCross: null | (() => void) }) {
 	return (
-		<div className="relative mb-2 bg-white p-2 flex max-w-lg mx-auto items-center rounded-xl shadow-lg">
-			<div className="relative">
-				<Avatar src={avatar} alt="avatar" size="lg" withBorder={true} className="border-4 border-gray-700" />
-				<div className="absolute -top-0.5 -right-0.5 h-6 w-6 bg-white rounded-full border-2 border-gray-700">
-					<span
-						className={`absolute h-4 w-4 ${
-							userStatus === 'ONLINE' || userStatus === 'INGAME' ? 'bg-green-500' : 'bg-gray-500'
-						} rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2`}
-					></span>
-				</div>
-			</div>
-			<div className="ml-4 ml-2 flex flex-col justify-center truncate">
-				<Typography variant="h6" color="blue-gray">
-					{username}
-				</Typography>
-				<Typography variant="h6">{login42}</Typography>
+		<div className="relative mb-2 bg-white p-2 flex max-w-lg mx-auto items-center rounded-xl shadow-lg w-full">
+			<User className="w-full" login42={login42} />
+			<div className="flex ml-auto mr-2 gap-2">
+				{handleCheck && (
+					<IconButton variant="text" onClick={handleCheck} className="h-5 w-5 text-inherit hover:bg-transparent focus:bg-transparent" ripple={false}>
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-5 h-5">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+						</svg>
+					</IconButton>
+				)}
+				{handleCross && (
+					<IconButton variant="text" onClick={handleCross} className="h-5 w-5 text-inherit hover:bg-transparent focus:bg-transparent" ripple={false}>
+						<XMarkIcon className="h-5 w-5" strokeWidth={2} />
+					</IconButton>
+				)}
 			</div>
 		</div>
 	);
@@ -149,16 +147,16 @@ function BlockedTab({ me }: { me: i_me }) {
 				<TabPanel key="Blocked" value="Blocked">
 					<ul>
 						{me.blocked.map((users) => {
-							const { username, login42, avatar } = users.userB;
-							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userStatus={status} />;
+							const { login42 } = users.userB;
+							return <UserBlock key={login42} handleCheck={null} handleCross={() => console.log('deleted')} login42={login42} />;
 						})}
 					</ul>
 				</TabPanel>
 				<TabPanel key="Blocked by" value="Blocked by">
 					<ul>
 						{me.blockedBy.map((users) => {
-							const { username, login42, avatar } = users.userA;
-							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userStatus={status} />;
+							const { login42 } = users.userA;
+							return <UserBlock key={login42} handleCheck={null} handleCross={null} login42={login42} />;
 						})}
 					</ul>
 				</TabPanel>
@@ -182,16 +180,16 @@ function RequestsTab({ me }: { me: i_me }) {
 				<TabPanel key="Sent" value="Sent">
 					<ul>
 						{me.friendRequestsSent.map((users) => {
-							const { username, login42, avatar } = users.userB;
-							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userStatus={status} />;
+							const { login42 } = users.userB;
+							return <UserBlock key={login42} handleCheck={null} handleCross={() => console.log('deleted')} login42={login42} />;
 						})}
 					</ul>
 				</TabPanel>
 				<TabPanel key="Received" value="Received">
 					<ul>
 						{me.friendRequestsReceived.map((users) => {
-							const { username, login42, avatar } = users.userA;
-							return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userStatus={status} />;
+							const { login42 } = users.userA;
+							return <UserBlock key={login42} handleCheck={() => console.log('checked')} handleCross={() => console.log('deleted')} login42={login42} />;
 						})}
 					</ul>
 				</TabPanel>
@@ -204,8 +202,8 @@ function FriendsTab({ me }: { me: i_me }) {
 	return (
 		<ul>
 			{me.friends.map((users) => {
-				const { username, login42, avatar } = users.userB;
-				return <UserBlock key={username} avatar={avatar} username={username} login42={login42} userStatus={status} />;
+				const { login42 } = users.userB;
+				return <UserBlock key={login42} handleCheck={null} handleCross={() => console.log('deleted')} login42={login42} />;
 			})}
 		</ul>
 	);
@@ -216,7 +214,6 @@ function FriendsTab({ me }: { me: i_me }) {
 type BarStatus = 'Friends' | 'Requests' | 'Blocked';
 
 export function SocialDialog({ dialogStatus, dialogHandler }: any) {
-	const [open, setOpen] = useState(false);
 	const [navTabName, setNavTabName] = useState<BarStatus>('Friends');
 	const { me, mutate: mutateMe, isLoading: isLoadingMe, error: errorMe }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
 
@@ -254,13 +251,14 @@ export function SocialDialog({ dialogStatus, dialogHandler }: any) {
 			}}
 			className="bg-gray-100"
 		>
+			<DialogHeader className="justify-center">Social</DialogHeader>
 			<div className="hidden 2xl:block absolute top-2 right-2">
 				<IconButton variant="text" onClick={dialogHandler} className="h-6 w-6 text-inherit hover:bg-transparent focus:bg-transparent" ripple={false}>
 					<XMarkIcon className="h-6 w-6" strokeWidth={2} />
 				</IconButton>
 			</div>
-			<SocialDialogNavBar handleTabClick={handleTabClick} />
 			<DialogBody className="max-h-[25rem] min-h-[25rem] overflow-y-auto p-0">
+				<SocialDialogNavBar handleTabClick={handleTabClick} />
 				{navTabName === 'Friends' && <FriendsTab me={me} />}
 				{navTabName === 'Requests' && <RequestsTab me={me} />}
 				{navTabName === 'Blocked' && <BlockedTab me={me} />}
