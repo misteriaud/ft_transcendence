@@ -7,8 +7,9 @@ import { UserUI } from '../../components/userUI';
 import { Bars3Icon, ChatBubbleOvalLeftEllipsisIcon, EllipsisVerticalIcon, KeyIcon, LockClosedIcon, NoSymbolIcon } from '@heroicons/react/24/outline';
 import { useState, useRef, MutableRefObject, useEffect } from 'react';
 import { getStatus, useNotificationContext } from '../../hooks/useContext';
+import { i_room } from '../../components/interfaces';
 
-function RoomMembers({ room }: { room: Room }) {
+function RoomMembers({ room }: { room: i_room }) {
 	const { data, error, isLoading } = useCustomSWR(`/rooms/${room.id}`);
 
 	if (!data || error || isLoading)
@@ -74,7 +75,7 @@ export function PassDialog({ open, handleOpen, room, join }: any) {
 	);
 }
 
-export function RoomInfo({ room, onClick }: { room: Room; onClick?: (e: any) => void }) {
+export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) => void }) {
 	const { data: roomData, error: roomError, isLoading, mutate: roomMutate } = useCustomSWR(`/rooms/${room.id}`);
 	const api = useApi();
 	const { me, mutate } = useMe();
@@ -119,7 +120,7 @@ export function RoomInfo({ room, onClick }: { room: Room; onClick?: (e: any) => 
 			.then((result) => {
 				mutate({
 					...me,
-					memberOf: me.memberOf.filter(({ room: tmpRoom }: { room: Room }) => tmpRoom.id !== room.id)
+					memberOf: me.memberOf.filter(({ room: tmpRoom }: { room: i_room }) => tmpRoom.id !== room.id)
 				});
 				roomMutate(roomData);
 			})

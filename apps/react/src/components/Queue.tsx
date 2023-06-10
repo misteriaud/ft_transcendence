@@ -1,9 +1,10 @@
-import React, { useState, Fragment, useEffect, useRef } from 'react';
+import React, { useState, Fragment, useEffect, useRef, useContext } from 'react';
 import { Button, Dialog, DialogHeader, DialogBody, DialogFooter, Select, Option, Switch, Spinner } from '@material-tailwind/react';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 import { useSocketContext } from '../hooks/useContext';
 import { format } from 'date-fns';
 import { NavigateOptions, useNavigate } from 'react-router-dom';
+import { ObservableContext, ObservableNotification } from '../context/storeProvider';
 //import { useMe } from '../hooks/useUser';
 
 export function GameButton() {
@@ -16,6 +17,7 @@ export function GameButton() {
 		player2id: null,
 		mode: 0
 	});
+	const subject = useContext(ObservableContext);
 
 	useEffect(() => {
 		if (!isConnected) return;
@@ -32,6 +34,18 @@ export function GameButton() {
 			socket.off('pong/newGame');
 		};
 	}, [socket, isConnected, navigate]);
+
+	useEffect(() => {
+		const subscription = subject.subscribe((notificationData: ObservableNotification) => {
+			if (notificationData.type !== 'game') return;
+			console.log('handle this');
+		});
+
+		return () => {
+			// Clean up the subscription when the component unmounts
+			subscription.unsubscribe();
+		};
+	}, []);
 
 	function handleMode() {
 		setInvitation({

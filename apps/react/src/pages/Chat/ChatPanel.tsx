@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, createElement } from 'react';
+import { useEffect, useState, useRef, createElement, useContext, MutableRefObject } from 'react';
 import { useApi, useCustomSWR } from '../../hooks/useApi';
 import { useSocketContext } from '../../hooks/useContext';
 import { useMe } from '../../hooks/useUser';
@@ -42,6 +42,8 @@ import {
 	LockClosedIcon
 } from '@heroicons/react/24/outline';
 import { User } from '../../components/user';
+import { ObservableContext, ObservableNotification } from '../../context/storeProvider';
+import { i_me, i_member, i_room } from '../../components/interfaces';
 
 function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => void }) {
 	const [name, setName] = useState('');
@@ -106,7 +108,7 @@ function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => voi
 	);
 }
 
-function Chat({ roomInfo, close }: { roomInfo: Room; close: () => void }) {
+function Chat({ roomInfo, close }: { roomInfo: i_room; close: () => void }) {
 	const [isFold, setIsFold] = useState(false);
 	const [chatInput, setChatInput] = useState('');
 	const { me } = useMe();
@@ -212,7 +214,7 @@ function ChatAccordeon({
 	plusAction
 }: {
 	name: string;
-	rooms: Room[];
+	rooms: i_room[];
 	openedRooms: number[];
 	Icon: any;
 	openChat: (id: number) => void;
@@ -238,7 +240,7 @@ function ChatAccordeon({
 			</ListItem>
 			<AccordionBody className="py-1 overflow-scroll">
 				<List className="p-0">
-					{rooms.map((room: Room) => {
+					{rooms.map((room: i_room) => {
 						return (
 							<ListItem key={room.id} ripple={false} selected={openedRooms.some((id) => id === room.id)}>
 								<RoomInfo room={room} onClick={() => openChat(room.id)} />
@@ -252,28 +254,46 @@ function ChatAccordeon({
 }
 
 export function ChatPanel() {
-	const { me } = useMe();
+	const { me }: { me: i_me } = useMe();
 	const { data: dataRoomsAvailable, isLoading } = useCustomSWR('/rooms');
-	const [openedChatIds, setOpenedChat] = useState<number[]>([]);
+	const [openedChatIds, setOpenedChatIds] = useState<number[]>([]);
 	const [openCreateRoom, setOpenCreateRoom] = useState(false);
+	const subject = useContext(ObservableContext);
+
+	useEffect(() => {
+		const subscription = subject.subscribe((notificationData: ObservableNotification) => {
+			if (notificationData.type !== 'chat' || !me) return;
+			const room_id: number | undefined = me.memberOf.find(
+				({ room }: { room: i_room }) => room.access === 'DIRECT_MESSAGE' && room.members.some((member: i_member) => member.user_id === notificationData.content)
+			)?.room.id;
+			if (!room_id || openedChatIds.some((roomId: number) => roomId === room_id)) return;
+			setOpenedChatIds([...openedChatIds, room_id]);
+		});
+
+		return () => {
+			subscription.unsubscribe();
+		};
+	}, [me, openedChatIds, setOpenedChatIds]);
+
+	console.log(openedChatIds);
 
 	if (isLoading) return null;
 
 	function openChat(roomIdToOpen: number) {
 		if (openedChatIds.findIndex((roomId: number) => roomId === roomIdToOpen) != -1) return;
-		setOpenedChat([...openedChatIds, roomIdToOpen]);
+		setOpenedChatIds([...openedChatIds, roomIdToOpen]);
 	}
 
 	function closeChat(roomIdToClose: number) {
-		setOpenedChat(openedChatIds.filter((roomId: number) => roomId != roomIdToClose));
+		setOpenedChatIds(openedChatIds.filter((roomId: number) => roomId != roomIdToClose));
 	}
 
 	const handleCreateRoom = () => {
 		setOpenCreateRoom(!openCreateRoom);
 	};
 
-	const rooms: Record<string, Room[]> = me.memberOf.reduce(
-		(acc: Record<string, Room[]>, { room }: { room: Room }) => {
+	const rooms: Record<string, i_room[]> = me.memberOf.reduce(
+		(acc: Record<string, i_room[]>, { room }: { room: i_room }) => {
 			switch (room.access) {
 				case 'DIRECT_MESSAGE':
 					return {
@@ -295,11 +315,11 @@ export function ChatPanel() {
 			rooms: []
 		}
 	);
-	const filterAvailable: Room[] = dataRoomsAvailable.filter(
-		(availableRoom: Room) => !me.memberOf.some(({ room: memberRoom }: { room: Room }) => memberRoom.id === availableRoom.id)
+	const filterAvailable: i_room[] = dataRoomsAvailable.filter(
+		(availableRoom: i_room) => !me.memberOf.some(({ room: memberRoom }: { room: i_room }) => memberRoom.id === availableRoom.id)
 	);
 
-	const openedChat = me.memberOf.reduce((acc: Room[], { room }: { room: Room }) => {
+	const openedChat = me.memberOf.reduce((acc: i_room[], { room }: { room: i_room }) => {
 		if (!openedChatIds.some((roomId) => room.id === roomId)) return acc;
 		return [...acc, room];
 	}, []);
@@ -307,7 +327,7 @@ export function ChatPanel() {
 	return (
 		<>
 			<ul className="absolute bottom-0 right-72 flex flex-row">
-				{openedChat.map((room: Room) => {
+				{openedChat.map((room: i_room) => {
 					return <Chat roomInfo={room} close={() => closeChat(room.id)} key={room.id} />;
 				})}
 			</ul>

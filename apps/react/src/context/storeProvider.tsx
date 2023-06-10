@@ -6,6 +6,7 @@ import { Alert } from '@material-tailwind/react';
 import { nanoid } from 'nanoid';
 import { CountdownCircleTimer } from 'react-countdown-circle-timer';
 import { e_user_status } from '../components/interfaces';
+import { Subject } from 'rxjs';
 
 export interface StoreState {
 	JWT?: string;
@@ -19,6 +20,11 @@ export enum StoreActionType {
 }
 export type StoreAction = { type: StoreActionType; content?: any };
 
+export interface ObservableNotification {
+	type: 'chat' | 'game';
+	content: any;
+}
+
 /**
  * Context initialization
  */
@@ -29,6 +35,7 @@ export const NotificationContext = createContext<
 	(({ elem, color, icon, timer }: { elem: ReactElement; color?: AlertColor; icon?: React.ReactNode; timer?: number }) => void) | null
 >(null);
 export const PresenceContext = createContext<Map<number, e_user_status>>(new Map());
+export const ObservableContext = createContext<Subject<ObservableNotification>>(new Subject());
 
 type AlertColor =
 	| 'blue-gray'
@@ -86,7 +93,7 @@ export function StoreProvider() {
 		});
 		socketRef.current.on('presence/init', (initialPresenses: [number, e_user_status][]) => {
 			setPresences(new Map(initialPresenses));
-			console.log('presence/init', new Map(initialPresenses));
+			// console.log('presence/init', new Map(initialPresenses));
 		});
 		// socketRef.current.onAny((eventName: string, ...args) => {
 		// 	console.log('LOGS: ', eventName, args);
@@ -104,7 +111,7 @@ export function StoreProvider() {
 			if (status == e_user_status.OFFLINE) newMap.delete(id);
 			else newMap.set(id, status);
 			setPresences(newMap);
-			console.log('presence/update', newMap, id);
+			// console.log('presence/update', newMap, id);
 		});
 	}, [socketRef, presences]);
 

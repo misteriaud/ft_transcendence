@@ -40,6 +40,8 @@ import { useApi } from '../hooks/useApi';
 import { UserUI } from './userUI';
 import { getStatus, usePresenceContext } from '../hooks/useContext';
 import { size } from '@material-tailwind/react/types/components/avatar';
+import { useContext } from 'react';
+import { ObservableContext } from '../context/storeProvider';
 
 export function MuteDialog({ user, room, mutateRoom, dialogStatus, dialogHandler }: any) {
 	const time = {
@@ -385,6 +387,7 @@ export function User({ room_id, login42, size = 'sm', onClick }: { room_id?: num
 	const navigate = useNavigate();
 	const api = useApi();
 	const status = getStatus(user?.id);
+	const subject = useContext(ObservableContext);
 
 	if (isLoadingMe || isLoadingUser) {
 		return (
@@ -429,7 +432,7 @@ export function User({ room_id, login42, size = 'sm', onClick }: { room_id?: num
 	const disableProfile = isCurrentLocationMeProfile || meBlockUser || userBlockMe;
 	const disableSendMessage = !areMeAndUserFriends || meBlockUser || userBlockMe;
 	const disableInviteToRoom = !areMeAndUserFriends || !hasMeOneInvitableRooms || meBlockUser || userBlockMe;
-	const disableInviteToGame = !areMeAndUserFriends || true /* !isMeInGame */ || meBlockUser || userBlockMe;
+	const disableInviteToGame = !areMeAndUserFriends || meBlockUser || userBlockMe;
 
 	const hideSendFriendRequest = areMeAndUserFriends || meSentFriendRequestToUser || userSentFriendRequestToMe || meBlockUser || userBlockMe;
 	const hideCancelFriendRequest = areMeAndUserFriends || !meSentFriendRequestToUser || meBlockUser || userBlockMe;
@@ -545,7 +548,14 @@ export function User({ room_id, login42, size = 'sm', onClick }: { room_id?: num
 						{user.username}'s Profile
 					</Typography>
 				</MenuItem>
-				<MenuItem className="flex items-center gap-2 outline-none" disabled={disableSendMessage} tabIndex={-1}>
+				<MenuItem
+					className="flex items-center gap-2 outline-none"
+					disabled={disableSendMessage}
+					tabIndex={-1}
+					onClick={() => {
+						subject.next({ type: 'chat', content: user.id });
+					}}
+				>
 					<ChatBubbleOvalLeftEllipsisIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">
 						Send Message
@@ -568,7 +578,14 @@ export function User({ room_id, login42, size = 'sm', onClick }: { room_id?: num
 						))}
 					</MenuList>
 				</Menu>
-				<MenuItem className="flex items-center gap-2 outline-none" disabled={disableInviteToGame} tabIndex={-1}>
+				<MenuItem
+					className="flex items-center gap-2 outline-none"
+					disabled={disableInviteToGame}
+					tabIndex={-1}
+					onClick={() => {
+						subject.next({ type: 'game', content: user.id });
+					}}
+				>
 					<RocketLaunchIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">
 						Invite to Game
