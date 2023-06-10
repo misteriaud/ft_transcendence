@@ -127,6 +127,7 @@ const Pong = () => {
 
 		const predictedBall = predictBallPosition(state.ball, elapsed);
 		drawBall(context, predictedBall.x, predictedBall.y, state.ballRadius);
+		//drawBall(context, state.ball.x, state.ball.y, state.ballRadius);
 		drawScore(context, state.players[0].score, canvasRef.current.width / 4, 30);
 		drawScore(context, state.players[1].score, (canvasRef.current.width * 3) / 4, 30);
 	}

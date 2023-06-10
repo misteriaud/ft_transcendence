@@ -120,22 +120,22 @@ class GameState {
 		const player2 = this.players[1];
 
 		// collision with wall
-		if (this.ball.x + this.ballRadius > this.wall?.x && this.ball.x - this.ballRadius < this.wall?.x + this.wall?.width && this.ball.y + this.ballRadius > this.wall?.y && this.ball.y - this.ballRadius < this.wall?.y + this.wall?.height) {
-			this.ball.dx = -this.ball.dx;
-		}
+		//if (this.ball.x + this.ballRadius > this.wall?.x && this.ball.x - this.ballRadius < this.wall?.x + this.wall?.width && this.ball.y + this.ballRadius > this.wall?.y && this.ball.y - this.ballRadius < this.wall?.y + this.wall?.height) {
+		//	this.ball.dx = -this.ball.dx;
+		//}
 		// horizontal
 		if (this.ball.x > CANVAS_WIDTH || this.ball.x < 0) {
 			// right side collision
 			if (this.ball.x > CANVAS_WIDTH / 2 && this.ball.y >= player2.paddleY && this.ball.y <= player2.paddleY + player2.paddleHeight) {
-				this.ball.dx = -this.ball.dx;
+				this.ball.dx = -this.ball.dx * 1.05;
 				const deltaY = this.ball.y - (player2.paddleY + player2.paddleHeight / 2);
-				this.ball.dy = deltaY * 0.35;
+				this.ball.dy = deltaY * 4 + Math.random() - 0.5;
 			}
 			// left side collision
 			else if (this.ball.x < CANVAS_WIDTH / 2 && this.ball.y >= player1.paddleY && this.ball.y <= player1.paddleY + player1.paddleHeight) {
-				this.ball.dx = -this.ball.dx;
+				this.ball.dx = -this.ball.dx * 1.05;
 				const deltaY = this.ball.y - (player1.paddleY + player1.paddleHeight / 2);
-				this.ball.dy = deltaY * 0.35;
+				this.ball.dy = deltaY * 4 + Math.random() - 0.5;
 			} else {
 				if (this.ball.x < CANVAS_WIDTH / 2) {
 					if (this.mode === GameMode.HARDCORE) {
