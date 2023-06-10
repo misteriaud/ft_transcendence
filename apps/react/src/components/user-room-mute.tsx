@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Button, Dialog, DialogBody, DialogFooter, DialogHeader, Option, Select, Spinner, Typography } from '@material-tailwind/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 import { KeyedMutator } from 'swr';
+import moment, { DurationInputArg1, DurationInputArg2 } from 'moment';
+import Moment from 'react-moment';
 import { i_room } from './interfaces';
 import { useRoom } from '../hooks/useRoom';
 import { useApi } from '../hooks/useApi';
@@ -14,23 +16,8 @@ export function MuteDialog({ user, room_id, dialogStatus, dialogHandler }: any) 
 		isLoading: isLoadingRoom,
 		error: errorRoom
 	}: { isLoading: boolean; room: i_room; mutate: KeyedMutator<i_room>; error: Error } = useRoom(room_id);
-	const time = {
-		_5m: 5 * 60 * 1000,
-		_30m: 30 * 60 * 1000,
-		_1h: 1 * 60 * 60 * 1000,
-		_6h: 6 * 60 * 60 * 1000,
-		_12h: 12 * 60 * 60 * 1000,
-		_1d: 1 * 24 * 60 * 60 * 1000,
-		_7d: 7 * 24 * 60 * 60 * 1000,
-		_14d: 14 * 24 * 60 * 60 * 1000,
-		_30d: 30 * 24 * 60 * 60 * 1000,
-		_90d: 90 * 24 * 60 * 60 * 1000,
-		_180d: 180 * 24 * 60 * 60 * 1000,
-		_365d: 365 * 24 * 60 * 60 * 1000,
-		_infinity: 70372022400000
-	};
-	const [muteFor, setMuteFor] = useState(time._5m);
-	const [muteUntil, setMuteUntil] = useState(new Date(Date.now() + time._5m));
+	const [muteFor, setMuteFor] = useState('5m');
+	const [muteUntil, setMuteUntil] = useState(moment().add(5, 'm').toDate());
 	const notifySuccess = useNotifySuccess();
 	const notifyError = useNotifyError();
 	const api = useApi();
@@ -40,9 +27,7 @@ export function MuteDialog({ user, room_id, dialogStatus, dialogHandler }: any) 
 			return;
 		}
 		const interval = setInterval(() => {
-			if (muteFor !== time._infinity) {
-				setMuteUntil(new Date(Date.now() + muteFor));
-			}
+			handleMuteDialogSelect(muteFor);
 		}, 1000);
 
 		return () => {
@@ -81,51 +66,23 @@ export function MuteDialog({ user, room_id, dialogStatus, dialogHandler }: any) 
 	}
 
 	function handleMuteDialogSelect(value: string | undefined) {
-		if (typeof value === 'undefined' || value === '5m') {
-			setMuteFor(time._5m);
-			setMuteUntil(new Date(Date.now() + time._5m));
-		} else if (value === '30m') {
-			setMuteFor(time._30m);
-			setMuteUntil(new Date(Date.now() + time._30m));
-		} else if (value === '1h') {
-			setMuteFor(time._1h);
-			setMuteUntil(new Date(Date.now() + time._1h));
-		} else if (value === '6h') {
-			setMuteFor(time._6h);
-			setMuteUntil(new Date(Date.now() + time._6h));
-		} else if (value === '12h') {
-			setMuteFor(time._12h);
-			setMuteUntil(new Date(Date.now() + time._12h));
-		} else if (value === '1d') {
-			setMuteFor(time._1d);
-			setMuteUntil(new Date(Date.now() + time._1d));
-		} else if (value === '7d') {
-			setMuteFor(time._7d);
-			setMuteUntil(new Date(Date.now() + time._7d));
-		} else if (value === '14d') {
-			setMuteFor(time._14d);
-			setMuteUntil(new Date(Date.now() + time._14d));
-		} else if (value === '30d') {
-			setMuteFor(time._30d);
-			setMuteUntil(new Date(Date.now() + time._30d));
-		} else if (value === '90d') {
-			setMuteFor(time._90d);
-			setMuteUntil(new Date(Date.now() + time._90d));
-		} else if (value === '180d') {
-			setMuteFor(time._180d);
-			setMuteUntil(new Date(Date.now() + time._180d));
-		} else if (value === '365d') {
-			setMuteFor(time._365d);
-			setMuteUntil(new Date(Date.now() + time._365d));
-		} else if (value === 'Infinity') {
-			setMuteFor(time._infinity);
-			setMuteUntil(new Date(time._infinity));
+		if (typeof value === 'undefined') {
+			value = '5m';
+		}
+		setMuteFor(value);
+		if (value !== 'Infinity') {
+			const val = value.slice(0, -1) as DurationInputArg1;
+			const unit = value.slice(-1) as DurationInputArg2;
+
+			setMuteUntil(moment().add(val, unit).toDate());
+		} else {
+			setMuteUntil(new Date(70372022400000));
 		}
 	}
 
 	function handleCancel() {
-		setMuteFor(time._5m);
-		setMuteUntil(new Date(Date.now() + time._5m));
+		setMuteFor('5m');
+		setMuteUntil(moment().add(5, 'm').toDate());
 		dialogHandler();
 	}
 
@@ -156,38 +113,42 @@ export function MuteDialog({ user, room_id, dialogStatus, dialogHandler }: any) 
 				<div>
 					<Select label="Mute for" value="5m" onChange={handleMuteDialogSelect}>
 						<Option value="5m">5 minutes</Option>
+						<Option value="15m">15 minutes</Option>
 						<Option value="30m">30 minutes</Option>
+						<Option value="45m">45 minutes</Option>
 						<Option value="1h">1 hour</Option>
+						<Option value="3h">3 hours</Option>
 						<Option value="6h">6 hours</Option>
 						<Option value="12h">12 hours</Option>
 						<Option value="1d">1 day</Option>
-						<Option value="7d">7 days</Option>
-						<Option value="14d">14 days</Option>
-						<Option value="30d">30 days</Option>
-						<Option value="90d">90 days</Option>
-						<Option value="180d">180 days</Option>
-						<Option value="365d">365 days</Option>
+						<Option value="3d">3 days</Option>
+						<Option value="1w">1 week</Option>
+						<Option value="2w">2 weeks</Option>
+						<Option value="3w">3 weeks</Option>
+						<Option value="1M">1 month</Option>
+						<Option value="3M">3 months</Option>
+						<Option value="6M">6 months</Option>
+						<Option value="9M">9 months</Option>
+						<Option value="1y">1 year</Option>
+						<Option value="2y">2 years</Option>
+						<Option value="3y">3 years</Option>
+						<Option value="5y">5 years</Option>
+						<Option value="10y">10 years</Option>
+						<Option value="20y">20 years</Option>
 						<Option value="Infinity">Forever</Option>
 					</Select>
 				</div>
 				<div>
-					{muteFor === time._infinity ? (
+					{muteFor === 'Infinity' ? (
 						<Typography className="text-center" variant="h6">
 							<span className="text-blue-500">{user.username}</span> will be muted <span className="text-red-500">forever</span>.
 						</Typography>
 					) : (
 						<Typography className="text-center" variant="h6">
 							<span className="text-blue-500">{user.username}</span> will be muted until{' '}
-							<span className="text-red-500">
-								{muteUntil.toLocaleTimeString('en-US', {
-									month: '2-digit',
-									day: '2-digit',
-									year: 'numeric',
-									hour: '2-digit',
-									minute: '2-digit',
-									second: '2-digit'
-								})}
-							</span>
+							<Moment className="text-red-500" format="MM/DD/YYYY hh:mm:ss A">
+								{muteUntil}
+							</Moment>
 							.
 						</Typography>
 					)}
