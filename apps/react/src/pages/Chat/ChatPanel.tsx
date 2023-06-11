@@ -99,8 +99,8 @@ function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => voi
 					<Input value={name} onChange={(e) => setName(e.target.value)} label="name"></Input>
 					{access == 'PROTECTED' && <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} label="password"></Input>}
 				</DialogBody>
-				<DialogFooter className="flex flex-row justify-center">
-					<Button variant="text" color="red" onClick={handleOpen} className="mr-1">
+				<DialogFooter className="flex flex-row justify-center gap-2">
+					<Button variant="text" color="red" onClick={handleOpen}>
 						<span>Cancel</span>
 					</Button>
 					<Button variant="gradient" color="green" onClick={submit}>

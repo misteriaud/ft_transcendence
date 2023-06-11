@@ -14,7 +14,7 @@ import { MuteDialog } from './user-room-mute';
 The Menu component behaves as if its allowHover props is set to true when defined inside a Dialog component.
 See :
 https://github.com/creativetimofficial/material-tailwind/issues/306
-The commit after 5d683e5084b78e1ae4f9147a6b59e9db5ca103e4 corrects this problem by manually defining the functions handleMenu to open and close the Menu, handleOutsidePress to close the menu on clicking outside it and handleMenuClose which is used on each MenuItem to close the menu.
+The commit 0f24a1504b0e9265819ecaf9548c1c39582322f3 corrects this problem by manually defining the functions handleMenu to open and close the Menu, handleOutsidePress to close the menu on clicking outside it and handleMenuClose which is used on each MenuItem to close the menu.
 Unfortunately, closing the menu when the escape key is pressed doesn't work with this fix. In addition, a warning appeared in the console. This warning should be ignored, as it is once again a Menu component error when using the dismiss props.
 See :
 https://github.com/creativetimofficial/material-tailwind/issues/302

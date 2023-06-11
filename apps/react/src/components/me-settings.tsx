@@ -155,8 +155,8 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 					/>
 				</div>
 			</DialogBody>
-			<DialogFooter className="justify-center">
-				<Button variant="text" color="red" onClick={handleCancel} className="mr-1">
+			<DialogFooter className="justify-center gap-2">
+				<Button variant="text" color="red" onClick={handleCancel}>
 					<span>Cancel</span>
 				</Button>
 				<Button variant="gradient" color="green" onClick={handleSave}>
@@ -273,7 +273,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 				</div>
 			</DialogBody>
 			<DialogFooter className="justify-center">
-				<Button variant="text" color="red" onClick={handleCancel} className="mr-1">
+				<Button variant="text" color="red" onClick={handleCancel}>
 					<span>Close</span>
 				</Button>
 			</DialogFooter>

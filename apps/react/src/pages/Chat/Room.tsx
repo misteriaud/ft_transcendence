@@ -30,8 +30,8 @@ export function PassDialog({ open, handleOpen, room, join }: any) {
 				<DialogBody divider>
 					<Input type="password" value={pass} onChange={(e) => setPass(e.target.value)} label="password" inputRef={inputRef}></Input>
 				</DialogBody>
-				<DialogFooter>
-					<Button variant="text" color="red" onClick={() => handleOpen(null)} className="mr-1">
+				<DialogFooter className="flex flex-row justify-center gap-2">
+					<Button variant="text" color="red" onClick={() => handleOpen(null)}>
 						<span>Cancel</span>
 					</Button>
 					<Button
