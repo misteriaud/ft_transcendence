@@ -68,14 +68,14 @@ class GameState {
 		this.id = nanoid();
 		this.mode = mode;
 		this.ball = { x: CANVAS_WIDTH / 2 + 10, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 2, dy: 0 };
-		this.players[0] = { id: player1id, stringId: player1id.toString(), paddleY: CANVAS_HEIGHT / 3, score: -1, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80, ready: false };
-		this.players[1] = { id: player2id, stringId: player2id.toString(), paddleY: CANVAS_HEIGHT / 3, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 80, ready: false };
+		this.players[0] = { id: player1id, stringId: player1id.toString(), paddleY: CANVAS_HEIGHT / 3, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 90, ready: false };
+		this.players[1] = { id: player2id, stringId: player2id.toString(), paddleY: CANVAS_HEIGHT / 3, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 90, ready: false };
 		this.paddleWidth = 10;
 		this.ballRadius = 6;
 		this.gameInterval = null;
 		this.dt = Date.now();
 		if (this.mode === GameMode.HARDCORE) {
-			this.wall = { x: CANVAS_WIDTH / 2, y: (CANVAS_HEIGHT - CANVAS_HEIGHT / 2) / 2, width: 10, height: CANVAS_HEIGHT / 2 };
+			this.wall = { x: CANVAS_WIDTH / 2, y: (CANVAS_HEIGHT - CANVAS_HEIGHT / 2) / 2, width: 10, height: CANVAS_HEIGHT / 2 - 20 };
 		}
 	}
 
@@ -118,6 +118,9 @@ class GameState {
 		// ball movement
 		this.ball.x += this.ball.dx * deltaTime;
 		this.ball.y += this.ball.dy * deltaTime;
+		const leftBound = 27;
+		const rightBound = CANVAS_WIDTH - 27;
+		const upperBound = CANVAS_WIDTH - 8;
 		const player1 = this.players[0];
 		const player2 = this.players[1];
 
@@ -127,7 +130,7 @@ class GameState {
 		}
 
 		// horizontal
-		if (this.ball.x > CANVAS_WIDTH || this.ball.x < 0) {
+		if (this.ball.x > rightBound || this.ball.x < leftBound) {
 			// right side collision
 			if (this.ball.x > CANVAS_WIDTH / 2 && this.ball.y >= player2.paddleY && this.ball.y <= player2.paddleY + player2.paddleHeight) {
 				this.ball.dx = -this.ball.dx * 1.05;
@@ -163,7 +166,7 @@ class GameState {
 		}
 
 		// vertical
-		if (this.ball.y > CANVAS_HEIGHT || this.ball.y < 0) {
+		if (this.ball.y > CANVAS_HEIGHT - 8 || this.ball.y < 8) {
 			this.ball.dy = -this.ball.dy;
 			if (Math.abs(this.ball.dx) > maxSpeed) {
 				this.ball.dy = this.ball.dy > 0 ? maxSpeed : -maxSpeed;
