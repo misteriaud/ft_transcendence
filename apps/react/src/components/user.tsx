@@ -10,6 +10,15 @@ import { MenuRoomItems } from './user-room';
 import { MenuSocialItems } from './user-social';
 import { MuteDialog } from './user-room-mute';
 
+/*
+The Menu component behaves as if its allowHover props is set to true when defined inside a Dialog component.
+See :
+https://github.com/creativetimofficial/material-tailwind/issues/306
+The commit after 5d683e5084b78e1ae4f9147a6b59e9db5ca103e4 corrects this problem by manually defining the functions handleMenu to open and close the Menu, handleOutsidePress to close the menu on clicking outside it and handleMenuClose which is used on each MenuItem to close the menu.
+Unfortunately, closing the menu when the escape key is pressed doesn't work with this fix. In addition, a warning appeared in the console. This warning should be ignored, as it is once again a Menu component error when using the dismiss props.
+See :
+https://github.com/creativetimofficial/material-tailwind/issues/302
+*/
 export function User({
 	room_id,
 	login42,
@@ -30,6 +39,7 @@ export function User({
 		isLoading: isLoadingUser,
 		error: errorUser
 	}: { isLoading: boolean; user: i_user; mutate: KeyedMutator<i_user>; error: Error } = useUser(login42);
+	const [MenuStatus, setMenuStatus] = useState(false);
 	const [openMuteDialog, setOpenMuteDialog] = useState(false);
 
 	if (isLoadingMe || isLoadingUser) {
@@ -57,19 +67,39 @@ export function User({
 
 	const hideAll = isMeUser;
 
+	function handleMenu() {
+		setMenuStatus(!MenuStatus);
+	}
+
+	function handleMenuClose() {
+		setMenuStatus(false);
+	}
+
+	function handleOutsidePress() {
+		handleMenuClose();
+		return false;
+	}
+
 	function handleOpenCloseMuteDialog() {
 		setOpenMuteDialog(!openMuteDialog);
 	}
 
 	return (
-		<Menu>
+		<Menu open={MenuStatus} dismiss={{ outsidePress: handleOutsidePress }}>
 			<MenuHandler>
-				<UserUI className={className} username={user.username} avatar={user.avatar} inverse={inverse} ignoreHoverStyle={ignoreHoverStyle} />
+				<UserUI
+					className={className}
+					username={user.username}
+					avatar={user.avatar}
+					inverse={inverse}
+					ignoreHoverStyle={ignoreHoverStyle}
+					onClickCapture={handleMenu}
+				/>
 			</MenuHandler>
 			<MenuList className={`z-[10000] ${hideAll && 'hidden'}`}>
-				{<MenuBaseItems me={me} user={user} />}
-				{room_id && <MenuRoomItems me={me} user={user} room_id={room_id} dialogHandler={handleOpenCloseMuteDialog} />}
-				{<MenuSocialItems me={me} mutateMe={mutateMe} user={user} mutateUser={mutateUser} />}
+				{<MenuBaseItems me={me} user={user} menuHandler={handleMenu} />}
+				{room_id && <MenuRoomItems me={me} user={user} room_id={room_id} menuHandler={handleMenu} dialogHandler={handleOpenCloseMuteDialog} />}
+				{<MenuSocialItems me={me} mutateMe={mutateMe} user={user} mutateUser={mutateUser} menuHandler={handleMenu} />}
 			</MenuList>
 			{room_id && <MuteDialog user={user} room_id={room_id} dialogStatus={openMuteDialog} dialogHandler={handleOpenCloseMuteDialog} />}
 		</Menu>
