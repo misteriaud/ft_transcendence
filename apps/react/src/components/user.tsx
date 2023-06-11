@@ -66,7 +66,7 @@ export function User({
 			<MenuHandler>
 				<UserUI className={className} username={user.username} avatar={user.avatar} inverse={inverse} ignoreHoverStyle={ignoreHoverStyle} />
 			</MenuHandler>
-			<MenuList className={`${hideAll && 'hidden'}`}>
+			<MenuList className={`z-[10000] ${hideAll && 'hidden'}`}>
 				{<MenuBaseItems me={me} user={user} />}
 				{room_id && <MenuRoomItems me={me} user={user} room_id={room_id} dialogHandler={handleOpenCloseMuteDialog} />}
 				{<MenuSocialItems me={me} mutateMe={mutateMe} user={user} mutateUser={mutateUser} />}

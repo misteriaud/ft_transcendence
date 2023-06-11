@@ -148,7 +148,7 @@ export function StoreProvider() {
 			<StoreDispatchContext.Provider value={dispatch}>
 				<SocketContext.Provider value={socketRef}>
 					<NotificationContext.Provider value={addAlert}>
-						<div className="absolute max-h-[30vh] left-1/2 -translate-x-1/2 flex flex-col-reverse overflow-y-scroll z-[10000]">{alertComp}</div>
+						<div className="absolute max-h-[30vh] left-1/2 -translate-x-1/2 flex flex-col-reverse overflow-y-scroll z-[42000]">{alertComp}</div>
 						{outlet}
 					</NotificationContext.Provider>
 				</SocketContext.Provider>

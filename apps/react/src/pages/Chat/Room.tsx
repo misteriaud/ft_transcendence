@@ -7,32 +7,7 @@ import { UserUI } from '../../components/userUI';
 import { Bars3Icon, ChatBubbleOvalLeftEllipsisIcon, EllipsisVerticalIcon, KeyIcon, LockClosedIcon, NoSymbolIcon } from '@heroicons/react/24/outline';
 import { useState, useRef, MutableRefObject, useEffect } from 'react';
 import { useNotificationContext } from '../../hooks/useContext';
-
-function RoomMembers({ room }: { room: Room }) {
-	const { data, error, isLoading } = useCustomSWR(`/rooms/${room.id}`);
-
-	if (!data || error || isLoading)
-		return (
-			<MenuItem>
-				<Spinner />
-			</MenuItem>
-		);
-
-	return (
-		<Menu placement="left">
-			<MenuHandler>
-				<MenuItem>Members</MenuItem>
-			</MenuHandler>
-			<MenuList className="flex flex-col gap-2">
-				{data.members.map((member: any) => (
-					<MenuItem key={member.user.id} className="flex items-center gap-4 py-1">
-						<User login42={member.user.username} room_id={room.id} />
-					</MenuItem>
-				))}
-			</MenuList>
-		</Menu>
-	);
-}
+import { MembersDialog } from '../../components/room-members';
 
 export function PassDialog({ open, handleOpen, room, join }: any) {
 	const [pass, setPass] = useState('');
@@ -79,9 +54,11 @@ export function RoomInfo({ room, onClick }: { room: Room; onClick?: (e: any) => 
 	const api = useApi();
 	const { me, mutate } = useMe();
 	const [openJoinPassDial, setOpenJoinPassDial] = useState(false);
+	const [MembersDialogStatus, setMembersDialogStatus] = useState(false);
 	const { notify } = useNotificationContext();
 
 	const handlePassDial = () => setOpenJoinPassDial(!openJoinPassDial);
+	const handleMembersDialog = () => setMembersDialogStatus(!MembersDialogStatus);
 
 	async function joinChat(password?: string) {
 		if (room.access === 'PROTECTED' && !password) {
@@ -177,7 +154,8 @@ export function RoomInfo({ room, onClick }: { room: Room; onClick?: (e: any) => 
 				<>
 					<MenuItem onClick={leaveChat}>Leave Room</MenuItem>
 					<hr className="my-1" />
-					<MenuItem>Members</MenuItem>
+					<MenuItem onClick={handleMembersDialog}>Members</MenuItem>
+					<MembersDialog me={me} room_id={room.id} dialogStatus={MembersDialogStatus} dialogHandler={handleMembersDialog} />
 				</>
 			);
 			break;
@@ -187,7 +165,8 @@ export function RoomInfo({ room, onClick }: { room: Room; onClick?: (e: any) => 
 					<MenuItem>Edit Room</MenuItem>
 					<MenuItem onClick={leaveChat}>Leave Room</MenuItem>
 					<hr className="my-1" />
-					<MenuItem>Members</MenuItem>
+					<MenuItem onClick={handleMembersDialog}>Members</MenuItem>
+					<MembersDialog me={me} room_id={room.id} dialogStatus={MembersDialogStatus} dialogHandler={handleMembersDialog} />
 				</>
 			);
 			break;
