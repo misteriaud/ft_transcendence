@@ -41,7 +41,7 @@ const Pong = () => {
 	const [isReady, setIsReady] = useState(false);
 	const [gameState, setGameState] = useState<GameState | null>(null);
 	const intervalId: React.MutableRefObject<number | null> = useRef(null);
-	const { data: resultData, error: resultError, isLoading: resultIsLoading } = useCustomSWR(`/pong/${gameId}`);
+	const { data: resultData, error: resultError, isLoading: resultIsLoading, mutate: mutateResult } = useCustomSWR(`/pong/${gameId}`);
 	const { notify } = useNotificationContext();
 
 	// Ball predict
@@ -137,6 +137,7 @@ const Pong = () => {
 	useEffect(() => {
 		if (resultData) {
 			notify({ elem: <h1>This game is finished</h1>, color: 'green' });
+			mutateResult(resultData);
 			return navigate('result');
 		}
 	}, [resultData]);

@@ -275,8 +275,6 @@ export function ChatPanel() {
 		};
 	}, [me, openedChatIds, setOpenedChatIds]);
 
-	console.log(openedChatIds);
-
 	if (isLoading) return null;
 
 	function openChat(roomIdToOpen: number) {

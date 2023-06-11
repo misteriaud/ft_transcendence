@@ -1,14 +1,15 @@
 import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { KeyedMutator } from 'swr';
-import { Button, Input, List, ListItem, Navbar, Spinner, Typography } from '@material-tailwind/react';
-import { ExclamationTriangleIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
+import { Button, IconButton, Input, List, ListItem, Navbar, Spinner, Typography } from '@material-tailwind/react';
+import { ExclamationTriangleIcon, HomeIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import { i_user } from './interfaces';
 import { useUsers } from '../hooks/useUser';
 import { UserUI } from './userUI';
 import { Me } from './me';
 import { GameButton } from '../components/Queue';
 import { PresenceContext } from '../context/storeProvider';
+import { InvitationButton } from './invitationButton';
 
 export function SearchBar() {
 	const {
@@ -140,11 +141,16 @@ export function SearchBar() {
 }
 
 export function Navigation() {
+	const navigate = useNavigate();
 	return (
 		<Navbar className="grid grid-cols-3 gap-4 p-2" style={{ gridTemplateColumns: '2fr 1fr 2fr' }} fullWidth={true}>
 			<SearchBar />
-			<div className="col-start-2 col-span-1 flex justify-center items-center">
+			<div className="col-start-2 col-span-1 flex justify-center items-center gap-2">
+				<IconButton onClick={() => navigate('/dashboard')} variant="text">
+					<HomeIcon className="h-5 w-5"></HomeIcon>
+				</IconButton>
 				<GameButton />
+				<InvitationButton />
 			</div>
 			<div className="col-start-3 col-span-1 flex justify-end items-center">
 				<Me className="rounded-md text-blue-gray-500 hover:text-blue-gray-900 bg-white hover:bg-blue-gray-50 hover:bg-opacity-80 cursor-pointer" />

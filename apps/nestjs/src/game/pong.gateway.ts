@@ -216,9 +216,10 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 	 */
 
 	@SubscribeMessage('pong/invite')
-	handlePongInvite(client: Socket, { player2Id, mode }: { player2Id?: number; mode: GameMode }) {
-		if (player2Id) {
-			const index = this.waitingInvitation.findIndex((invitation) => invitation.player1id === player2Id && invitation.player2id === client.data.user.id);
+	handlePongInvite(client: Socket, { player2id, mode }: { player2id?: number; mode: GameMode }) {
+		console.log(player2id);
+		if (player2id) {
+			const index = this.waitingInvitation.findIndex((invitation) => invitation.player1id === player2id && invitation.player2id === client.data.user.id);
 			// si une invitation inverse existe deja
 			if (index !== -1) {
 				this.createGame(this.waitingInvitation[index].mode, this.waitingInvitation[index].player1id, this.waitingInvitation[index].player2id);
@@ -229,11 +230,11 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 				const invitation = {
 					id: nanoid(),
 					player1id: client.data.user.id,
-					player2id: player2Id,
+					player2id: player2id,
 					mode: mode,
 				};
 				this.waitingInvitation.push(invitation);
-				this.server.to(player2Id.toString()).emit('pong/invitation', invitation);
+				this.server.to(player2id.toString()).emit('pong/invitation', invitation);
 			}
 		} else {
 			console.log('invite random');

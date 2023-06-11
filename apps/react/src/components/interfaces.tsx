@@ -126,3 +126,12 @@ export enum e_member_role {
 	ADMIN = 'ADMIN',
 	MEMBER = 'MEMBER'
 }
+
+// websocket
+
+export type e_invitation = {
+	id: string;
+	player1id: number;
+	player2id: number;
+	mode: 'NORMAL' | 'HARDCORE';
+};
