@@ -83,9 +83,11 @@ const Pong = () => {
 	}
 	// Draw Functions
 	const drawPaddle = useCallback((context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) => {
-		const reducedHeight = height * 0.9;
+		const reduceFactor = 0.889;
+		const reducedHeight = height * reduceFactor;
+		const newY = y + (height - reducedHeight) / 2;
 		context.fillStyle = 'white';
-		context.fillRect(x, y, width, reducedHeight);
+		context.fillRect(x, newY, width, reducedHeight);
 	}, []);
 
 	const drawField = useCallback((context: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {

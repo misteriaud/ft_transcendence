@@ -1,5 +1,4 @@
 import { Card, CardHeader, CardBody, CardFooter, Typography, Button, Spinner } from '@material-tailwind/react';
-import { useEffect } from 'react';
 import { useCustomSWR } from '../hooks/useApi';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -16,23 +15,23 @@ export function PongResultPage() {
 	}
 
 	return (
-		<div className="flex flex-col items-center justify-center h-screen">
-			<Card className="mt-6 w-96">
-				<CardHeader color="white" className="relative h-56 from-slate-300">
-					<img src="https://www.pngarts.com/files/17/Game-Over-PNG-Image.png" alt="img-blur-shadow" className="w-full h-full object-cover" />
+		<div className="flex flex-col items-center justify-center h-screen" style={{ backgroundColor: '#3f413e' }}>
+			<Card className="bg-gray-100 mt-6 w-96 transform hover:scale-105 transition-transform duration-200">
+				<CardHeader className="relative h-56 from-slate-300">
+					<img src="https://www.pngarts.com/files/17/Game-Over-PNG-Image.png" alt="img-blur-shadow" className="w-full h-full object-cover opacity-75" />
 				</CardHeader>
-				<CardBody>
-					<Typography variant="h5" color="blue-gray" className="mb-2 text-center">
+				<CardBody className="rounded-lg shadow-inner p-6">
+					<Typography variant="h5" className="mb-4 text-center font-semibold text-gray-700">
 						SCORES
 					</Typography>
-					<Typography color="green" className="text-x1 text-center font-extrabold">
+					<Typography className="text-lg text-center font-extrabold text-blue-500 mb-2">
 						{data.playedBy[1].username}: {data.score1} PTS
 					</Typography>
-					<Typography color="red" className="text-x1 text-center font-extrabold">
+					<Typography className="text-lg text-center font-extrabold text-indigo-500">
 						{data.playedBy[0].username}: {data.score2} PTS
 					</Typography>
 				</CardBody>
-				<CardFooter className="pt-0">
+				<CardFooter className=" rounded-b-lg p-4">
 					<div className="flex flex-col items-center">
 						<Button onClick={navigateTo}>Return to Dashboard</Button>
 					</div>

@@ -68,14 +68,14 @@ class GameState {
 		this.id = nanoid();
 		this.mode = mode;
 		this.ball = { x: CANVAS_WIDTH / 2 + 10, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 2, dy: 0 };
-		this.players[0] = { id: player1id, stringId: player1id.toString(), paddleY: CANVAS_HEIGHT / 3, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 90, ready: false };
-		this.players[1] = { id: player2id, stringId: player2id.toString(), paddleY: CANVAS_HEIGHT / 3, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 90, ready: false };
+		this.players[0] = { id: player1id, stringId: player1id.toString(), paddleY: (CANVAS_HEIGHT - 90) / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 90, ready: false };
+		this.players[1] = { id: player2id, stringId: player2id.toString(), paddleY: (CANVAS_HEIGHT - 90) / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 90, ready: false };
 		this.paddleWidth = 10;
 		this.ballRadius = 6;
 		this.gameInterval = null;
 		this.dt = Date.now();
 		if (this.mode === GameMode.HARDCORE) {
-			this.wall = { x: CANVAS_WIDTH / 2, y: (CANVAS_HEIGHT - CANVAS_HEIGHT / 2) / 2, width: 10, height: CANVAS_HEIGHT / 2 - 20 };
+			this.wall = { x: CANVAS_WIDTH / 2, y: (CANVAS_HEIGHT - CANVAS_HEIGHT / 3) / 2, width: 10, height: CANVAS_HEIGHT / 3 };
 		}
 	}
 
@@ -113,16 +113,22 @@ class GameState {
 	}
 
 	UpdateBallState(deltaTime: number) {
+		//variables
 		const maxSpeed = 400;
+		const speedFactor = 1.05;
+		const angleFactor = 4;
+		const hardcoreDecreaseAmount = 5;
+		const resetOffset = 50;
+		const leftBounds = 27;
+		const rightBounds = CANVAS_WIDTH - 27;
+		const bottomBounds = CANVAS_HEIGHT - 8;
+		const topBounds = 8;
+		const player1 = this.players[0];
+		const player2 = this.players[1];
 
 		// ball movement
 		this.ball.x += this.ball.dx * deltaTime;
 		this.ball.y += this.ball.dy * deltaTime;
-		const leftBound = 27;
-		const rightBound = CANVAS_WIDTH - 27;
-		const upperBound = CANVAS_WIDTH - 8;
-		const player1 = this.players[0];
-		const player2 = this.players[1];
 
 		// collision with wall
 		if (this.ball.x + this.ballRadius > this.wall?.x && this.ball.x - this.ballRadius < this.wall?.x + this.wall?.width && this.ball.y + this.ballRadius > this.wall?.y && this.ball.y - this.ballRadius < this.wall?.y + this.wall?.height) {
@@ -130,43 +136,45 @@ class GameState {
 		}
 
 		// horizontal
-		if (this.ball.x > rightBound || this.ball.x < leftBound) {
+		if (this.ball.x > rightBounds || this.ball.x < leftBounds) {
 			// right side collision
 			if (this.ball.x > CANVAS_WIDTH / 2 && this.ball.y >= player2.paddleY && this.ball.y <= player2.paddleY + player2.paddleHeight) {
-				this.ball.dx = -this.ball.dx * 1.05;
+				this.ball.dx = -this.ball.dx * speedFactor;
 				if (Math.abs(this.ball.dx) > maxSpeed) {
 					this.ball.dx = this.ball.dx > 0 ? maxSpeed : -maxSpeed;
 				}
 				const deltaY = this.ball.y - (player2.paddleY + player2.paddleHeight / 2);
-				this.ball.dy = deltaY * 4 + Math.random() - 0.5;
+				this.ball.dy = deltaY * angleFactor + Math.random() - 0.5;
 			}
 			// left side collision
 			else if (this.ball.x < CANVAS_WIDTH / 2 && this.ball.y >= player1.paddleY && this.ball.y <= player1.paddleY + player1.paddleHeight) {
-				this.ball.dx = -this.ball.dx * 1.05;
+				this.ball.dx = -this.ball.dx * speedFactor;
 				if (Math.abs(this.ball.dx) > maxSpeed) {
 					this.ball.dx = this.ball.dx > 0 ? maxSpeed : -maxSpeed;
 				}
 				const deltaY = this.ball.y - (player1.paddleY + player1.paddleHeight / 2);
-				this.ball.dy = deltaY * 4 + Math.random() - 0.5;
+				this.ball.dy = deltaY * angleFactor + Math.random() - 0.5;
 			} else {
 				if (this.ball.x < CANVAS_WIDTH / 2) {
 					if (this.mode === GameMode.HARDCORE) {
-						player2.paddleHeight -= 5;
+						player2.paddleHeight -= hardcoreDecreaseAmount;
+						player2.paddleY += hardcoreDecreaseAmount / 2;
 					}
 					player2.score++;
-					this.resetBall(-CANVAS_HEIGHT / 2, CANVAS_WIDTH / 2 - 10);
+					this.resetBall(-CANVAS_HEIGHT / 2, CANVAS_WIDTH / 2 - resetOffset);
 				} else {
 					if (this.mode === GameMode.HARDCORE) {
-						player1.paddleHeight -= 5;
+						player1.paddleHeight -= hardcoreDecreaseAmount;
+						player1.paddleY += hardcoreDecreaseAmount / 2;
 					}
 					player1.score++;
-					this.resetBall(CANVAS_HEIGHT / 2, CANVAS_WIDTH / 2 + 10);
+					this.resetBall(CANVAS_HEIGHT / 2, CANVAS_WIDTH / 2 + resetOffset);
 				}
 			}
 		}
 
 		// vertical
-		if (this.ball.y > CANVAS_HEIGHT - 8 || this.ball.y < 8) {
+		if (this.ball.y > bottomBounds || this.ball.y < topBounds) {
 			this.ball.dy = -this.ball.dy;
 			if (Math.abs(this.ball.dx) > maxSpeed) {
 				this.ball.dy = this.ball.dy > 0 ? maxSpeed : -maxSpeed;
