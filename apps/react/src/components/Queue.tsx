@@ -1,10 +1,12 @@
 import React, { useState, Fragment, useEffect, useRef, useContext } from 'react';
 import { Button, Dialog, DialogHeader, DialogBody, DialogFooter, Select, Option, Switch, Spinner } from '@material-tailwind/react';
 import { XMarkIcon } from '@heroicons/react/24/solid';
-import { useSocketContext } from '../hooks/useContext';
+import { usePresenceContext, useSocketContext } from '../hooks/useContext';
 import { format } from 'date-fns';
 import { NavigateOptions, useNavigate } from 'react-router-dom';
 import { ObservableContext, ObservableNotification } from '../context/storeProvider';
+import { User } from './user';
+import { useMe } from '../hooks/useUser';
 //import { useMe } from '../hooks/useUser';
 
 export function GameButton() {
@@ -18,6 +20,8 @@ export function GameButton() {
 		mode: 0
 	});
 	const subject = useContext(ObservableContext);
+	const { onlineIds } = usePresenceContext();
+	const { me } = useMe();
 
 	useEffect(() => {
 		if (!isConnected) return;
@@ -38,6 +42,13 @@ export function GameButton() {
 	useEffect(() => {
 		const subscription = subject.subscribe((notificationData: ObservableNotification) => {
 			if (notificationData.type !== 'game') return;
+			setInvitation((inv) => {
+				return {
+					...inv,
+					player2id: notificationData.content
+				};
+			});
+			setOpen(true);
 			console.log('handle this');
 		});
 
@@ -55,6 +66,7 @@ export function GameButton() {
 	}
 
 	function handleSelect(e: any) {
+		console.log(e);
 		setInvitation({
 			...invitation,
 			player2id: e === 'Rand' ? null : e
@@ -137,9 +149,39 @@ export function GameButton() {
 						</div>
 						<div className="flex justify-center">
 							<div className="w-72">
-								<Select label="Player 2" onChange={handleSelect}>
-									<Option value="Rand">Random</Option>
-									<Option value="Friend">Player 1</Option>
+								<Select
+									label="Player 2"
+									onChange={handleSelect}
+									selected={(element: any) => {
+										if (invitation.player2id)
+											return React.createElement(User, {
+												login42: invitation.player2id,
+												onClick: () => {
+													return;
+												}
+											});
+										if (element && !Array.isArray(element))
+											return React.cloneElement(element, {
+												className: 'flex items-center px-0 gap-2 pointer-events-none'
+											});
+									}}
+									value={invitation.player2id ? invitation.player2id : 'Rand'}
+								>
+									<Option key="rand" value="Rand">
+										Random
+									</Option>
+									{onlineIds
+										.filter((id) => id !== me.id)
+										.map((id) => (
+											<Option key={id} value={id.toString()}>
+												<User
+													login42={id.toString()}
+													onClick={() => {
+														return;
+													}}
+												/>
+											</Option>
+										))}
 								</Select>
 							</div>
 						</div>

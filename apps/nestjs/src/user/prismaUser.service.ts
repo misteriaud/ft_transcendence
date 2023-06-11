@@ -158,6 +158,7 @@ export class PrismaUserService {
 								id: true,
 								name: true,
 								access: true,
+								members: true,
 							},
 						},
 						role: true,

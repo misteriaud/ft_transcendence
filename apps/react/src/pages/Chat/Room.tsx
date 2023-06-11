@@ -1,13 +1,28 @@
 import { Room } from './Chat.interface';
 import { useMe } from '../../hooks/useUser';
 import { useApi, useCustomSWR } from '../../hooks/useApi';
-import { Menu, MenuHandler, MenuList, MenuItem, Spinner, Dialog, DialogHeader, DialogBody, DialogFooter, Button, Input } from '@material-tailwind/react';
+import {
+	Menu,
+	MenuHandler,
+	MenuList,
+	MenuItem,
+	Spinner,
+	Dialog,
+	DialogHeader,
+	DialogBody,
+	DialogFooter,
+	Button,
+	Input,
+	IconButton
+} from '@material-tailwind/react';
 import { User } from '../../components/user';
 import { UserUI } from '../../components/userUI';
 import { Bars3Icon, ChatBubbleOvalLeftEllipsisIcon, EllipsisVerticalIcon, KeyIcon, LockClosedIcon, NoSymbolIcon } from '@heroicons/react/24/outline';
-import { useState, useRef, MutableRefObject, useEffect } from 'react';
+import { useState, useRef, MutableRefObject, useEffect, useContext } from 'react';
 import { getStatus, useNotificationContext } from '../../hooks/useContext';
 import { i_room } from '../../components/interfaces';
+import { RocketLaunchIcon } from '@heroicons/react/24/solid';
+import { ObservableContext } from '../../context/storeProvider';
 
 function RoomMembers({ room }: { room: i_room }) {
 	const { data, error, isLoading } = useCustomSWR(`/rooms/${room.id}`);
@@ -81,6 +96,7 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 	const { me, mutate } = useMe();
 	const [openJoinPassDial, setOpenJoinPassDial] = useState(false);
 	const { notify } = useNotificationContext();
+	const subject = useContext(ObservableContext);
 
 	const handlePassDial = () => setOpenJoinPassDial(!openJoinPassDial);
 
@@ -134,7 +150,22 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 	if (room.access === 'DIRECT_MESSAGE') {
 		if (roomError) return <NoSymbolIcon />;
 		const user = roomData.members.find((member: any) => member.user.id != me.id)?.user;
-		return <User room_id={room.id} login42={user.login42} onClick={onClick} />;
+		return (
+			<div className="flex justify-between w-full">
+				<User room_id={room.id} login42={user.login42} onClick={onClick} />
+				<IconButton
+					onClick={(e) => {
+						e.stopPropagation();
+						subject.next({ type: 'game', content: user.id });
+					}}
+					variant="text"
+					color="blue-gray"
+					className="opacity-20 hover:opacity-100 mx-2"
+				>
+					<RocketLaunchIcon className="h-5 w-5" />
+				</IconButton>
+			</div>
+		);
 	}
 
 	let icon;
