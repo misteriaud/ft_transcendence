@@ -12,7 +12,6 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 		mutateMe,
 		user,
 		mutateUser,
-		menuHandler,
 		onClick,
 		...otherProps
 	}: {
@@ -20,7 +19,6 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 		mutateMe: KeyedMutator<i_me>;
 		user: i_user;
 		mutateUser: KeyedMutator<i_user>;
-		menuHandler: () => void;
 		onClick?: (event: React.MouseEvent<HTMLElement>) => void;
 		otherProps?: any;
 	} = props;
@@ -46,7 +44,6 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
-		menuHandler();
 		await api
 			.post(`/users/${user.login42}/friend/request`)
 			.then(() => {
@@ -63,7 +60,6 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
-		menuHandler();
 		await api
 			.delete(`/users/${user.login42}/friend/request`)
 			.then(() => {
@@ -80,7 +76,6 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
-		menuHandler();
 		await api
 			.post(`/users/${user.login42}/friend/response`)
 			.then(() => {
@@ -97,7 +92,6 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
-		menuHandler();
 		await api
 			.delete(`/users/${user.login42}/friend/response`)
 			.then(() => {
@@ -114,7 +108,6 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
-		menuHandler();
 		await api
 			.delete(`/users/${user.login42}/friend`)
 			.then(() => {
@@ -131,7 +124,6 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
-		menuHandler();
 		await api
 			.post(`/users/${user.login42}/block`)
 			.then(() => {
@@ -148,7 +140,6 @@ export const MenuSocialItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
-		menuHandler();
 		await api
 			.delete(`/users/${user.login42}/block`)
 			.then(() => {

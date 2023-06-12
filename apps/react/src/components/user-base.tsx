@@ -9,13 +9,7 @@ import { useApi } from '../hooks/useApi';
 import { ObservableContext } from '../context/storeProvider';
 
 export const MenuBaseItems = forwardRef((props: any, ref: any) => {
-	const {
-		me,
-		user,
-		menuHandler,
-		onClick,
-		...otherProps
-	}: { me: i_me; user: i_user; menuHandler: () => void; onClick?: (event: React.MouseEvent<HTMLElement>) => void; otherProps?: any } = props;
+	const { me, user, onClick, ...otherProps }: { me: i_me; user: i_user; onClick?: (event: React.MouseEvent<HTMLElement>) => void; otherProps?: any } = props;
 	const location = useLocation();
 	const navigate = useNavigate();
 	const notifySuccess = useNotifySuccess();
@@ -49,7 +43,6 @@ export const MenuBaseItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
-		menuHandler();
 		navigate(`/dashboard/users/${user.login42}`);
 	}
 
@@ -64,7 +57,6 @@ export const MenuBaseItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
-		menuHandler();
 		if (isConnected) {
 			await api
 				.post(`/rooms/${room.id}/invitation`, {

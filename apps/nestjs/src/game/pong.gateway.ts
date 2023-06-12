@@ -8,7 +8,7 @@ import { SubscribeMessage } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 import { nanoid } from 'nanoid';
 import { PrismaMatchService } from './prismaMatch.service';
-import { e_match_state } from '@prisma/client';
+import { e_match_state, e_user_status } from '@prisma/client';
 
 const CANVAS_HEIGHT = 450;
 const CANVAS_WIDTH = 800;
@@ -202,6 +202,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		this.currentGame.forEach((game: GameState) => {
 			if (game.players.some((player) => player.id === client.data.user.id)) {
 				this.handlePongReady(client, { gameId: game.id, isReady: true });
+				this.updateUserStatus(client, e_user_status.INGAME);
 				// client.join(`pong:${game.id}`);
 				// client.data.gameIndex = index;
 			}
@@ -314,6 +315,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 
 		client.data.gameIndex = gameIndex;
 		this.setPlayerReady(game, client.data.user.id, isReady);
+		this.updateUserStatus(client, isReady ? e_user_status.INGAME : e_user_status.ONLINE);
 		client.join(`pong:${game.id}`);
 	}
 

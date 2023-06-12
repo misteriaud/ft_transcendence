@@ -63,39 +63,41 @@ export function Me({ inverse, ignoreHoverStyle, className }: { inverse?: boolean
 	}
 
 	return (
-		<Menu placement="bottom-end">
-			<MenuHandler>
-				<UserUI className={className} username={me.username} avatar={me.avatar} inverse={inverse} ignoreHoverStyle={ignoreHoverStyle} status={status} />
-			</MenuHandler>
-			<MenuList className="z-[10000]">
-				<MenuItem className="flex items-center gap-2" disabled={disableProfile} onClick={handleProfile}>
-					<UserCircleIcon strokeWidth={2} className="h-4 w-4" />
-					<Typography variant="small" className="font-normal">
-						My Profile
-					</Typography>
-				</MenuItem>
-				<MenuItem className="flex items-center gap-2" onClick={handleOpenCloseSocialDialog}>
-					<UsersIcon strokeWidth={2} className="h-4 w-4" />
-					<Typography variant="small" className="font-normal">
-						Social
-					</Typography>
-				</MenuItem>
-				<MenuItem className="flex items-center gap-2" onClick={handleOpenCloseSettingsDialog}>
-					<Cog6ToothIcon strokeWidth={2} className="h-4 w-4" />
-					<Typography variant="small" className="font-normal">
-						Settings
-					</Typography>
-				</MenuItem>
-				<hr className="my-2 border-blue-gray-50" />
-				<MenuItem className="flex items-center gap-2 text-red-500 hover:!text-red-900 hover:!bg-red-50 hover:!bg-opacity-80" onClick={signOut}>
-					<PowerIcon strokeWidth={2} className="h-4 w-4" />
-					<Typography variant="small" className="font-normal">
-						Sign Out
-					</Typography>
-				</MenuItem>
-			</MenuList>
+		<>
+			<Menu placement="bottom-end">
+				<MenuHandler>
+					<UserUI className={className} username={me.username} avatar={me.avatar} inverse={inverse} ignoreHoverStyle={ignoreHoverStyle} status={status} />
+				</MenuHandler>
+				<MenuList className="z-[10000]">
+					<MenuItem className="flex items-center gap-2" disabled={disableProfile} onClick={handleProfile}>
+						<UserCircleIcon strokeWidth={2} className="h-4 w-4" />
+						<Typography variant="small" className="font-normal">
+							My Profile
+						</Typography>
+					</MenuItem>
+					<MenuItem className="flex items-center gap-2" onClick={handleOpenCloseSocialDialog}>
+						<UsersIcon strokeWidth={2} className="h-4 w-4" />
+						<Typography variant="small" className="font-normal">
+							Social
+						</Typography>
+					</MenuItem>
+					<MenuItem className="flex items-center gap-2" onClick={handleOpenCloseSettingsDialog}>
+						<Cog6ToothIcon strokeWidth={2} className="h-4 w-4" />
+						<Typography variant="small" className="font-normal">
+							Settings
+						</Typography>
+					</MenuItem>
+					<hr className="my-2 border-blue-gray-50" />
+					<MenuItem className="flex items-center gap-2 text-red-500 hover:!text-red-900 hover:!bg-red-50 hover:!bg-opacity-80" onClick={signOut}>
+						<PowerIcon strokeWidth={2} className="h-4 w-4" />
+						<Typography variant="small" className="font-normal">
+							Sign Out
+						</Typography>
+					</MenuItem>
+				</MenuList>
+			</Menu>
 			<SettingsDialog dialogStatus={openSettingsDialog} dialogHandler={handleOpenCloseSettingsDialog} />
 			<SocialDialog dialogStatus={openSocialDialog} dialogHandler={handleOpenCloseSocialDialog} />
-		</Menu>
+		</>
 	);
 }

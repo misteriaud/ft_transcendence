@@ -183,7 +183,6 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 					<MenuItem onClick={leaveChat}>Leave Room</MenuItem>
 					<hr className="my-1" />
 					<MenuItem onClick={handleMembersDialog}>Members</MenuItem>
-					<MembersDialog me={me} room_id={room.id} dialogStatus={MembersDialogStatus} dialogHandler={handleMembersDialog} />
 				</>
 			);
 			break;
@@ -194,7 +193,6 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 					<MenuItem onClick={leaveChat}>Leave Room</MenuItem>
 					<hr className="my-1" />
 					<MenuItem onClick={handleMembersDialog}>Members</MenuItem>
-					<MembersDialog me={me} room_id={room.id} dialogStatus={MembersDialogStatus} dialogHandler={handleMembersDialog} />
 				</>
 			);
 			break;
@@ -218,6 +216,7 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 				<MenuList>{items}</MenuList>
 			</Menu>
 			<PassDialog open={openJoinPassDial} handleOpen={handlePassDial} join={joinChat} room={room} />
+			{role && <MembersDialog me={me} room_id={room.id} dialogStatus={MembersDialogStatus} dialogHandler={handleMembersDialog} />}
 		</div>
 	);
 }
