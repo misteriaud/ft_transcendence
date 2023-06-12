@@ -13,30 +13,29 @@
 version: '3.9'
 
 services:
-    react:
-        build: images/react
-        container_name: react
+    deploy:
+        build:
+          context: .
+          dockerfile: images/deploy/Dockerfile
+          args:
+            - PORT=${REACT_PORT}
+            - REACT_APP_NESTJS_PORT=${NESTJS_PORT}
+            - REACT_APP_OAUTH_42_UID=${OAUTH_42_UID}
+            - REACT_APP_OAUTH_CALLBACK_URL=${OAUTH_CALLBACK_URL}
+            - PORT=${NESTJS_PORT}
+            - DATABASE_URL=postgresql://${PGSQL_USER}:${PGSQL_PASSWORD}@pgsql:${PGSQL_PORT}/${PGSQL_DATABASE}
+            - NESTJS_JWT_SECRET
+            - OAUTH_42_UID
+            - OAUTH_42_SECRET
+            - OAUTH_CALLBACK_URL
+        container_name: server
         ports:
-            - ${REACT_PORT}:${REACT_PORT}
+            - ${NESTJS_PORT}:${NESTJS_PORT}
         environment:
             - PORT=${REACT_PORT}
             - REACT_APP_NESTJS_PORT=${NESTJS_PORT}
             - REACT_APP_OAUTH_42_UID=${OAUTH_42_UID}
             - REACT_APP_OAUTH_CALLBACK_URL=${OAUTH_CALLBACK_URL}
-        networks:
-            - ft_transcendence
-        volumes:
-            - react_app:/app
-        depends_on:
-            - nestjs
-        restart: unless-stopped
-
-    nestjs:
-        build: images/nestjs
-        container_name: nestjs
-        ports:
-            - ${NESTJS_PORT}:${NESTJS_PORT}
-        environment:
             - PORT=${NESTJS_PORT}
             - DATABASE_URL=postgresql://${PGSQL_USER}:${PGSQL_PASSWORD}@pgsql:${PGSQL_PORT}/${PGSQL_DATABASE}
             - NESTJS_JWT_SECRET
@@ -45,9 +44,9 @@ services:
             - OAUTH_CALLBACK_URL
         networks:
             - ft_transcendence
-        volumes:
-            - nestjs_app:/app
         restart: unless-stopped
+        depends_on:
+            - pgsql
 
     pgsql:
         image: postgres:15.2-alpine3.17
@@ -57,42 +56,24 @@ services:
             - POSTGRES_USER=${PGSQL_USER}
             - POSTGRES_PASSWORD=${PGSQL_PASSWORD}
             - POSTGRES_DATABASE=${PGSQL_DATABASE}
-        volumes:
-            - pgsql:/var/lib/postgresql/data
         networks:
             - ft_transcendence
         restart: unless-stopped
 
 
-    prisma_studio:
-        build: images/prisma_studio
-        container_name: prisma_studio
-        ports:
-            - ${PRISMA_STUDIO_PORT}:${PRISMA_STUDIO_PORT}
-        environment:
-            - PORT=${PRISMA_STUDIO_PORT}
-            - DATABASE_URL=postgresql://${PGSQL_USER}:${PGSQL_PASSWORD}@pgsql:${PGSQL_PORT}/${PGSQL_DATABASE}
-        networks:
-            - ft_transcendence
-        volumes:
-            - nestjs_app:/app
-        restart: unless-stopped
-
-volumes:
-  nestjs_app:
-    driver: local
-    driver_opts:
-      type: 'none'
-      o: 'bind'
-      device: './apps/nestjs'
-  react_app:
-    driver: local
-    driver_opts:
-      type: 'none'
-      o: 'bind'
-      device: './apps/react'
-  pgsql:
-    name: pgsql
+    # prisma_studio:
+    #     build: images/prisma_studio
+    #     container_name: prisma_studio
+    #     ports:
+    #         - ${PRISMA_STUDIO_PORT}:${PRISMA_STUDIO_PORT}
+    #     environment:
+    #         - PORT=${PRISMA_STUDIO_PORT}
+    #         - DATABASE_URL=postgresql://${PGSQL_USER}:${PGSQL_PASSWORD}@pgsql:${PGSQL_PORT}/${PGSQL_DATABASE}
+    #     networks:
+    #         - ft_transcendence
+    #     volumes:
+    #         - nestjs_app:/app
+    #     restart: unless-stopped
 
 networks:
     ft_transcendence:

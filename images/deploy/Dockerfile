@@ -14,22 +14,32 @@
 # base image for the subsequent instructions.                                  #
 ARG  CODE_VERSION=3.17
 FROM alpine:${CODE_VERSION}
+ENV PORT=${PORT}
+ENV REACT_APP_NESTJS_PORT=${REACT_APP_NESTJS_PORT}
+ENV REACT_APP_OAUTH_42_UID=${REACT_APP_OAUTH_42_UID}
+ENV REACT_APP_OAUTH_CALLBACK_URL=${REACT_APP_OAUTH_CALLBACK_URL}
+ENV PORT=${PORT}
+ENV DATABASE_URL=${DATABASE_URL}
+ENV NESTJS_JWT_SECRET=${NESTJS_JWT_SECRET}
+ENV OAUTH_42_UID=${OAUTH_42_UID}
+ENV OAUTH_42_SECRET=${OAUTH_42_SECRET}
+ENV OAUTH_CALLBACK_URL=${OAUTH_CALLBACK_URL}
 
-# Set the working directory for the subsequent instructions.                   #
+RUN apk update && \
+	apk add --no-cache npm postgresql-client
+
 WORKDIR /app
 
 # Copy the React application.                                                  #
-COPY apps/react .
+COPY apps/react /app/front
+RUN cd front && npm install --silent --force && npm run build
 
-# Update package list from repositories then install npm and React application #
-# dependencies.                                                                #
-RUN apk update && \
-	apk add --no-cache npm
+COPY apps/nestjs /app/back
+RUN mv front/build/* back/static
+RUN env
+RUN cd back && npm install --silent --force && npx prisma generate && npx prisma db push --accept-data-loss --force-reset
 
-RUN npm install --silent --force;
-RUN npm run build
-
-RUN npm install -g serve
+WORKDIR /app/back
 
 # Start the React application.                                                 #
-ENTRYPOINT ["serve", "-s", "build"]
+ENTRYPOINT ["npm", "run", "start"]
