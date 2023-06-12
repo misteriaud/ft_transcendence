@@ -1,6 +1,6 @@
 //pong.gateway.ts
-import { WebSocketGateway, WsException } from '@nestjs/websockets';
-import { Injectable, UsePipes, ValidationPipe } from '@nestjs/common';
+import { WebSocketGateway } from '@nestjs/websockets';
+import { UsePipes, ValidationPipe } from '@nestjs/common';
 import { BaseWebsocketGateway } from 'src/utils/websocket.utils';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
@@ -9,7 +9,6 @@ import { Socket } from 'socket.io';
 import { nanoid } from 'nanoid';
 import { PrismaMatchService } from './prismaMatch.service';
 import { e_match_state, e_user_status } from '@prisma/client';
-import { Invitation } from 'src/_gen/prisma-class/invitation';
 
 const CANVAS_HEIGHT = 450;
 const CANVAS_WIDTH = 800;
@@ -212,8 +211,10 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 	@UsePipes(new ValidationPipe())
 	async handleDisconnect(client: Socket) {
 		await super.handleDisconnect(client);
-		const gameIndex = client.data.gameIndex;
 
+		this.cleanInvitation(client.data.user.id);
+
+		const gameIndex = client.data.gameIndex;
 		if (gameIndex === undefined) {
 			console.log('No game found for this player');
 			return;
@@ -223,11 +224,17 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		if (game) this.setPlayerReady(game, client.data.user.id, false);
 	}
 
-	function cleanInvitation(userId: number) {
-		this.waitingInvitation.forEach((invitation: Invitation) => {
-			if (invitation.player1id === userId || invitation.player2id === userId)
-		})
-
+	cleanInvitation(userId: number) {
+		this.waitingInvitation.forEach((invitation: Invitation, index: number) => {
+			if (invitation.player1id === userId || invitation.player2id === userId) {
+				this.server.to([invitation.player1id.toString(), invitation.player2id.toString()]).emit('pong/invitationCanceled', invitation);
+				this.waitingInvitation.splice(index);
+			}
+		});
+		if (this.waitingPlayer[0] === userId) this.waitingPlayer[0] = null;
+		if (this.waitingPlayer[1] === userId) this.waitingPlayer[1] = null;
+		console.log(this.waitingInvitation);
+		console.log(this.waitingPlayer);
 	}
 
 	/**
@@ -236,7 +243,6 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 
 	@SubscribeMessage('pong/invite')
 	handlePongInvite(client: Socket, { player2id, mode }: { player2id?: number; mode: GameMode }) {
-		console.log(player2id);
 		if (player2id) {
 			const index = this.waitingInvitation.findIndex((invitation) => invitation.player1id === player2id && invitation.player2id === client.data.user.id);
 			// si une invitation inverse existe deja
@@ -254,6 +260,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 				};
 				this.waitingInvitation.push(invitation);
 				this.server.to(player2id.toString()).emit('pong/invitation', invitation);
+				return invitation.id;
 			}
 		} else {
 			console.log('invite random');
@@ -270,11 +277,15 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 	}
 
 	@SubscribeMessage('pong/cancelInvite')
-	handlePongCancelInvite(client: Socket, invitationId: string) {
+	handlePongCancelInvite(client: Socket, invitationId?: string) {
+		if (!invitationId) {
+			if (this.waitingPlayer[0] === client.data.user.id) this.waitingPlayer[0] = null;
+			if (this.waitingPlayer[1] === client.data.user.id) this.waitingPlayer[1] = null;
+			return;
+		}
 		const index = this.waitingInvitation.findIndex((invitation) => invitation.id === invitationId);
 		if (index === -1) return;
 		const invitation = this.waitingInvitation[index];
-		console.log(invitation);
 		this.server.to([invitation.player1id.toString(), invitation.player2id.toString()]).emit('pong/invitationCanceled', invitation);
 		this.waitingInvitation.splice(index);
 	}

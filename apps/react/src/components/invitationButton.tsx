@@ -44,33 +44,15 @@ export function InvitationButton() {
 			//option: '?=${gameId}');
 			// navigate(`/dashboard/pong/${gameId}`);
 		});
+		socket.on('pong/invitationCanceled', (invitation) => {
+			setInvitations((invits) => invits.filter((invit) => invit.id !== invitation.id));
+		});
 
 		return () => {
 			socket.off('pong/invitation');
+			socket.off('pong/invitationCanceled');
 		};
 	}, [socket, isConnected, setInvitations]);
-
-	// function useInterval(callback: () => void, delay: number | null) {
-	// 	const savedCallback = useRef(callback);
-
-	// 	useEffect(() => {
-	// 		savedCallback.current = callback;
-	// 	}, [callback]);
-
-	// 	useEffect(() => {
-	// 		function tick() {
-	// 			savedCallback.current();
-	// 		}
-	// 		if (delay !== null) {
-	// 			const id = setInterval(tick, delay);
-	// 			return () => clearInterval(id);
-	// 		}
-	// 	}, [delay]);
-	// }
-
-	// useInterval(() => {
-	// 	if (loading) setTimer((timer) => timer + 1);
-	// }, 1000);
 
 	const handleOpen = () => {
 		setOpen(!open);
@@ -91,23 +73,6 @@ export function InvitationButton() {
 		new_array.splice(index);
 		setInvitations(new_array);
 	}
-	// const handleJoin = () => {
-	// 	setLoading(true);
-	// 	handleOpen();
-	// 	console.log(invitation);
-	// 	socket.emit('pong/invite', invitation);
-	// 	// redirect to /pong instance if successful
-	// };
-
-	// const cancelQueue = () => {
-	// 	console.log('Queue canceled');
-	// 	setLoading(false);
-	// 	setTimer(0);
-	// 	socket.emit('pong/cancelInvite', invitation);
-	// };
-
-	// const timerDate = new Date(timer * 1000);
-	// <IconButton onClick={handleOpen} variant="text" disabled={invitations.length == 0}></IconButton>
 
 	return (
 		<Menu>

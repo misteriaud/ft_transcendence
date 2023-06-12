@@ -50,10 +50,12 @@ export class BaseWebsocketGateway {
 		this.updateUserStatus(client.data.user.id, e_user_status.ONLINE);
 		// sending
 		client.emit('presence/init', Array.from(BaseWebsocketGateway.status));
+		console.log(client.data.user.login42, 'connect');
 	}
 
 	async handleDisconnect(client: Socket) {
 		this.updateUserStatus(client.data.user.id, e_user_status.OFFLINE);
+		console.log(client.data.user.login42, 'disconnect');
 	}
 
 	async updateUserStatus(userId: number, status: e_user_status) {

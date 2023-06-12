@@ -9,13 +9,19 @@ import { User } from './user';
 import { useMe } from '../hooks/useUser';
 //import { useMe } from '../hooks/useUser';
 
+interface i_invitation {
+	id?: string;
+	player2id: null | number;
+	mode: number;
+}
+
 export function GameButton() {
 	const navigate = useNavigate();
 	const { isConnected, socket } = useSocketContext();
 	const [open, setOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [timer, setTimer] = useState(0);
-	const [invitation, setInvitation] = useState({
+	const [invitation, setInvitation] = useState<i_invitation>({
 		player2id: null,
 		mode: 0
 	});
@@ -44,6 +50,7 @@ export function GameButton() {
 
 		return () => {
 			socket.off('pong/newGame');
+			socket.off('pong/invitationCanceled');
 		};
 	}, [socket, isConnected, navigate]);
 
@@ -77,7 +84,7 @@ export function GameButton() {
 		console.log(e);
 		setInvitation({
 			...invitation,
-			player2id: e === 'Rand' ? null : e
+			player2id: e === 'Rand' ? null : Number(e)
 		});
 		// } else {
 		// 	// logic for inviting a specific player
@@ -118,16 +125,16 @@ export function GameButton() {
 	const handleJoin = () => {
 		setLoading(true);
 		handleOpen();
-		console.log(invitation);
-		socket.emit('pong/invite', invitation);
-		// redirect to /pong instance if successful
+		socket.emit('pong/invite', invitation, (invitationId: string) => {
+			setInvitation({ ...invitation, id: invitationId });
+		});
 	};
 
 	const cancelQueue = () => {
 		console.log('Queue canceled');
 		setLoading(false);
 		setTimer(0);
-		socket.emit('pong/cancelInvite', invitation);
+		socket.emit('pong/cancelInvite', invitation.id);
 	};
 
 	const timerDate = new Date(timer * 1000);
@@ -163,7 +170,7 @@ export function GameButton() {
 									selected={(element: any) => {
 										if (invitation.player2id)
 											return React.createElement(User, {
-												login42: invitation.player2id,
+												login42: String(invitation.player2id),
 												onClick: () => {
 													return;
 												}
@@ -173,7 +180,7 @@ export function GameButton() {
 												className: 'flex items-center px-0 gap-2 pointer-events-none'
 											});
 									}}
-									value={invitation.player2id ? invitation.player2id : 'Rand'}
+									value={invitation.player2id ? String(invitation.player2id) : 'Rand'}
 								>
 									<Option key="rand" value="Rand">
 										Random
