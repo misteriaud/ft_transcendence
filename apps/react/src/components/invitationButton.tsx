@@ -16,7 +16,7 @@ import {
 	MenuItem,
 	Badge
 } from '@material-tailwind/react';
-import { BellAlertIcon, BellIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import { BellAlertIcon, BellIcon, BoltIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { usePresenceContext, useSocketContext } from '../hooks/useContext';
 import { format } from 'date-fns';
 import { NavigateOptions, useNavigate } from 'react-router-dom';
@@ -137,14 +137,16 @@ export function InvitationButton() {
 							onClick={() => {
 								return;
 							}}
-						/>{' '}
-						vs{' '}
+							ignoreHoverStyle={true}
+						/>
+						<BoltIcon className="w-5 h-5" />
 						<User
 							login42={invitation.player2id.toString()}
 							size="xs"
 							onClick={() => {
 								return;
 							}}
+							ignoreHoverStyle={true}
 						/>
 						<XMarkIcon
 							className="h-4 w-4 opacity-20 hover:opacity-100"

@@ -1,12 +1,13 @@
-import React, { createContext, useContext, useEffect, useRef, useState, createElement, ReactElement } from 'react';
+import React, { createContext, useEffect, useRef, useState, ReactElement } from 'react';
 import { useOutlet } from 'react-router-dom';
 import { useLocalStorageReducer } from '../hooks/useLocalStorage';
 import { io, Socket } from 'socket.io-client';
-import { Alert } from '@material-tailwind/react';
+import { Alert, Button } from '@material-tailwind/react';
 import { nanoid } from 'nanoid';
 import { CountdownCircleTimer } from 'react-countdown-circle-timer';
 import { e_user_status } from '../components/interfaces';
 import { Subject } from 'rxjs';
+import { XMarkIcon } from '@heroicons/react/24/solid';
 
 export interface StoreState {
 	JWT?: string;
@@ -115,17 +116,17 @@ export function StoreProvider() {
 		});
 	}, [socketRef, presences]);
 
-	const addAlert = ({ elem, color = 'blue', icon, timer = 10 }: { elem: ReactElement; color?: AlertColor; icon?: React.ReactNode; timer?: number }) => {
+	const addAlert = ({ elem, color = 'blue', icon, timer = 5 }: { elem: ReactElement; color?: AlertColor; icon?: React.ReactNode; timer?: number }) => {
 		const id = nanoid();
 		setAlerts([
-			...alerts,
 			{
 				id,
 				elem,
 				color,
 				icon,
 				timer
-			}
+			},
+			...alerts
 		]);
 	};
 
@@ -138,21 +139,27 @@ export function StoreProvider() {
 			<Alert
 				open={true}
 				onClose={() => removeAlert(alert.id)}
+				action={
+					<Button
+						className="static flex justify-center items-center p-2 ml-auto"
+						variant="text"
+						color="white"
+						onClick={(e) => {
+							e.stopPropagation();
+							removeAlert(alert.id);
+						}}
+					>
+						<XMarkIcon className="static h-6 w-6 text-white" />
+					</Button>
+				}
 				icon={alert.icon}
 				color={alert.color}
-				className="m-2 shadow-2xl w-auto max-w-screen-xl flex justify-center"
+				className="flex items-center my-2 p-2 shadow-2xl w-full"
 				key={alert.id}
 			>
-				<div className="flex justify-center gap-2 items-center">
+				<div className="flex justify-center items-center gap-2 pl-2">
 					{alert.timer > 0 && (
-						<CountdownCircleTimer
-							isPlaying
-							duration={alert.timer}
-							colors={'#004777'}
-							size={20}
-							strokeWidth={2}
-							onComplete={() => removeAlert(alert.id)}
-						></CountdownCircleTimer>
+						<CountdownCircleTimer isPlaying duration={alert.timer} colors={'#2196f3'} size={20} strokeWidth={2} onComplete={() => removeAlert(alert.id)} />
 					)}
 					{alert.elem}
 				</div>
@@ -166,7 +173,7 @@ export function StoreProvider() {
 				<SocketContext.Provider value={socketRef}>
 					<NotificationContext.Provider value={addAlert}>
 						<PresenceContext.Provider value={presences}>
-							<div className="absolute w-screen flex flex-col justify-center items-center z-50">{alertComp}</div>
+							<div className="absolute max-h-[30vh] left-1/2 -translate-x-1/2 flex flex-col-reverse overflow-y-scroll z-[10000]">{alertComp}</div>
 							{outlet}
 						</PresenceContext.Provider>
 					</NotificationContext.Provider>

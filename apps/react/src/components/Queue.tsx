@@ -187,6 +187,7 @@ export function GameButton() {
 													onClick={() => {
 														return;
 													}}
+													ignoreHoverStyle={true}
 												/>
 											</Option>
 										))}

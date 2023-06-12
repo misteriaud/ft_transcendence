@@ -141,7 +141,6 @@ const Pong = () => {
 	useEffect(() => {
 		if (resultData) {
 			notify({ elem: <h1>This game is finished</h1>, color: 'green' });
-			mutateResult(resultData);
 			return navigate('result');
 		}
 	}, [resultData]);
@@ -157,11 +156,11 @@ const Pong = () => {
 
 			socket.on('pong/gameEnded', () => {
 				setIsReady(false);
+				mutateResult(resultData);
 				navigate(`result`);
 			});
 
 			return () => {
-				console.log('pongReady false');
 				socket.emit('pong/ready', { gameId, isReady: false });
 				socket.off('pong/gameState');
 				socket.off('pong/gameEnded');
@@ -201,13 +200,14 @@ const Pong = () => {
 
 	// Render
 	return (
-		<div className="flex justify-center items-center h-screen bg-black relative">
-			{!isReady && (
+		<div className="flex justify-center items-center h-full bg-black w-full">
+			{!isReady ? (
 				<Button color="blue" className="z-50" onClick={handleReadyClick}>
 					Ready
 				</Button>
+			) : (
+				<canvas ref={canvasRef} width={800} height={450} className="aspect-auto w-full min-h-fit" />
 			)}
-			<canvas ref={canvasRef} width={800} height={450} className="absolute w-full h-full" />
 		</div>
 	);
 };

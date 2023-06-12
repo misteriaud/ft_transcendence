@@ -44,7 +44,7 @@ export const DashboardLayout = () => {
 		<div className="absolute inset-0 flex flex-col h-screen w-screen" style={{ backgroundColor: '#3f413e' }}>
 			<Navigation />
 			<div className="flex flex-row justify-end h-full overflow-hidden">
-				<div className="w-full h-full flex flex-col">
+				<div className="flex w-full h-full overflow-scroll">
 					<Outlet />
 				</div>
 				<ChatPanel />

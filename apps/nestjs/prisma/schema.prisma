@@ -72,7 +72,6 @@ model Match {
     score1    Int           @default(0)
     score2    Int           @default(0)
     mod       e_match_mod   @default(NORMAL)
-    powerUp   Boolean       @default(false)
     state     e_match_state @default(FINISHED)
     createdAt DateTime      @default(now())
     updatedAt DateTime      @updatedAt

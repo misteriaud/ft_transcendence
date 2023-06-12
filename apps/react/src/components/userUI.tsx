@@ -8,18 +8,20 @@ export const UserUI = forwardRef((props: any, ref: any) => {
 	const {
 		username,
 		avatar,
+		inverse = false,
+		ignoreHoverStyle,
+		className,
 		status,
 		size,
-		inverse = false,
-		className,
 		...otherProps
 	}: {
 		username: string;
 		avatar: string | undefined;
+		inverse?: boolean;
+		ignoreHoverStyle?: boolean;
+		className?: string;
 		status: e_user_status;
 		size?: size;
-		inverse?: boolean;
-		className: string;
 		otherProps: any;
 	} = props;
 
@@ -44,7 +46,13 @@ export const UserUI = forwardRef((props: any, ref: any) => {
 	}
 
 	return (
-		<div ref={ref} className={`flex ${inverse ? 'flex-row-reverse' : ''} justify-start items-center ${className} gap-2`} {...otherProps}>
+		<div
+			ref={ref}
+			className={`flex ${inverse ? 'flex-row-reverse' : ''} justify-start items-center ${className} gap-2 rounded-md text-blue-gray-700 ${
+				!ignoreHoverStyle && 'hover:text-blue-gray-900 hover:bg-blue-gray-50 hover:bg-opacity-80 cursor-pointer'
+			}`}
+			{...otherProps}
+		>
 			<Badge overlap="circular" placement="bottom-end" color={color}>
 				<Avatar variant="circular" alt={username} src={`${avatar}?t=${Date.now()}`} size={size} />
 			</Badge>

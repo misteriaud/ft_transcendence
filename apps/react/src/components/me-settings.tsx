@@ -32,9 +32,10 @@ import {
 	VariableIcon
 } from '@heroicons/react/24/solid';
 import QRCode from 'react-qr-code';
+import { useMe } from '../hooks/useUser';
 import { useApi } from '../hooks/useApi';
 import './me-settings.css';
-import { useMe } from '../hooks/useUser';
+import { useNotifyError, useNotifySuccess } from '../hooks/notifications';
 
 export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 	const { me, mutate } = useMe();
@@ -48,6 +49,8 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 		twoFactorEnabled: me.twoFactorEnabled,
 		twoFactorSecret: ''
 	});
+	const notifySuccess = useNotifySuccess();
+	const notifyError = useNotifyError();
 	const api = useApi();
 
 	function handleAvatarUpload(event: any) {
@@ -96,7 +99,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 			})
 			.then((res) => {
 				const username = res.data.username;
-				const avatarURL = `${res.data.avatar}?t=${Date.now()}`;
+				const avatarURL = res.data.avatar;
 				const twoFactorEnabled = res.data.twoFactorEnabled;
 
 				mutate({
@@ -105,6 +108,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 					avatar: avatarURL,
 					twoFactorEnabled: twoFactorEnabled
 				});
+				notifySuccess('Your profile has been updated.');
 				if (res.data.twoFactorSecret) {
 					setState('two-factor-secret');
 					setInfo({ ...info, username: username, avatarURL: avatarURL, twoFactorEnabled: twoFactorEnabled, twoFactorSecret: res.data.twoFactorSecret });
@@ -117,14 +121,15 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 				}
 			})
 			.catch(() => {
+				notifyError();
 				setState('editing');
 			});
 	}
 
 	const editing = (
 		<>
-			<DialogHeader className="justify-center">Settings</DialogHeader>
-			<DialogBody className="flex justify-around p-8" divider>
+			<DialogHeader className="justify-center text-center">Settings</DialogHeader>
+			<DialogBody className="flex justify-around flex-wrap p-8 gap-4" divider>
 				<div className="relative">
 					<Avatar
 						variant="circular"
@@ -140,7 +145,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 					/>
 					<input id="avatar-upload" className="hidden" type="file" accept="image/*" onChange={handleAvatarUpload} />
 				</div>
-				<div className="flex flex-col justify-around">
+				<div className="flex flex-col justify-around gap-4">
 					<Input variant="static" label="Username" maxLength={32} value={info.username} onChange={handleUsernameChange} />
 					<Switch
 						id="two-factor-authentication"
@@ -163,7 +168,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 
 	const loading = (
 		<>
-			<DialogHeader className="justify-center">Settings</DialogHeader>
+			<DialogHeader className="justify-center text-center">Settings</DialogHeader>
 			<DialogBody className="flex justify-around p-8" divider>
 				<Spinner className="h-24 w-24" />
 			</DialogBody>
@@ -172,7 +177,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 
 	const twoFactorSecret = (
 		<>
-			<DialogHeader className="justify-center">Two-factor authentication (2FA)</DialogHeader>
+			<DialogHeader className="justify-center text-center">Two-factor authentication (2FA)</DialogHeader>
 			<DialogBody className="flex flex-col justify-around items-center p-8" divider>
 				<Tabs value={activeTab}>
 					<TabsHeader
@@ -215,7 +220,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 								<List className="mx-auto px-8">
 									<ListItem ripple={false} className="p-1 pointer-events-none">
 										<ListItemPrefix className="mr-2">
-											<CubeTransparentIcon className="h-5 w-5 my-2 text-blue-gray-500" />
+											<CubeTransparentIcon className="h-5 w-5 my-2 text-blue-gray-700" />
 										</ListItemPrefix>
 										<Typography>Type:</Typography>
 										<ListItemSuffix className="inline-flex pl-4">
@@ -224,7 +229,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 									</ListItem>
 									<ListItem ripple={false} className="p-1 pointer-events-none">
 										<ListItemPrefix className="mr-2">
-											<HashtagIcon className="h-5 w-5 my-2 text-blue-gray-500" />
+											<HashtagIcon className="h-5 w-5 my-2 text-blue-gray-600" />
 										</ListItemPrefix>
 										<Typography>Digits:</Typography>
 										<ListItemSuffix className="inline-flex pl-4">
@@ -233,7 +238,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 									</ListItem>
 									<ListItem ripple={false} className="p-1 pointer-events-none">
 										<ListItemPrefix className="mr-2">
-											<ArrowPathIcon className="h-5 w-5 my-2 text-blue-gray-500" />
+											<ArrowPathIcon className="h-5 w-5 my-2 text-blue-gray-600" />
 										</ListItemPrefix>
 										<Typography>Interval:</Typography>
 										<ListItemSuffix className="inline-flex pl-4">
@@ -242,7 +247,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 									</ListItem>
 									<ListItem ripple={false} className="p-1 pointer-events-none">
 										<ListItemPrefix className="mr-2">
-											<VariableIcon className="h-5 w-5 my-2 text-blue-gray-500" />
+											<VariableIcon className="h-5 w-5 my-2 text-blue-gray-600" />
 										</ListItemPrefix>
 										<Typography>Algorithm:</Typography>
 										<ListItemSuffix className="inline-flex pl-4">

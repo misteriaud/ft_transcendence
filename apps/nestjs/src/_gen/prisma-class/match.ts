@@ -18,9 +18,6 @@ export class Match {
 	@ApiProperty({ enum: e_match_mod, enumName: 'e_match_mod' })
 	mod: e_match_mod = e_match_mod.NORMAL;
 
-	@ApiProperty({ type: Boolean })
-	powerUp: boolean;
-
 	@ApiProperty({ enum: e_match_state, enumName: 'e_match_state' })
 	state: e_match_state = e_match_state.FINISHED;
 

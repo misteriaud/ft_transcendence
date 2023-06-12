@@ -21,7 +21,7 @@ export function useSocketContext() {
 
 export function useNotificationContext() {
 	const context = useContext(NotificationContext);
-	if (!context) throw new Error('socketContext must be used within a StoreProvider');
+	if (!context) throw new Error('notificationContext must be used within a StoreProvider');
 	return { notify: context };
 }
 

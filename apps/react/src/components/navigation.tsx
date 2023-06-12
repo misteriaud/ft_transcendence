@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { KeyedMutator } from 'swr';
-import { Button, IconButton, Input, List, ListItem, Navbar, Spinner, Typography } from '@material-tailwind/react';
+import { IconButton, Input, List, ListItem, Navbar, Spinner, Typography } from '@material-tailwind/react';
 import { ExclamationTriangleIcon, HomeIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import { i_user } from './interfaces';
 import { useUsers } from '../hooks/useUser';
@@ -25,9 +25,9 @@ export function SearchBar() {
 
 	if (isLoadingUsers) {
 		return (
-			<div className="col-start-1 col-span-1 flex justify-start items-center">
+			<>
 				<Input
-					containerProps={{ className: 'min-w-[150px] w-80' }}
+					containerProps={{ className: 'min-w-[150px] max-w-[320px]' }}
 					label="Search for users"
 					icon={<MagnifyingGlassIcon strokeWidth={2} className="h-4 w-4" />}
 					onFocus={handleSearchBarFocus}
@@ -36,7 +36,7 @@ export function SearchBar() {
 				/>
 				<List
 					className={`absolute top-16 w-80 max-h-[50vh] border border-blue-gray-50 rounded-md bg-white shadow-lg shadow-blue-gray-500/10 overflow-scroll transition-all ${
-						!openMenu && 'invisibl'
+						!openMenu && 'invisible'
 					}`}
 					style={{
 						transformOrigin: 'center top 0px',
@@ -48,15 +48,14 @@ export function SearchBar() {
 						<Spinner className="h-8 w-8" />
 					</ListItem>
 				</List>
-			</div>
+			</>
 		);
 	}
 	if (errorUsers) {
-		// error
 		return (
-			<div className="col-start-1 col-span-1 flex justify-start items-center">
+			<>
 				<Input
-					containerProps={{ className: 'min-w-[150px] w-80' }}
+					containerProps={{ className: 'min-w-[150px] max-w-[320px]' }}
 					label="Search for users"
 					icon={<MagnifyingGlassIcon strokeWidth={2} className="h-4 w-4" />}
 					onFocus={handleSearchBarFocus}
@@ -65,7 +64,7 @@ export function SearchBar() {
 				/>
 				<List
 					className={`absolute top-16 w-80 max-h-[50vh] border border-blue-gray-50 rounded-md bg-white shadow-lg shadow-blue-gray-500/10 overflow-scroll transition-all ${
-						!openMenu && 'invisibl'
+						!openMenu && 'invisible'
 					}`}
 					style={{
 						transformOrigin: 'center top 0px',
@@ -80,7 +79,7 @@ export function SearchBar() {
 						<ExclamationTriangleIcon strokeWidth={2} className="h-8 w-8 text-red-500" />
 					</ListItem>
 				</List>
-			</div>
+			</>
 		);
 	}
 
@@ -103,9 +102,9 @@ export function SearchBar() {
 	}
 
 	return (
-		<div className="col-start-1 col-span-1 flex justify-start items-center">
+		<>
 			<Input
-				containerProps={{ className: 'min-w-[150px] w-80' }}
+				containerProps={{ className: 'min-w-[150px] max-w-[320px]' }}
 				label="Search for users"
 				icon={<MagnifyingGlassIcon strokeWidth={2} className="h-4 w-4" />}
 				onFocus={handleSearchBarFocus}
@@ -136,16 +135,18 @@ export function SearchBar() {
 					</ListItem>
 				)}
 			</List>
-		</div>
+		</>
 	);
 }
 
 export function Navigation() {
 	const navigate = useNavigate();
 	return (
-		<Navbar className="grid grid-cols-3 gap-4 p-2" style={{ gridTemplateColumns: '2fr 1fr 2fr' }} fullWidth={true}>
-			<SearchBar />
-			<div className="col-start-2 col-span-1 flex justify-center items-center gap-2">
+		<Navbar className="grid grid-cols-3 gap-4 p-2 z-[999]" style={{ gridTemplateColumns: '2fr 1fr 2fr' }} fullWidth={true}>
+			<div className="col-start-1 col-span-1 flex justify-start items-center">
+				<SearchBar />
+			</div>
+			<div className="col-start-2 col-span-1 flex justify-center items-center">
 				<IconButton onClick={() => navigate('/dashboard')} variant="text">
 					<HomeIcon className="h-5 w-5"></HomeIcon>
 				</IconButton>
@@ -153,7 +154,7 @@ export function Navigation() {
 				<InvitationButton />
 			</div>
 			<div className="col-start-3 col-span-1 flex justify-end items-center">
-				<Me className="rounded-md text-blue-gray-500 hover:text-blue-gray-900 bg-white hover:bg-blue-gray-50 hover:bg-opacity-80 cursor-pointer" />
+				<Me inverse={true} />
 			</div>
 		</Navbar>
 	);

@@ -15,7 +15,7 @@ export function PongResultPage() {
 	}
 
 	return (
-		<div className="flex flex-col items-center justify-center h-screen" style={{ backgroundColor: '#3f413e' }}>
+		<div className="flex flex-col justify-center items-center justify-center h-full w-full" style={{ backgroundColor: '#3f413e' }}>
 			<Card className="bg-gray-100 mt-6 w-96 transform hover:scale-105 transition-transform duration-200">
 				<CardHeader className="relative h-56 from-slate-300">
 					<img src="https://www.pngarts.com/files/17/Game-Over-PNG-Image.png" alt="img-blur-shadow" className="w-full h-full object-cover opacity-75" />

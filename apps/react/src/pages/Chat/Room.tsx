@@ -42,7 +42,7 @@ function RoomMembers({ room }: { room: i_room }) {
 			<MenuList className="flex flex-col gap-2">
 				{data.members.map((member: any) => (
 					<MenuItem key={member.user.id} className="flex items-center gap-4 py-1">
-						<User login42={member.user.username} room_id={room.id} />
+						<User login42={member.user.username} room_id={room.id} ignoreHoverStyle={true} />
 					</MenuItem>
 				))}
 			</MenuList>
@@ -151,8 +151,8 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 		if (roomError) return <NoSymbolIcon />;
 		const user = roomData.members.find((member: any) => member.user.id != me.id)?.user;
 		return (
-			<div className="flex justify-between w-full">
-				<User room_id={room.id} login42={user.login42} onClick={onClick} />
+			<div className="flex justify-between w-full items-center">
+				<User room_id={room.id} login42={user.login42} onClick={onClick} ignoreHoverStyle={true} />
 				<IconButton
 					onClick={(e) => {
 						e.stopPropagation();

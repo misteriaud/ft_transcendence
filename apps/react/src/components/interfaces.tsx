@@ -13,8 +13,8 @@ export interface i_me {
 	blockedBy: i_blocked[];
 	memberOf: i_member[];
 	history: i_match[];
-	createdAt: Date;
-	updatedAt: Date;
+	createdAt: string;
+	updatedAt: string;
 }
 
 export interface i_user {
@@ -23,7 +23,7 @@ export interface i_user {
 	login42: string;
 	avatar?: string;
 	history: i_match[];
-	createdAt: Date;
+	createdAt: string;
 }
 
 export interface i_friend_requests {
@@ -31,6 +31,7 @@ export interface i_friend_requests {
 	userA_id: number;
 	userB: i_user;
 	userB_id: number;
+	room_id: number;
 }
 
 export interface i_friends {
@@ -52,11 +53,10 @@ export interface i_match {
 	playedBy: i_user[];
 	score1: number;
 	score2: number;
-	map: e_match_map;
-	powerUp: boolean;
+	mod: e_match_mod;
 	state: e_match_state;
-	createdAt: Date;
-	updatedAt: Date;
+	createdAt: string;
+	updatedAt: string;
 }
 
 export interface i_room {
@@ -74,7 +74,7 @@ export interface i_member {
 	user_id: number;
 	role: e_member_role;
 	muted: boolean;
-	muted_until: Date;
+	muted_until: string;
 	banned: boolean;
 	messages: i_message[];
 	invitations: i_invitation[];
@@ -86,7 +86,7 @@ export interface i_message {
 	room_id: number;
 	user_id: number;
 	content: string;
-	createdAt: Date;
+	createdAt: string;
 }
 
 export interface i_invitation {
@@ -104,14 +104,14 @@ export enum e_user_status {
 	OFFLINE = 'OFFLINE'
 }
 
-export enum e_match_map {
-	CLASSIC = 'CLASSIC'
+export enum e_match_mod {
+	NORMAL = 'NORMAL',
+	HARDCORE = 'HARDCORE'
 }
 
 export enum e_match_state {
-	PREPARATION = 'PREPARATION',
-	INPROGRESS = 'INPROGRESS',
-	FINISHED = 'FINISHED'
+	FINISHED = 'FINISHED',
+	ABANDONED = 'ABANDONED'
 }
 
 export enum e_room_access {

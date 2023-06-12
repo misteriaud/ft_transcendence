@@ -44,6 +44,12 @@ import {
 import { User } from '../../components/user';
 import { ObservableContext, ObservableNotification } from '../../context/storeProvider';
 import { i_me, i_member, i_room } from '../../components/interfaces';
+import { useNotifyError, useNotifySuccess } from '../../hooks/notifications';
+import { KeyedMutator } from 'swr';
+import { useRoom } from '../../hooks/useRoom';
+import { ExclamationTriangleIcon, HomeIcon } from '@heroicons/react/24/solid';
+import moment from 'moment';
+import Moment from 'react-moment';
 
 function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => void }) {
 	const [name, setName] = useState('');
@@ -78,9 +84,9 @@ function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => voi
 	return (
 		<Dialog open={open} handler={handleOpen} size="xs">
 			<form onSubmit={submit} className="flex flex-col gap-2">
-				<DialogHeader>Create new room</DialogHeader>
+				<DialogHeader className="flex justify-center">Create new room</DialogHeader>
 				<DialogBody divider className="flex flex-col gap-2 items-center">
-					<div className="flex">
+					<div className="flex flex-wrap justify-center">
 						<Radio id="PUBLIC" value="PUBLIC" name="type" label="Public" onChange={(e) => setAccess(e.target.value)} checked={access === 'PUBLIC'} />
 						<Radio id="PRIVATE" value="PRIVATE" name="type" label="Private" onChange={(e) => setAccess(e.target.value)} checked={access === 'PRIVATE'} />
 						<Radio
@@ -95,7 +101,7 @@ function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => voi
 					<Input value={name} onChange={(e) => setName(e.target.value)} label="name"></Input>
 					{access == 'PROTECTED' && <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} label="password"></Input>}
 				</DialogBody>
-				<DialogFooter className="flex flex-row">
+				<DialogFooter className="flex flex-row justify-center">
 					<Button variant="text" color="red" onClick={handleOpen} className="mr-1">
 						<span>Cancel</span>
 					</Button>
@@ -105,6 +111,87 @@ function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => voi
 				</DialogFooter>
 			</form>
 		</Dialog>
+	);
+}
+
+function RelativeTimestamp({ timestamp }: { timestamp: Date }) {
+	const messageTime = moment(timestamp);
+	const today = moment().startOf('day');
+	const yesterday = moment().subtract(1, 'days').startOf('day');
+
+	if (messageTime.isSame(today, 'd')) {
+		return (
+			<>
+				Today at <Moment format="hh:mm A">{timestamp}</Moment>
+			</>
+		);
+	} else if (messageTime.isSame(yesterday, 'd')) {
+		return (
+			<>
+				Yesterday at <Moment format="hh:mm A">{timestamp}</Moment>
+			</>
+		);
+	} else {
+		return (
+			<>
+				<Moment format="MM/DD/YYYY hh:mm A">{timestamp}</Moment>
+			</>
+		);
+	}
+}
+
+function RoomInvitation({ room_invitation_string }: { room_invitation_string: string }) {
+	const { me, mutate: mutateMe, isLoading: isLoadingMe, error: errorMe }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
+	const notifySuccess = useNotifySuccess();
+	const notifyError = useNotifyError();
+	const api = useApi();
+
+	if (isLoadingMe) {
+		return (
+			<div className="flex flex-col items-center gap-1 min-w-0 p-2 rounded-md bg-white bg-opacity-90 break-all">
+				<Spinner />
+			</div>
+		);
+	}
+	if (errorMe) {
+		return (
+			<div
+				className="flex flex-col items-center gap-1 min-w-0 p-2 rounded-md bg-white bg-opacity-90 break-all text-red-500 outline-none hover:text-red-900 bg-white hover:!bg-red-50 hover:bg-opacity-80"
+				onClick={() => mutateMe()}
+			>
+				<ExclamationTriangleIcon strokeWidth={2} className="h-6 w-6 text-red-500" />
+			</div>
+		);
+	}
+
+	const room_invitation_prefix = '[room-invitation]';
+	const room_invitation_string_without_prefix = room_invitation_string.substring(room_invitation_prefix.length);
+	const separator = '[separator]';
+	const [room_name, room_id, user_id, invitation_token] = room_invitation_string_without_prefix.split(separator, 4);
+
+	const isMeIssuer = `${me.id}` === user_id;
+	const isMeInRoom = typeof me.memberOf.find((m: i_member) => `${m.room.id}` === room_id) !== 'undefined';
+
+	async function handleInvitationButton() {
+		await api
+			.post(`/rooms/${room_id}/join/${invitation_token}`)
+			.then(() => {
+				mutateMe();
+				// should mutate /rooms
+				notifySuccess(`You have joined ${room_name}.`);
+			})
+			.catch(() => {
+				notifyError();
+			});
+	}
+
+	return (
+		<div className="flex flex-col items-center gap-1 min-w-0 p-2 rounded-md bg-white bg-opacity-90 break-all">
+			<Button className="flex justify-center items-center gap-1 w-fit" size="sm" onClick={handleInvitationButton} disabled={!isMeIssuer || isMeInRoom}>
+				<HomeIcon strokeWidth={2} className="h-4 w-4" />
+				{room_name}
+			</Button>
+		</div>
 	);
 }
 
@@ -143,7 +230,7 @@ function Chat({ roomInfo, close }: { roomInfo: i_room; close: () => void }) {
 	if (error) return <h1>Something went wrong</h1>;
 
 	return (
-		<li className="self-end flex flex-col justify-content w-56 max-h-80 mr-2 border-2 border-black/20 shadow-lg overflow-hidden rounded-t-lg backdrop-blur-sm  transition-all duration-500">
+		<li className="self-end flex flex-col justify-content w-56 max-h-80 mr-2 border-2 bg-gray-100 bg-opacity-80 border-black/20 shadow-lg overflow-hidden rounded-t-lg backdrop-blur-sm  transition-all duration-500">
 			<div className="flex justify-around items-center px-2 py-1 bg-black bg-opacity-5 cursor-pointer hover:bg-opacity-10" onClick={() => setIsFold(!isFold)}>
 				<RoomInfo room={roomInfo} onClick={() => setIsFold(!isFold)} />
 				{close && (
@@ -157,13 +244,18 @@ function Chat({ roomInfo, close }: { roomInfo: i_room; close: () => void }) {
 					<ul className="overflow-scroll pt-2 flex flex-col pr-2">
 						{messages.map((message: Message) => (
 							<li key={message.id} className={`self-${message.author.user.id == me.id ? 'end' : 'start'} m-1 flex gap-2`}>
-								<User room_id={roomInfo.id} login42={message.author.user.login42} size="xs" />
+								<User room_id={roomInfo.id} login42={message.author.user.login42} size="xs" ignoreHoverStyle={true} />
 								<div className="flex flex-col items-end">
 									<p className="shrink select-none text-gray-700 text-xs opacity-70 flex gap-1">
-										{new Date(message.createdAt).getHours()}:{new Date(message.createdAt).getMinutes()}
+										<RelativeTimestamp timestamp={message.createdAt} />
 									</p>
-									<p className="flex-shrink min-w-0 rounded-md bg-white bg-opacity-90 px-1 py-0.5">{message.content}</p>
+									{message.content.startsWith('[room-invitation]') ? (
+										<RoomInvitation room_invitation_string={message.content} />
+									) : (
+										<p className="flex-shrink min-w-0 rounded-md bg-white bg-opacity-90 px-1 py-0.5 break-all">{message.content}</p>
+									)}
 								</div>
+								{/* <li key={message.id} className={`self-${message.author.user.id == me.id ? 'end' : 'start'} m-1 flex flex-col items-end`}> */}
 							</li>
 						))}
 						<li ref={lastMessageRef}></li>
