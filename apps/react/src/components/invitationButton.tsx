@@ -13,7 +13,8 @@ import {
 	Menu,
 	MenuHandler,
 	MenuList,
-	MenuItem
+	MenuItem,
+	Badge
 } from '@material-tailwind/react';
 import { BellAlertIcon, BellIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { usePresenceContext, useSocketContext } from '../hooks/useContext';
@@ -83,6 +84,13 @@ export function InvitationButton() {
 		setInvitations(new_array);
 	}
 
+	function cancelInvitation(index: number) {
+		if (!isConnected) return;
+		socket.emit('pong/cancelInvite', invitations[index].id);
+		const new_array = [...invitations];
+		new_array.splice(index);
+		setInvitations(new_array);
+	}
 	// const handleJoin = () => {
 	// 	setLoading(true);
 	// 	handleOpen();
@@ -105,14 +113,20 @@ export function InvitationButton() {
 		<Menu>
 			<MenuHandler>
 				<IconButton onClick={handleOpen} variant="text" disabled={invitations.length == 0}>
-					{invitations.length ? <BellIcon className="h-5 w-5" /> : <BellAlertIcon className="h-5 w-5" />}
+					{invitations.length ? (
+						<Badge content={invitations.length}>
+							<BellAlertIcon className="h-5 w-5" />
+						</Badge>
+					) : (
+						<BellIcon className="h-5 w-5" />
+					)}
 				</IconButton>
 			</MenuHandler>
 			<MenuList>
 				{invitations.map((invitation: e_invitation, index: number) => (
 					<MenuItem
 						key={invitation.id}
-						className="flex justify-around"
+						className="flex justify-around items-center"
 						onClick={() => {
 							acceptInvitation(index);
 						}}
@@ -130,6 +144,12 @@ export function InvitationButton() {
 							size="xs"
 							onClick={() => {
 								return;
+							}}
+						/>
+						<XMarkIcon
+							className="h-4 w-4 opacity-20 hover:opacity-100"
+							onClick={() => {
+								cancelInvitation(index);
 							}}
 						/>
 					</MenuItem>

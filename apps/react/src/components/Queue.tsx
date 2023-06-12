@@ -1,7 +1,7 @@
 import React, { useState, Fragment, useEffect, useRef, useContext } from 'react';
 import { Button, Dialog, DialogHeader, DialogBody, DialogFooter, Select, Option, Switch, Spinner } from '@material-tailwind/react';
 import { XMarkIcon } from '@heroicons/react/24/solid';
-import { usePresenceContext, useSocketContext } from '../hooks/useContext';
+import { useNotificationContext, usePresenceContext, useSocketContext } from '../hooks/useContext';
 import { format } from 'date-fns';
 import { NavigateOptions, useNavigate } from 'react-router-dom';
 import { ObservableContext, ObservableNotification } from '../context/storeProvider';
@@ -22,6 +22,7 @@ export function GameButton() {
 	const subject = useContext(ObservableContext);
 	const { onlineIds } = usePresenceContext();
 	const { me } = useMe();
+	const { notify } = useNotificationContext();
 
 	useEffect(() => {
 		if (!isConnected) return;
@@ -32,6 +33,13 @@ export function GameButton() {
 			//navigate(pathname: '/pong',
 			//option: '?=${gameId}');
 			navigate(`/dashboard/pong/${gameId}`);
+		});
+
+		socket.on('pong/invitationCanceled', (invitation) => {
+			if (invitation.player1id !== me.id) return;
+			notify({ elem: <h1>Your invitation has been refused</h1>, color: 'red' });
+			setLoading(false);
+			setTimer(0);
 		});
 
 		return () => {

@@ -50,11 +50,12 @@ class Wall {
 	width: number;
 	height: number;
 }
+const resetOffset = 50;
 
 class GameState {
 	id: string;
 	mode: GameMode;
-	ball: { x: number; y: number; dx: number; dy: number };
+	ball: { x: number; y: number; dx: number; dy: number } = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, dx: 0, dy: 0 };
 	players: Player[] = new Array(2);
 	paddleWidth: number;
 	ballRadius: number;
@@ -67,13 +68,13 @@ class GameState {
 	constructor(mode: GameMode, player1id: number, player2id: number) {
 		this.id = nanoid();
 		this.mode = mode;
-		this.ball = { x: CANVAS_WIDTH / 2 + 10, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 2, dy: 0 };
-		this.players[0] = { id: player1id, stringId: player1id.toString(), paddleY: (CANVAS_HEIGHT - 90) / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 90, ready: false };
-		this.players[1] = { id: player2id, stringId: player2id.toString(), paddleY: (CANVAS_HEIGHT - 90) / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 90, ready: false };
+		this.ball = { x: CANVAS_WIDTH / 2 + resetOffset, y: CANVAS_HEIGHT / 2, dx: CANVAS_HEIGHT / 2, dy: 0 };
+		this.players[0] = { id: Number(player1id), stringId: player1id.toString(), paddleY: (CANVAS_HEIGHT - 90) / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 90, ready: false };
+		this.players[1] = { id: Number(player2id), stringId: player2id.toString(), paddleY: (CANVAS_HEIGHT - 90) / 2, score: 0, paddleDirection: 'stop', paddleSpeed: 300, paddleHeight: 90, ready: false };
 		this.paddleWidth = 10;
 		this.ballRadius = 6;
 		this.gameInterval = null;
-		this.dt = Date.now();
+		this.dt = 0;
 		if (this.mode === GameMode.HARDCORE) {
 			this.wall = { x: CANVAS_WIDTH / 2, y: (CANVAS_HEIGHT - CANVAS_HEIGHT / 3) / 2, width: 10, height: CANVAS_HEIGHT / 3 };
 		}
@@ -118,7 +119,6 @@ class GameState {
 		const speedFactor = 1.05;
 		const angleFactor = 4;
 		const hardcoreDecreaseAmount = 5;
-		const resetOffset = 50;
 		const leftBounds = 27;
 		const rightBounds = CANVAS_WIDTH - 27;
 		const bottomBounds = CANVAS_HEIGHT - 8;
@@ -201,7 +201,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		await super.handleConnection(client);
 		this.currentGame.forEach((game: GameState) => {
 			if (game.players.some((player) => player.id === client.data.user.id)) {
-				this.handlePongReady(client, game.id);
+				this.handlePongReady(client, { gameId: game.id, isReady: true });
 				// client.join(`pong:${game.id}`);
 				// client.data.gameIndex = index;
 			}
@@ -264,9 +264,11 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 	@SubscribeMessage('pong/cancelInvite')
 	handlePongCancelInvite(client: Socket, invitationId: string) {
 		const index = this.waitingInvitation.findIndex((invitation) => invitation.id === invitationId);
-		if (index !== -1) {
-			this.waitingInvitation.splice(index);
-		}
+		if (index === -1) return;
+		const invitation = this.waitingInvitation[index];
+		console.log(invitation);
+		this.server.to([invitation.player1id.toString(), invitation.player2id.toString()]).emit('pong/invitationCanceled', invitation);
+		this.waitingInvitation.splice(index);
 	}
 
 	@SubscribeMessage('pong/acceptInvite')
@@ -292,7 +294,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 
 	@UsePipes(new ValidationPipe())
 	@SubscribeMessage('pong/ready')
-	handlePongReady(client: Socket, gameId: string) {
+	handlePongReady(client: Socket, { gameId, isReady }: { gameId: string; isReady: boolean }) {
 		console.log('Player ready');
 		const gameIndex = this.currentGame.findIndex((game) => game.id === gameId);
 
@@ -311,7 +313,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		}
 
 		client.data.gameIndex = gameIndex;
-		this.setPlayerReady(game, client.data.user.id, true);
+		this.setPlayerReady(game, client.data.user.id, isReady);
 		client.join(`pong:${game.id}`);
 	}
 
@@ -335,6 +337,7 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 	 */
 
 	startGame(game: GameState) {
+		game.dt = Date.now();
 		game.gameInterval = setInterval(() => {
 			const now = Date.now();
 			const deltaTime = (now - game.dt) / 1000;

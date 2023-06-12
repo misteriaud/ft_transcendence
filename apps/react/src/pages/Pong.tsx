@@ -54,7 +54,7 @@ const Pong = () => {
 	// Handlers
 	const handleReadyClick = useCallback(() => {
 		if (!isReady) {
-			socket.emit('pong/ready', gameId);
+			socket.emit('pong/ready', { gameId, isReady: true });
 			setIsReady(true);
 		}
 	}, [isReady, socket]);
@@ -119,6 +119,7 @@ const Pong = () => {
 
 		const context = canvasRef.current.getContext('2d');
 		if (!context) return;
+		// console.log('draw game');
 		drawField(context, canvasRef.current);
 
 		const elapsed = (Date.now() - state.lastUpdate) / 1000;
@@ -148,8 +149,8 @@ const Pong = () => {
 	useEffect(() => {
 		if (isConnected) {
 			socket.on('pong/gameState', (gameState: GameState) => {
-				setIsReady(true);
 				console.log(gameState);
+				setIsReady(true);
 				gameState.lastUpdate = Date.now();
 				setGameState(gameState);
 			});
@@ -160,6 +161,8 @@ const Pong = () => {
 			});
 
 			return () => {
+				console.log('pongReady false');
+				socket.emit('pong/ready', { gameId, isReady: false });
 				socket.off('pong/gameState');
 				socket.off('pong/gameEnded');
 			};
@@ -179,11 +182,12 @@ const Pong = () => {
 	}, [handleKeyDown, handleKeyUp, isReady]);
 
 	useEffect(() => {
+		console.log('set loop');
 		const loop = () => {
 			if (canvasRef.current && gameState && isReady) {
-				const newGameState = { ...gameState };
-				setGameState(newGameState);
-				drawGame(newGameState);
+				// const newGameState = { ...gameState };
+				// setGameState(newGameState);
+				drawGame(gameState);
 			}
 			intervalId.current = requestAnimationFrame(loop);
 		};
