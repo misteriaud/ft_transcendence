@@ -134,6 +134,7 @@ export function GameButton() {
 
 	const handleJoin = () => {
 		setLoading(true);
+		setTimer(0);
 		handleOpen();
 		socket.emit('pong/invite', invitation, (invitationId: string) => {
 			setInvitation({ ...invitation, id: invitationId });
