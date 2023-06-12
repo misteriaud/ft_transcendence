@@ -6,6 +6,7 @@ import * as argon from 'argon2';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { InvitationDto, MessageDto, RoomDto, RoomJoinDto, RoomMuteDto } from './dto';
 import { PrismaRoomService } from './prismaRoom.service';
+import { i_blocked } from './interface/Blocked';
 
 @Injectable()
 export class RoomService {
@@ -192,8 +193,8 @@ export class RoomService {
 	}
 
 	// Get all messages
-	async getAllMessages(room_id: number) {
-		return await this.prismaRoom.getAllMessages(room_id);
+	async getAllMessages(blocked: i_blocked[], room_id: number) {
+		return await this.prismaRoom.getAllMessages(blocked, room_id);
 	}
 
 	// Edit a message

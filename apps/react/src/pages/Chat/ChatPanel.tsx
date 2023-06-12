@@ -43,7 +43,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { User } from '../../components/user';
 import { ObservableContext, ObservableNotification } from '../../context/storeProvider';
-import { i_me, i_member, i_room } from '../../components/interfaces';
+import { i_blocked, i_me, i_member, i_room } from '../../components/interfaces';
 import { useNotifyError, useNotifySuccess } from '../../hooks/notifications';
 import { KeyedMutator } from 'swr';
 import { useRoom } from '../../hooks/useRoom';
@@ -198,7 +198,7 @@ function RoomInvitation({ room_invitation_string }: { room_invitation_string: st
 function Chat({ roomInfo, close }: { roomInfo: i_room; close: () => void }) {
 	const [isFold, setIsFold] = useState(false);
 	const [chatInput, setChatInput] = useState('');
-	const { me } = useMe();
+	const { me }: { me: i_me } = useMe();
 	const { isLoading, data: messages, error, mutate } = useCustomSWR(`/rooms/${roomInfo.id}/message`);
 	const { isConnected, socket } = useSocketContext();
 	const lastMessageRef = useRef<HTMLLIElement>(null);
@@ -206,7 +206,9 @@ function Chat({ roomInfo, close }: { roomInfo: i_room; close: () => void }) {
 	useEffect(() => {
 		if (!isConnected) return;
 		socket.on(`chat/newMessage/${roomInfo.id}`, (newMessage) => {
-			mutate([...messages, newMessage]);
+			if (!me.blocked.some((b: i_blocked) => b.userB.id === newMessage.author.user.id)) {
+				mutate([...messages, newMessage]);
+			}
 		});
 		return () => {
 			socket.off(`chat/newMessage/${roomInfo.id}`);

@@ -3,6 +3,7 @@ import { e_member_role, e_room_access } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { i_blocked } from './interface/Blocked';
 
 @Injectable()
 export class PrismaRoomService {
@@ -287,10 +288,17 @@ export class PrismaRoomService {
 	}
 
 	// Get all messages
-	async getAllMessages(room_id: number) {
+	async getAllMessages(blocked: i_blocked[], room_id: number) {
 		return await this.prisma.message.findMany({
 			where: {
 				room_id: room_id,
+				author: {
+					user: {
+						id: {
+							notIn: blocked.map((user) => user.userB.id),
+						},
+					},
+				},
 			},
 			select: {
 				id: true,

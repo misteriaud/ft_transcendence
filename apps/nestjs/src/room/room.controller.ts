@@ -7,6 +7,7 @@ import { RoomService } from './room.service';
 import { GetInvitation, GetMember, GetMessage, GetRoom } from './decorator';
 import { GetInvitationGuard, GetMemberGuard, GetMessageGuard, GetRoomGuard, HierarchyGuard, MessageAuthorGuard, RoomAdminGuard, RoomAdminOrMessageAuthorGuard, RoomMemberGuard, RoomOwnerGuard } from './guard';
 import { ApiTags } from '@nestjs/swagger';
+import { i_blocked } from './interface/Blocked';
 
 @ApiTags('rooms')
 @UseGuards(JWTGuard)
@@ -166,8 +167,8 @@ export class RoomController {
 	// Get all messages
 	@UseGuards(RoomMemberGuard, GetRoomGuard)
 	@Get(':id/message')
-	getAllMessages(@GetRoom('id') room_id: number) {
-		return this.roomService.getAllMessages(room_id);
+	getAllMessages(@GetUser('blocked') blocked: i_blocked[], @GetRoom('id') room_id: number) {
+		return this.roomService.getAllMessages(blocked, room_id);
 	}
 
 	// Edit a message
