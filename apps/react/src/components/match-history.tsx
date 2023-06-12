@@ -99,14 +99,14 @@ function MatchHistoryTableBody({ login42 }: { login42: string }) {
 							value={
 								m.state === e_match_state.ABANDONED
 									? 'Interrupted'
-									: (user.id === m.playedBy[0].id && m.score1 >= 11) || (user.id === m.playedBy[1].id && m.score2 >= 11)
+									: (user.id === m.playedBy[0].id && m.score1 > m.score2) || (user.id === m.playedBy[1].id && m.score2 > m.score1)
 									? 'Win'
 									: 'Lose'
 							}
 							color={
 								m.state === e_match_state.ABANDONED
 									? 'amber'
-									: (user.id === m.playedBy[0].id && m.score1 >= 11) || (user.id === m.playedBy[1].id && m.score2 >= 11)
+									: (user.id === m.playedBy[0].id && m.score1 > m.score2) || (user.id === m.playedBy[1].id && m.score2 > m.score1)
 									? 'green'
 									: 'red'
 							}
@@ -134,7 +134,23 @@ function MatchHistoryTableBody({ login42 }: { login42: string }) {
 		);
 	}
 
-	return <tbody>{rows}</tbody>;
+	if (rows.length === 0) {
+		return (
+			<tbody>
+				<tr>
+					<td colSpan={5}>
+						<div className="flex justify-center items-center p-8">
+							<Typography variant="small" color="blue-gray" className="font-normal">
+								This user hasn't played any games yet...
+							</Typography>
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		);
+	} else {
+		return <tbody>{rows}</tbody>;
+	}
 }
 
 export function MatchHistory({ login42 }: { login42: string }) {
