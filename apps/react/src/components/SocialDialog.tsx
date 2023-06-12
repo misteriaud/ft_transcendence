@@ -21,6 +21,8 @@ import { i_me } from './interfaces';
 import { useMe } from '../hooks/useUser';
 import { KeyedMutator } from 'swr';
 import { User } from './user';
+import { useNotifyError, useNotifySuccess } from '../hooks/notifications';
+import { useApi } from '../hooks/useApi';
 
 /* ////////////////////// Component navigation bar  ////////////////////// */
 
@@ -115,7 +117,7 @@ function UserBlock({ login42, handleCheck, handleCross }: { login42: string; han
 			<div className="flex ml-auto mr-2 gap-2">
 				{handleCheck && (
 					<IconButton variant="text" onClick={handleCheck} className="h-5 w-5 text-inherit hover:bg-transparent focus:bg-transparent" ripple={false}>
-						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-5 h-5">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
 							<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
 						</svg>
 					</IconButton>
@@ -132,7 +134,7 @@ function UserBlock({ login42, handleCheck, handleCross }: { login42: string; han
 
 /* ////////////////////// CSS Tabs components ////////////////////// */
 
-function BlockedTab({ me }: { me: i_me }) {
+function BlockedTab({ me, handleUnblock }: { me: i_me; handleUnblock: any }) {
 	return (
 		<Tabs value="Blocked">
 			<TabsHeader className="mx-auto max-w-xs">
@@ -147,8 +149,8 @@ function BlockedTab({ me }: { me: i_me }) {
 				<TabPanel key="Blocked" value="Blocked">
 					<ul>
 						{me.blocked.map((users) => {
-							const { login42 } = users.userB;
-							return <UserBlock key={login42} handleCheck={null} handleCross={() => console.log('deleted')} login42={login42} />;
+							const { login42, username } = users.userB;
+							return <UserBlock key={login42} handleCheck={null} handleCross={() => handleUnblock(login42, username)} login42={login42} />;
 						})}
 					</ul>
 				</TabPanel>
@@ -165,7 +167,7 @@ function BlockedTab({ me }: { me: i_me }) {
 	);
 }
 
-function RequestsTab({ me }: { me: i_me }) {
+function RequestsTab({ me, handleAccept, handleCancel, handleReject }: { me: i_me; handleAccept: any; handleReject: any; handleCancel: any }) {
 	return (
 		<Tabs value="Sent">
 			<TabsHeader className="mx-auto max-w-xs">
@@ -180,16 +182,23 @@ function RequestsTab({ me }: { me: i_me }) {
 				<TabPanel key="Sent" value="Sent">
 					<ul>
 						{me.friendRequestsSent.map((users) => {
-							const { login42 } = users.userB;
-							return <UserBlock key={login42} handleCheck={null} handleCross={() => console.log('deleted')} login42={login42} />;
+							const { login42, username } = users.userB;
+							return <UserBlock key={login42} handleCheck={null} handleCross={() => handleCancel(login42, username)} login42={login42} />;
 						})}
 					</ul>
 				</TabPanel>
 				<TabPanel key="Received" value="Received">
 					<ul>
 						{me.friendRequestsReceived.map((users) => {
-							const { login42 } = users.userA;
-							return <UserBlock key={login42} handleCheck={() => console.log('checked')} handleCross={() => console.log('deleted')} login42={login42} />;
+							const { login42, username } = users.userA;
+							return (
+								<UserBlock
+									key={login42}
+									handleCheck={() => handleAccept(login42, username)}
+									handleCross={() => handleReject(login42, username)}
+									login42={login42}
+								/>
+							);
 						})}
 					</ul>
 				</TabPanel>
@@ -198,12 +207,14 @@ function RequestsTab({ me }: { me: i_me }) {
 	);
 }
 
-function FriendsTab({ me }: { me: i_me }) {
+function FriendsTab({ me, handleRemoveFriend }: { me: i_me; handleRemoveFriend: any }) {
 	return (
 		<ul>
 			{me.friends.map((users) => {
-				const { login42 } = users.userB;
-				return <UserBlock key={login42} handleCheck={null} handleCross={() => console.log('deleted')} login42={login42} />;
+				const { login42, username } = users.userB;
+				console.log('login: ' + login42);
+				console.log('user: ' + username);
+				return <UserBlock key={login42} handleCheck={null} handleCross={() => handleRemoveFriend(login42, username)} login42={login42} />;
 			})}
 		</ul>
 	);
@@ -216,10 +227,73 @@ type BarStatus = 'Friends' | 'Requests' | 'Blocked';
 export function SocialDialog({ dialogStatus, dialogHandler }: any) {
 	const [navTabName, setNavTabName] = useState<BarStatus>('Friends');
 	const { me, mutate: mutateMe, isLoading: isLoadingMe, error: errorMe }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
+	const notifySuccess = useNotifySuccess();
+	const notifyError = useNotifyError();
+	const api = useApi();
 
 	const handleTabClick = (value: BarStatus) => {
 		if (value !== navTabName) setNavTabName(value);
 	};
+
+	async function handleCancelFriendRequest(login42: string, username: string) {
+		await api
+			.delete(`/users/${login42}/friend/request`)
+			.then(() => {
+				mutateMe();
+				notifySuccess(`Friend request sent to ${username} has been cancelled.`);
+			})
+			.catch(() => {
+				notifyError();
+			});
+	}
+
+	async function handleAcceptFriendRequest(login42: string, username: string) {
+		await api
+			.post(`/users/${login42}/friend/response`)
+			.then(() => {
+				mutateMe();
+				notifySuccess(`${username}'s friend request has been accepted.`);
+			})
+			.catch(() => {
+				notifyError();
+			});
+	}
+
+	async function handleRejectFriendRequest(login42: string, username: string) {
+		await api
+			.delete(`/users/${login42}/friend/response`)
+			.then(() => {
+				mutateMe();
+				notifySuccess(`${username}'s friend request has been rejected.`);
+			})
+			.catch(() => {
+				notifyError();
+			});
+	}
+
+	async function handleRemoveFriend(login42: string, username: string) {
+		await api
+			.delete(`/users/${login42}/friend`)
+			.then(() => {
+				mutateMe();
+				notifySuccess(`${username} has been removed from friends.`);
+			})
+			.catch(() => {
+				notifyError();
+			});
+	}
+
+	async function handleUnblock(login42: string, username: string) {
+		await api
+			.delete(`/users/${login42}/block`)
+			.then(() => {
+				mutateMe();
+				notifySuccess(`${username} has been unblocked`);
+			})
+			.catch(() => {
+				notifyError();
+			});
+	}
 
 	if (isLoadingMe) {
 		return (
@@ -259,9 +333,11 @@ export function SocialDialog({ dialogStatus, dialogHandler }: any) {
 			</div>
 			<DialogBody className="max-h-[25rem] min-h-[25rem] overflow-y-auto p-0">
 				<SocialDialogNavBar handleTabClick={handleTabClick} />
-				{navTabName === 'Friends' && <FriendsTab me={me} />}
-				{navTabName === 'Requests' && <RequestsTab me={me} />}
-				{navTabName === 'Blocked' && <BlockedTab me={me} />}
+				{navTabName === 'Friends' && <FriendsTab me={me} handleRemoveFriend={handleRemoveFriend} />}
+				{navTabName === 'Requests' && (
+					<RequestsTab me={me} handleAccept={handleAcceptFriendRequest} handleCancel={handleCancelFriendRequest} handleReject={handleRejectFriendRequest} />
+				)}
+				{navTabName === 'Blocked' && <BlockedTab me={me} handleUnblock={handleUnblock} />}
 			</DialogBody>
 			<DialogFooter className="bg-gray-300">
 				<Button variant="gradient" color="gray" onClick={dialogHandler} size="sm" className="2xl:invisible">
