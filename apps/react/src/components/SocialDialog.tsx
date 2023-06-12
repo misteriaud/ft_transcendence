@@ -113,7 +113,7 @@ function SocialDialogNavBar({ handleTabClick }: { handleTabClick: (tab: BarStatu
 function UserBlock({ login42, handleCheck, handleCross }: { login42: string; handleCheck: null | (() => void); handleCross: null | (() => void) }) {
 	return (
 		<div className="relative mb-2 bg-white p-2 flex max-w-lg mx-auto items-center rounded-xl shadow-lg w-full">
-			<User className="w-full" login42={login42} />
+			<User login42={login42} className="grow" />
 			<div className="flex ml-auto mr-2 gap-2">
 				{handleCheck && (
 					<IconButton variant="text" onClick={handleCheck} className="h-5 w-5 text-inherit hover:bg-transparent focus:bg-transparent" ripple={false}>

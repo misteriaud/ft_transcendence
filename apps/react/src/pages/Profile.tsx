@@ -5,6 +5,7 @@ import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 import { useUser } from '../hooks/useUser';
 import { e_match_state, i_user } from '../components/interfaces';
 import { MatchHistory } from '../components/match-history';
+import { User } from '../components/user';
 
 function CarouselUserData({ user }: { user: i_user }) {
 	const formattedDate = new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' });
@@ -12,8 +13,9 @@ function CarouselUserData({ user }: { user: i_user }) {
 		<div className="absolute inset-0 grid h-full w-full place-items-center bg-blue-500 ">
 			<div>
 				<div className="flex gap-8">
-					<div className="rounded-full bg-gray-800 h-48 w-48 border-4 border-gray-800">
-						<img src={user.avatar} className="rounded-full h-full w-full object-cover" alt="user-img" />
+					<div className="rounded-full h-48 w-48 ">
+						<User login42={user.login42} size="xxl" ignoreHoverStyle={true} className="h-full w-full object-cover" />
+						{/* <img src={user.avatar} className="rounded-full h-full w-full object-cover" alt="user-img" /> */}
 					</div>
 					<div className="flex flex-col items-center justify-center w-60">
 						<Typography variant="h4" className="mt-8 truncate max-w-full text-white">

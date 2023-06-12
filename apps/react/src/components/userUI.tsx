@@ -54,9 +54,9 @@ export const UserUI = forwardRef((props: any, ref: any) => {
 			{...otherProps}
 		>
 			<Badge overlap="circular" placement="bottom-end" color={color}>
-				<Avatar variant="circular" alt={username} src={`${avatar}?t=${Date.now()}`} size={size} className="min-w-" />
+				<Avatar variant="circular" alt={username} src={`${avatar}?t=${Date.now()}`} size={size} className={size === 'xxl' ? 'h-48 w-48' : ''} />
 			</Badge>
-			{size !== 'xs' && <p className="text-sm p-2 truncate">{username}</p>}
+			{size !== 'xs' && size !== 'xxl' && <p className="text-sm p-2 truncate">{username}</p>}
 		</div>
 	);
 });
