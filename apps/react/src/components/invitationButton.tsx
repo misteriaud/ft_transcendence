@@ -1,38 +1,15 @@
-import React, { useState, Fragment, useEffect, useRef, useContext } from 'react';
-import {
-	Button,
-	Dialog,
-	DialogHeader,
-	DialogBody,
-	DialogFooter,
-	Select,
-	Option,
-	Switch,
-	Spinner,
-	IconButton,
-	Menu,
-	MenuHandler,
-	MenuList,
-	MenuItem,
-	Badge
-} from '@material-tailwind/react';
+import { useState, useEffect } from 'react';
+import { IconButton, Menu, MenuHandler, MenuList, MenuItem, Badge } from '@material-tailwind/react';
 import { BellAlertIcon, BellIcon, BoltIcon, XMarkIcon } from '@heroicons/react/24/solid';
-import { usePresenceContext, useSocketContext } from '../hooks/useContext';
-import { format } from 'date-fns';
-import { NavigateOptions, useNavigate } from 'react-router-dom';
-import { ObservableContext, ObservableNotification } from '../context/storeProvider';
 import { User } from './user';
-import { useMe } from '../hooks/useUser';
 import { e_invitation } from './interfaces';
+import { useSocketContext } from '../hooks/useContext';
 //import { useMe } from '../hooks/useUser';
 
 export function InvitationButton() {
-	const navigate = useNavigate();
 	const { isConnected, socket } = useSocketContext();
 	const [open, setOpen] = useState(false);
-	const [loading, setLoading] = useState(false);
 	const [invitations, setInvitations] = useState<e_invitation[]>([]);
-	const { me } = useMe();
 
 	useEffect(() => {
 		if (!isConnected) return;

@@ -54,8 +54,8 @@ export class BaseWebsocketGateway {
 	}
 
 	async handleDisconnect(client: Socket) {
-		this.updateUserStatus(client.data.user.id, e_user_status.OFFLINE);
-		console.log(client.data.user.login42, 'disconnect');
+		this.updateUserStatus(client.data.user?.id, e_user_status.OFFLINE);
+		console.log(client.data.user?.login42, 'disconnect');
 	}
 
 	async updateUserStatus(userId: number, status: e_user_status) {
@@ -64,9 +64,11 @@ export class BaseWebsocketGateway {
 		if (status === e_user_status.OFFLINE) BaseWebsocketGateway.status.delete(userId);
 		else BaseWebsocketGateway.status.set(userId, status);
 
-		this.server.emit('presence/update', {
-			id: userId,
-			status,
-		});
+		this.server.emit('presence/init', Array.from(BaseWebsocketGateway.status));
+		// this.server.emit('presence/update', {
+		// 	id: userId,
+		// 	status,
+		// });
+		// console.log()
 	}
 }

@@ -148,8 +148,6 @@ const Pong = () => {
 	useEffect(() => {
 		if (isConnected) {
 			socket.on('pong/gameState', (gameState: GameState) => {
-				console.log(gameState);
-				setIsReady(true);
 				gameState.lastUpdate = Date.now();
 				setGameState(gameState);
 			});
@@ -201,6 +199,7 @@ const Pong = () => {
 	// Render
 	return (
 		<div className="flex justify-center items-center h-full bg-black w-full">
+			{isReady && !gameState && <Spinner className="absolute w-16 h-16" />}
 			{!isReady ? (
 				<Button color="blue" className="z-50" onClick={handleReadyClick}>
 					Ready

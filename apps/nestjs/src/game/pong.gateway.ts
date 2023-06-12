@@ -199,20 +199,21 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 
 	async handleConnection(client: Socket) {
 		await super.handleConnection(client);
-		this.currentGame.forEach((game: GameState) => {
-			if (game.players.some((player) => player.id === client.data.user.id)) {
-				this.handlePongReady(client, { gameId: game.id, isReady: true });
-				// client.join(`pong:${game.id}`);
-				// client.data.gameIndex = index;
-			}
-		});
+		// this.currentGame.forEach((game: GameState, index) => {
+		// 	if (game.players.some((player) => player.id === client.data.user.id)) {
+		// 		this.setPlayerReady(game, client.data.user.id, true);
+		// 		this.handlePongReady(client, { gameId: game.id, isReady: true });
+		// 		// client.join(`pong:${game.id}`);
+		// 		// client.data.gameIndex = index;
+		// 	}
+		// });
 	}
 
 	@UsePipes(new ValidationPipe())
 	async handleDisconnect(client: Socket) {
 		await super.handleDisconnect(client);
 
-		this.cleanInvitation(client.data.user.id);
+		this.cleanInvitation(client.data.user?.id);
 
 		const gameIndex = client.data.gameIndex;
 		if (gameIndex === undefined) {
@@ -233,8 +234,6 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		});
 		if (this.waitingPlayer[0] === userId) this.waitingPlayer[0] = null;
 		if (this.waitingPlayer[1] === userId) this.waitingPlayer[1] = null;
-		console.log(this.waitingInvitation);
-		console.log(this.waitingPlayer);
 	}
 
 	/**
@@ -276,6 +275,15 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		}
 	}
 
+	@SubscribeMessage('pong/acceptInvite')
+	handlePongAcceptInvite(client: Socket, invitationId: string) {
+		const index = this.waitingInvitation.findIndex((invitation) => invitation.id === invitationId);
+		if (index !== -1) {
+			this.createGame(this.waitingInvitation[index].mode, this.waitingInvitation[index].player1id, this.waitingInvitation[index].player2id);
+			this.waitingInvitation.splice(index);
+		}
+	}
+
 	@SubscribeMessage('pong/cancelInvite')
 	handlePongCancelInvite(client: Socket, invitationId?: string) {
 		if (!invitationId) {
@@ -288,15 +296,6 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		const invitation = this.waitingInvitation[index];
 		this.server.to([invitation.player1id.toString(), invitation.player2id.toString()]).emit('pong/invitationCanceled', invitation);
 		this.waitingInvitation.splice(index);
-	}
-
-	@SubscribeMessage('pong/acceptInvite')
-	handlePongAcceptInvite(client: Socket, invitationId: string) {
-		const index = this.waitingInvitation.findIndex((invitation) => invitation.id === invitationId);
-		if (index !== -1) {
-			this.createGame(this.waitingInvitation[index].mode, this.waitingInvitation[index].player1id, this.waitingInvitation[index].player2id);
-			this.waitingInvitation.splice(index);
-		}
 	}
 
 	/**
@@ -314,7 +313,6 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 	@UsePipes(new ValidationPipe())
 	@SubscribeMessage('pong/ready')
 	handlePongReady(client: Socket, { gameId, isReady }: { gameId: string; isReady: boolean }) {
-		console.log('Player ready');
 		const gameIndex = this.currentGame.findIndex((game) => game.id === gameId);
 
 		if (client.data.gameIndex && client.data.gameIndex !== gameIndex) {
@@ -331,9 +329,11 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 			return;
 		}
 
-		client.data.gameIndex = gameIndex;
+		if (isReady) {
+			client.data.gameIndex = gameIndex;
+			client.join(`pong:${game.id}`);
+		}
 		this.setPlayerReady(game, client.data.user.id, isReady);
-		client.join(`pong:${game.id}`);
 	}
 
 	setPlayerReady(game: GameState, userId: number, state: boolean) {
@@ -342,11 +342,14 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		game.players[index].ready = state;
 
 		console.log(game.status, `is ready: ${state}`);
+		if (game.status === GameStatus.INPROGRESS) {
+			this.updateUserStatus(userId, state ? e_user_status.INGAME : e_user_status.ONLINE);
+		}
 		if (game.status === GameStatus.PREPARATION && game.allReady()) {
 			console.log('start game');
 			this.startGame(game);
 		}
-		if (game.status === GameStatus.INPROGRESS && game.players.every((player: Player) => !player.ready)) {
+		if (!state && game.status === GameStatus.INPROGRESS && game.players.every((player: Player) => !player.ready)) {
 			this.endGame(game, GameStatus.ABANDONED);
 		}
 	}

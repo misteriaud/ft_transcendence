@@ -1,12 +1,13 @@
 import React, { useState, Fragment, useEffect, useRef, useContext } from 'react';
 import { Button, Dialog, DialogHeader, DialogBody, DialogFooter, Select, Option, Switch, Spinner } from '@material-tailwind/react';
 import { XMarkIcon } from '@heroicons/react/24/solid';
-import { useNotificationContext, usePresenceContext, useSocketContext } from '../hooks/useContext';
+import { getStatus, useNotificationContext, usePresenceContext, useSocketContext } from '../hooks/useContext';
 import { format } from 'date-fns';
 import { NavigateOptions, useNavigate } from 'react-router-dom';
 import { ObservableContext, ObservableNotification } from '../context/storeProvider';
 import { User } from './user';
 import { useMe } from '../hooks/useUser';
+import { e_user_status, i_me } from './interfaces';
 //import { useMe } from '../hooks/useUser';
 
 interface i_invitation {
@@ -27,7 +28,7 @@ export function GameButton() {
 	});
 	const subject = useContext(ObservableContext);
 	const { onlineIds } = usePresenceContext();
-	const { me } = useMe();
+	const { me }: { me: i_me } = useMe();
 	const { notify } = useNotificationContext();
 
 	useEffect(() => {
@@ -41,18 +42,26 @@ export function GameButton() {
 			navigate(`/dashboard/pong/${gameId}`);
 		});
 
-		socket.on('pong/invitationCanceled', (invitation) => {
-			if (invitation.player1id !== me.id) return;
+		return () => {
+			socket.off('pong/newGame');
+		};
+	}, [socket, isConnected, navigate]);
+
+	useEffect(() => {
+		if (!isConnected) return;
+		socket.on('pong/invitationCanceled', (cancelledInvitation) => {
+			if (cancelledInvitation.player1id !== me.id || !invitation.id) return;
 			notify({ elem: <h1>Your invitation has been refused</h1>, color: 'red' });
 			setLoading(false);
 			setTimer(0);
+			setInvitation((invit) => {
+				return { ...invit, id: undefined };
+			});
 		});
-
 		return () => {
-			socket.off('pong/newGame');
 			socket.off('pong/invitationCanceled');
 		};
-	}, [socket, isConnected, navigate]);
+	}, [socket, isConnected, invitation, setInvitation]);
 
 	useEffect(() => {
 		const subscription = subject.subscribe((notificationData: ObservableNotification) => {
@@ -135,6 +144,7 @@ export function GameButton() {
 		setLoading(false);
 		setTimer(0);
 		socket.emit('pong/cancelInvite', invitation.id);
+		setInvitation({ ...invitation, id: undefined });
 	};
 
 	const timerDate = new Date(timer * 1000);
@@ -151,7 +161,7 @@ export function GameButton() {
 					'Play Game'
 				)}
 			</Button>
-			<Dialog open={open} handler={handleOpen}>
+			<Dialog open={open && getStatus(me.id) !== e_user_status.INGAME} handler={handleOpen}>
 				<div className="flex items-center justify-between">
 					<DialogHeader>Play Pong</DialogHeader>
 					<XMarkIcon className="mr-3 h-5 w-5" onClick={handleOpen} />

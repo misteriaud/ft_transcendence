@@ -115,6 +115,8 @@ export class UserService {
 			await this.prismaUser.deleteFriendRequest(other_id, user_id);
 		}
 		if (await this.prismaUser.getFriend(user_id, other_id)) {
+			const { room_id } = await this.prismaUser.getFriend(user_id, other_id);
+			await this.prismaRoom.delete(room_id);
 			await this.prismaUser.deleteFriend(user_id, other_id);
 			await this.prismaUser.deleteFriend(other_id, user_id);
 		}
