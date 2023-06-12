@@ -75,7 +75,6 @@ export function InvitationButton() {
 					>
 						<User
 							login42={invitation.player1id.toString()}
-							size="xs"
 							onClick={() => {
 								return;
 							}}
@@ -84,7 +83,6 @@ export function InvitationButton() {
 						<BoltIcon className="w-5 h-5" />
 						<User
 							login42={invitation.player2id.toString()}
-							size="xs"
 							onClick={() => {
 								return;
 							}}

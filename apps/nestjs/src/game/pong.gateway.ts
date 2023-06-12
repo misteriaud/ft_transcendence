@@ -232,6 +232,10 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 				this.waitingInvitation.splice(index);
 			}
 		});
+		this.cleanQueueInvitation(userId);
+	}
+
+	cleanQueueInvitation(userId: number) {
 		if (this.waitingPlayer[0] === userId) this.waitingPlayer[0] = null;
 		if (this.waitingPlayer[1] === userId) this.waitingPlayer[1] = null;
 	}
@@ -244,13 +248,12 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 	handlePongInvite(client: Socket, { player2id, mode }: { player2id?: number; mode: GameMode }) {
 		if (player2id) {
 			const index = this.waitingInvitation.findIndex((invitation) => invitation.player1id === player2id && invitation.player2id === client.data.user.id);
-			// si une invitation inverse existe deja
-			if (index !== -1) {
-				this.createGame(this.waitingInvitation[index].mode, this.waitingInvitation[index].player1id, this.waitingInvitation[index].player2id);
-				this.waitingInvitation.splice(index);
-			}
+			// if (index !== -1) {
+			// 	this.createGame(this.waitingInvitation[index].mode, this.waitingInvitation[index].player1id, this.waitingInvitation[index].player2id);
+			// 	this.waitingInvitation.splice(index);
+			// }
 			// si aucune invitation inverse existe
-			else {
+			if (index === -1) {
 				const invitation = {
 					id: nanoid(),
 					player1id: client.data.user.id,
@@ -260,6 +263,10 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 				this.waitingInvitation.push(invitation);
 				this.server.to(player2id.toString()).emit('pong/invitation', invitation);
 				return invitation.id;
+			}
+			// si une invitation inverse existe deja
+			else {
+				this.handlePongAcceptInvite(client, this.waitingInvitation[index].id);
 			}
 		} else {
 			console.log('invite random');
@@ -278,19 +285,17 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 	@SubscribeMessage('pong/acceptInvite')
 	handlePongAcceptInvite(client: Socket, invitationId: string) {
 		const index = this.waitingInvitation.findIndex((invitation) => invitation.id === invitationId);
-		if (index !== -1) {
-			this.createGame(this.waitingInvitation[index].mode, this.waitingInvitation[index].player1id, this.waitingInvitation[index].player2id);
-			this.waitingInvitation.splice(index);
-		}
+		if (index === -1) return;
+		const invitation = this.waitingInvitation[index];
+		this.createGame(invitation.mode, invitation.player1id, invitation.player2id);
+		this.waitingInvitation.splice(index);
+		this.cleanQueueInvitation(invitation.player1id);
+		this.cleanQueueInvitation(invitation.player2id);
 	}
 
 	@SubscribeMessage('pong/cancelInvite')
 	handlePongCancelInvite(client: Socket, invitationId?: string) {
-		if (!invitationId) {
-			if (this.waitingPlayer[0] === client.data.user.id) this.waitingPlayer[0] = null;
-			if (this.waitingPlayer[1] === client.data.user.id) this.waitingPlayer[1] = null;
-			return;
-		}
+		if (!invitationId) return this.cleanQueueInvitation(client.data.user.id);
 		const index = this.waitingInvitation.findIndex((invitation) => invitation.id === invitationId);
 		if (index === -1) return;
 		const invitation = this.waitingInvitation[index];

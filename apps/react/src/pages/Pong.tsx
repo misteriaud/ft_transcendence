@@ -146,24 +146,23 @@ const Pong = () => {
 	}, [resultData]);
 
 	useEffect(() => {
-		if (isConnected) {
-			socket.on('pong/gameState', (gameState: GameState) => {
-				gameState.lastUpdate = Date.now();
-				setGameState(gameState);
-			});
+		if (!isConnected) return;
+		socket.on('pong/gameState', (gameState: GameState) => {
+			gameState.lastUpdate = Date.now();
+			setGameState(gameState);
+		});
 
-			socket.on('pong/gameEnded', () => {
-				setIsReady(false);
-				mutateResult(resultData);
-				navigate(`result`);
-			});
+		socket.on('pong/gameEnded', () => {
+			setIsReady(false);
+			mutateResult(resultData);
+			navigate(`result`);
+		});
 
-			return () => {
-				socket.emit('pong/ready', { gameId, isReady: false });
-				socket.off('pong/gameState');
-				socket.off('pong/gameEnded');
-			};
-		}
+		return () => {
+			socket.emit('pong/ready', { gameId, isReady: false });
+			socket.off('pong/gameState');
+			socket.off('pong/gameEnded');
+		};
 	}, [isConnected, socket]);
 
 	useEffect(() => {

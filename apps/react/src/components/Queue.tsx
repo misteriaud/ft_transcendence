@@ -8,7 +8,7 @@ import { ObservableContext, ObservableNotification } from '../context/storeProvi
 import { User } from './user';
 import { useMe } from '../hooks/useUser';
 import { e_user_status, i_me } from './interfaces';
-//import { useMe } from '../hooks/useUser';
+import { useMatch } from 'react-router-dom';
 
 interface i_invitation {
 	id?: string;
@@ -30,6 +30,7 @@ export function GameButton() {
 	const { onlineIds } = usePresenceContext();
 	const { me }: { me: i_me } = useMe();
 	const { notify } = useNotificationContext();
+	const isPongRoute = useMatch('/dashboard/pong/:id');
 
 	useEffect(() => {
 		if (!isConnected) return;
@@ -161,7 +162,7 @@ export function GameButton() {
 					'Play Game'
 				)}
 			</Button>
-			<Dialog open={open && getStatus(me.id) !== e_user_status.INGAME} handler={handleOpen}>
+			<Dialog open={open && getStatus(me.id) !== e_user_status.INGAME && !isPongRoute} handler={handleOpen}>
 				<div className="flex items-center justify-between">
 					<DialogHeader>Play Pong</DialogHeader>
 					<XMarkIcon className="mr-3 h-5 w-5" onClick={handleOpen} />
