@@ -101,8 +101,8 @@ function CreateRoom({ open, handleOpen }: { open: boolean; handleOpen: () => voi
 					<Input value={name} onChange={(e) => setName(e.target.value)} label="name"></Input>
 					{access == 'PROTECTED' && <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} label="password"></Input>}
 				</DialogBody>
-				<DialogFooter className="flex flex-row justify-center">
-					<Button variant="text" color="red" onClick={handleOpen} className="mr-1">
+				<DialogFooter className="flex flex-row justify-center gap-2">
+					<Button variant="text" color="red" onClick={handleOpen}>
 						<span>Cancel</span>
 					</Button>
 					<Button variant="gradient" color="green" onClick={submit}>
@@ -230,7 +230,7 @@ function Chat({ roomInfo, close }: { roomInfo: i_room; close: () => void }) {
 	if (error) return <h1>Something went wrong</h1>;
 
 	return (
-		<li className="self-end flex flex-col justify-content w-56 max-h-80 mr-2 border-2 bg-gray-100 bg-opacity-80 border-black/20 shadow-lg overflow-hidden rounded-t-lg backdrop-blur-sm  transition-all duration-500">
+		<li className="self-end flex flex-col justify-content w-56 max-h-80 mr-2 border-2 bg-gray-300 border-black/20 shadow-lg overflow-hidden rounded-t-lg backdrop-blur-sm  transition-all duration-500">
 			<div className="flex justify-around items-center px-2 py-1 bg-black bg-opacity-5 cursor-pointer hover:bg-opacity-10" onClick={() => setIsFold(!isFold)}>
 				<RoomInfo room={roomInfo} onClick={() => setIsFold(!isFold)} />
 				{close && (
@@ -243,17 +243,20 @@ function Chat({ roomInfo, close }: { roomInfo: i_room; close: () => void }) {
 				<div className="flex-shrink min-h-0 overflow-scroll flex flex-col">
 					<ul className="overflow-scroll pt-2 flex flex-col pr-2">
 						{messages.map((message: Message) => (
-							<li key={message.id} className={`self-${message.author.user.id == me.id ? 'end' : 'start'} m-1 flex gap-2`}>
-								<User room_id={roomInfo.id} login42={message.author.user.login42} size="xs" ignoreHoverStyle={true} />
+							<li key={message.id} className={`self-${message.author.user.id == me.id ? 'end justify-end' : 'start justify-start'} m-1 flex gap-2 w-9/12`}>
 								<div className="flex flex-col items-end">
-									<p className="shrink select-none text-gray-700 text-xs opacity-70 flex gap-1">
+									<p className={`shrink select-none text-gray-700 text-xs opacity-70 flex gap-1 self-${message.author.user.id == me.id ? 'end' : 'start'}`}>
 										<RelativeTimestamp timestamp={message.createdAt} />
 									</p>
-									{message.content.startsWith('[room-invitation]') ? (
-										<RoomInvitation room_invitation_string={message.content} />
-									) : (
-										<p className="flex-shrink min-w-0 rounded-md bg-white bg-opacity-90 px-1 py-0.5 break-all">{message.content}</p>
-									)}
+									<div className={`flex gap-2 self-${message.author.user.id == me.id ? 'end' : 'start'}`}>
+										<User room_id={roomInfo.id} login42={message.author.user.login42} size="xs" ignoreHoverStyle={true} />
+
+										{message.content.startsWith('[room-invitation]') ? (
+											<RoomInvitation room_invitation_string={message.content} />
+										) : (
+											<p className="flex-shrink min-w-0 rounded-md bg-white bg-opacity-90 px-1 py-0.5 break-all">{message.content}</p>
+										)}
+									</div>
 								</div>
 								{/* <li key={message.id} className={`self-${message.author.user.id == me.id ? 'end' : 'start'} m-1 flex flex-col items-end`}> */}
 							</li>

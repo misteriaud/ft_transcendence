@@ -13,10 +13,19 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 		me,
 		user,
 		room_id,
+		menuHandler,
 		dialogHandler,
 		onClick,
 		...otherProps
-	}: { me: i_me; user: i_user; room_id: number; dialogHandler: any; onClick?: (event: React.MouseEvent<HTMLElement>) => void; otherProps?: any } = props;
+	}: {
+		me: i_me;
+		user: i_user;
+		room_id: number;
+		dialogHandler: any;
+		menuHandler: () => void;
+		onClick?: (event: React.MouseEvent<HTMLElement>) => void;
+		otherProps?: any;
+	} = props;
 	const {
 		room,
 		mutate: mutateRoom,
@@ -72,6 +81,7 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
+		menuHandler();
 		await api
 			.put(`/rooms/${room_id}/promote/${user.id}`)
 			.then(() => {
@@ -87,6 +97,7 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
+		menuHandler();
 		await api
 			.put(`/rooms/${room_id}/demote/${user.id}`)
 			.then(() => {
@@ -102,6 +113,7 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
+		menuHandler();
 		dialogHandler();
 	}
 
@@ -109,6 +121,7 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
+		menuHandler();
 		await api
 			.put(`/rooms/${room_id}/unmute/${user.id}`)
 			.then(() => {
@@ -124,6 +137,7 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
+		menuHandler();
 		await api
 			.delete(`/rooms/${room_id}/kick/${user.id}`)
 			.then(() => {
@@ -139,6 +153,7 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
+		menuHandler();
 		await api
 			.put(`/rooms/${room_id}/ban/${user.id}`)
 			.then(() => {
@@ -154,6 +169,7 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 		if (onClick && e) {
 			onClick(e);
 		}
+		menuHandler();
 		await api
 			.put(`/rooms/${room_id}/unban/${user.id}`)
 			.then(() => {

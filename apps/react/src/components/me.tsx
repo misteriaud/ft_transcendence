@@ -67,7 +67,7 @@ export function Me({ inverse, ignoreHoverStyle, className }: { inverse?: boolean
 			<MenuHandler>
 				<UserUI className={className} username={me.username} avatar={me.avatar} inverse={inverse} ignoreHoverStyle={ignoreHoverStyle} status={status} />
 			</MenuHandler>
-			<MenuList>
+			<MenuList className="z-[10000]">
 				<MenuItem className="flex items-center gap-2" disabled={disableProfile} onClick={handleProfile}>
 					<UserCircleIcon strokeWidth={2} className="h-4 w-4" />
 					<Typography variant="small" className="font-normal">

@@ -173,7 +173,7 @@ export function StoreProvider() {
 				<SocketContext.Provider value={socketRef}>
 					<NotificationContext.Provider value={addAlert}>
 						<PresenceContext.Provider value={presences}>
-							<div className="absolute max-h-[30vh] left-1/2 -translate-x-1/2 flex flex-col-reverse overflow-y-scroll z-[10000]">{alertComp}</div>
+							<div className="absolute max-h-[30vh] left-1/2 -translate-x-1/2 flex flex-col-reverse overflow-y-scroll z-[42000]">{alertComp}</div>
 							{outlet}
 						</PresenceContext.Provider>
 					</NotificationContext.Provider>

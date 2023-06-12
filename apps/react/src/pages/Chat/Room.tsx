@@ -19,36 +19,11 @@ import { User } from '../../components/user';
 import { UserUI } from '../../components/userUI';
 import { Bars3Icon, ChatBubbleOvalLeftEllipsisIcon, EllipsisVerticalIcon, KeyIcon, LockClosedIcon, NoSymbolIcon } from '@heroicons/react/24/outline';
 import { useState, useRef, MutableRefObject, useEffect, useContext } from 'react';
-import { getStatus, useNotificationContext } from '../../hooks/useContext';
+import { useNotificationContext } from '../../hooks/useContext';
+import { MembersDialog } from '../../components/room-members';
 import { i_room } from '../../components/interfaces';
-import { RocketLaunchIcon } from '@heroicons/react/24/solid';
 import { ObservableContext } from '../../context/storeProvider';
-
-function RoomMembers({ room }: { room: i_room }) {
-	const { data, error, isLoading } = useCustomSWR(`/rooms/${room.id}`);
-
-	if (!data || error || isLoading)
-		return (
-			<MenuItem>
-				<Spinner />
-			</MenuItem>
-		);
-
-	return (
-		<Menu placement="left">
-			<MenuHandler>
-				<MenuItem>Members</MenuItem>
-			</MenuHandler>
-			<MenuList className="flex flex-col gap-2">
-				{data.members.map((member: any) => (
-					<MenuItem key={member.user.id} className="flex items-center gap-4 py-1">
-						<User login42={member.user.username} room_id={room.id} ignoreHoverStyle={true} />
-					</MenuItem>
-				))}
-			</MenuList>
-		</Menu>
-	);
-}
+import { RocketLaunchIcon } from '@heroicons/react/24/solid';
 
 export function PassDialog({ open, handleOpen, room, join }: any) {
 	const [pass, setPass] = useState('');
@@ -71,8 +46,8 @@ export function PassDialog({ open, handleOpen, room, join }: any) {
 				<DialogBody divider>
 					<Input type="password" value={pass} onChange={(e) => setPass(e.target.value)} label="password" inputRef={inputRef}></Input>
 				</DialogBody>
-				<DialogFooter>
-					<Button variant="text" color="red" onClick={() => handleOpen(null)} className="mr-1">
+				<DialogFooter className="flex flex-row justify-center gap-2">
+					<Button variant="text" color="red" onClick={() => handleOpen(null)}>
 						<span>Cancel</span>
 					</Button>
 					<Button
@@ -95,10 +70,12 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 	const api = useApi();
 	const { me, mutate } = useMe();
 	const [openJoinPassDial, setOpenJoinPassDial] = useState(false);
+	const [MembersDialogStatus, setMembersDialogStatus] = useState(false);
 	const { notify } = useNotificationContext();
 	const subject = useContext(ObservableContext);
 
 	const handlePassDial = () => setOpenJoinPassDial(!openJoinPassDial);
+	const handleMembersDialog = () => setMembersDialogStatus(!MembersDialogStatus);
 
 	async function joinChat(password?: string) {
 		if (room.access === 'PROTECTED' && !password) {
@@ -152,7 +129,7 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 		const user = roomData.members.find((member: any) => member.user.id != me.id)?.user;
 		return (
 			<div className="flex justify-between w-full items-center">
-				<User room_id={room.id} login42={user.login42} onClick={onClick} ignoreHoverStyle={true} />
+				<User room_id={room.id} login42={user.login42} onClick={onClick} ignoreHoverStyle={true} className="basis-3/5" />
 				<IconButton
 					onClick={(e) => {
 						e.stopPropagation();
@@ -205,7 +182,8 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 				<>
 					<MenuItem onClick={leaveChat}>Leave Room</MenuItem>
 					<hr className="my-1" />
-					<MenuItem>Members</MenuItem>
+					<MenuItem onClick={handleMembersDialog}>Members</MenuItem>
+					<MembersDialog me={me} room_id={room.id} dialogStatus={MembersDialogStatus} dialogHandler={handleMembersDialog} />
 				</>
 			);
 			break;
@@ -215,7 +193,8 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 					<MenuItem>Edit Room</MenuItem>
 					<MenuItem onClick={leaveChat}>Leave Room</MenuItem>
 					<hr className="my-1" />
-					<MenuItem>Members</MenuItem>
+					<MenuItem onClick={handleMembersDialog}>Members</MenuItem>
+					<MembersDialog me={me} room_id={room.id} dialogStatus={MembersDialogStatus} dialogHandler={handleMembersDialog} />
 				</>
 			);
 			break;
