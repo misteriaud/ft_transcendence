@@ -9,6 +9,7 @@ import { Socket } from 'socket.io';
 import { nanoid } from 'nanoid';
 import { PrismaMatchService } from './prismaMatch.service';
 import { e_match_state, e_user_status } from '@prisma/client';
+import { Invitation } from 'src/_gen/prisma-class/invitation';
 
 const CANVAS_HEIGHT = 450;
 const CANVAS_WIDTH = 800;
@@ -202,7 +203,6 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		this.currentGame.forEach((game: GameState) => {
 			if (game.players.some((player) => player.id === client.data.user.id)) {
 				this.handlePongReady(client, { gameId: game.id, isReady: true });
-				this.updateUserStatus(client, e_user_status.INGAME);
 				// client.join(`pong:${game.id}`);
 				// client.data.gameIndex = index;
 			}
@@ -221,6 +221,13 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 
 		const game = this.currentGame[gameIndex];
 		if (game) this.setPlayerReady(game, client.data.user.id, false);
+	}
+
+	function cleanInvitation(userId: number) {
+		this.waitingInvitation.forEach((invitation: Invitation) => {
+			if (invitation.player1id === userId || invitation.player2id === userId)
+		})
+
 	}
 
 	/**
@@ -315,7 +322,6 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 
 		client.data.gameIndex = gameIndex;
 		this.setPlayerReady(game, client.data.user.id, isReady);
-		this.updateUserStatus(client, isReady ? e_user_status.INGAME : e_user_status.ONLINE);
 		client.join(`pong:${game.id}`);
 	}
 
@@ -352,6 +358,8 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 			this.server.to(`pong:${game.id}`).emit('pong/gameState', game);
 		}, 1000 / TIME_DIVISION);
 		game.status = GameStatus.INPROGRESS;
+		this.updateUserStatus(game.players[0].id, e_user_status.INGAME);
+		this.updateUserStatus(game.players[1].id, e_user_status.INGAME);
 	}
 
 	async endGame(game: GameState, status: GameStatus) {
@@ -362,6 +370,8 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 		await this.prismaMatch.create(game.id, game.players[0].id, game.players[1].id, game.players[0].score, game.players[1].score, game.mode === GameMode.NORMAL ? 'NORMAL' : 'HARDCORE', status as e_match_state);
 		const index = this.currentGame.findIndex((tmp) => tmp.id === game.id);
 		this.currentGame.splice(index, 1);
+		this.updateUserStatus(game.players[0].id, e_user_status.ONLINE);
+		this.updateUserStatus(game.players[1].id, e_user_status.ONLINE);
 	}
 
 	@SubscribeMessage('pong/movePaddle')

@@ -47,24 +47,23 @@ export class BaseWebsocketGateway {
 		client.join(payload.id.toString());
 
 		// setting initial presence
-		this.updateUserStatus(client, e_user_status.ONLINE);
+		this.updateUserStatus(client.data.user.id, e_user_status.ONLINE);
 		// sending
 		client.emit('presence/init', Array.from(BaseWebsocketGateway.status));
 	}
 
 	async handleDisconnect(client: Socket) {
-		this.updateUserStatus(client, e_user_status.OFFLINE);
+		this.updateUserStatus(client.data.user.id, e_user_status.OFFLINE);
 	}
 
-	async updateUserStatus(client: Socket, status: e_user_status) {
-		if (!client.data?.user?.id) return;
-		const id = client.data.user.id;
+	async updateUserStatus(userId: number, status: e_user_status) {
+		if (!userId) return;
 
-		if (status === e_user_status.OFFLINE) BaseWebsocketGateway.status.delete(id);
-		else BaseWebsocketGateway.status.set(id, status);
+		if (status === e_user_status.OFFLINE) BaseWebsocketGateway.status.delete(userId);
+		else BaseWebsocketGateway.status.set(userId, status);
 
 		this.server.emit('presence/update', {
-			id: client.data.user.id,
+			id: userId,
 			status,
 		});
 	}
