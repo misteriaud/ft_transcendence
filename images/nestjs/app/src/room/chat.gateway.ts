@@ -14,12 +14,17 @@ export class ChatWebsocketGateway extends BaseWebsocketGateway {
 
 	@SubscribeMessage('chat/postMessage')
 	async handleMessage(@ConnectedSocket() client: Socket, @MessageBody() data: MessagePayload) {
-		if (!client.data.user.memberOf.some((m) => m.room.id === data.roomId && m.room.members.some((member) => member.user_id === client.data.user.id && (new Date(Date.now()) < new Date(member.muted_until) || member.banned === true)))) {
-			const newMessage = await this.prismaRoom.createMessage(data.roomId, client.data.user.id, data.content);
+		try {
 			const roomMembers = await this.prismaRoom.getRoomMembers(data.roomId);
+			const member = roomMembers?.members.find(({ user }) => user.id === client.data.user.id);
+			if (member && !(new Date(Date.now()) < new Date(member.muted_until) || member.banned === true)) {
+				const newMessage = await this.prismaRoom.createMessage(data.roomId, client.data.user.id, data.content);
 
-			// save message in DB
-			this.server.to(roomMembers.members.map((member) => member.user.id.toString())).emit(`chat/newMessage/${data.roomId}`, newMessage);
+				// save message in DB
+				this.server.to(roomMembers.members.map((member) => member.user.id.toString())).emit(`chat/newMessage/${data.roomId}`, newMessage);
+			}
+		} catch (error) {
+			return;
 		}
 	}
 }

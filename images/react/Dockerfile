@@ -27,8 +27,6 @@ RUN apk update && \
 	apk add --no-cache npm nodejs && \
 	npm install --silent
 
-# Build the React application.                                                 #
-RUN npm run build
-
-# Start the React application.                                                 #
-ENTRYPOINT [ "node", "server.mjs" ]
+# Copy and run the react setup (and startup) script.                           #
+COPY tools/react_setup.sh .
+ENTRYPOINT ["/bin/sh", "react_setup.sh"]

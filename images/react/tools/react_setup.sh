@@ -2,7 +2,7 @@
 set -e
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    nestjs_setup.sh                                    :+:      :+:    :+:    #
+#    react_setup.sh                                     :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: spayeur <spayeur@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
@@ -11,17 +11,8 @@ set -e
 #                                                                              #
 # **************************************************************************** #
 
-# Build the NestJS application.
+# Build the React application.
 npm run build
 
-# Wait until the database is up.
-while ! pg_isready --dbname=$DATABASE_URL --quiet
-do
-	sleep 1;
-done
-
-# Perform the initial migration if the database has not been initialized yet.
-npx prisma db push
-
-# Start the NestJS application.
-exec npm run start:prod
+# Start the React application.
+exec node server.mjs

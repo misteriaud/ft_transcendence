@@ -30,9 +30,6 @@ RUN apk update && \
 # Generate Prisma Client                                                       #
 RUN npx prisma generate
 
-# Build the NestJS application.                                                #
-RUN npm run build
-
 # Copy and run the NestJS setup (and startup) script.                          #
 COPY tools/nestjs_setup.sh .
 ENTRYPOINT ["/bin/sh", "nestjs_setup.sh"]
