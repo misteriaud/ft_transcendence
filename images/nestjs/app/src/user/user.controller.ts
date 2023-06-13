@@ -97,7 +97,7 @@ export class UserController {
 	@ApiUnauthorizedResponse({ description: 'Unauthorized' })
 	@ApiForbiddenResponse({ description: 'You have blocked this user | You have been blocked by this user' })
 	@ApiNotFoundResponse({ description: 'User not found' })
-	@UseGuards(BlockedGuard, GetOtherGuard)
+	@UseGuards(GetOtherGuard)
 	@Get(':id')
 	get(@GetOther('id') other_id: number) {
 		return this.userService.get(other_id);

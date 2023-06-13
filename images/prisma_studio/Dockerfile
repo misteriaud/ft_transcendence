@@ -16,14 +16,13 @@ ARG  CODE_VERSION=3.17
 FROM alpine:${CODE_VERSION}
 
 # Set the working directory for the subsequent instructions.                   #
-# WORKDIR /app
+WORKDIR /app
 
-# Update package list from repositories then install npm, nodejs,              #
-# postgresql-client and prisma.                                                #
+# Update package list from repositories then install npm, postgresql-client    #
+# and prisma.                                                                  #
 RUN apk update && \
-	apk add --no-cache npm nodejs postgresql-client && \
-	npm install --global prisma && \
-	apk del npm
+	apk add --no-cache npm postgresql-client && \
+	npm install --global prisma
 
 # Copy and run the Prisma studio setup (and startup) script.                   #
 COPY tools/prisma_studio_setup.sh .

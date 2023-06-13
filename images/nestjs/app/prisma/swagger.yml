@@ -161,19 +161,6 @@ paths:
               examples:
                 base:
                   value: {"statusCode": 401, "message": "Unauthorized"}
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                type: object
-              examples:
-                user_blocked:
-                  summary: User blocked
-                  value: {"statusCode": 403, "message": "You have blocked this user", "error": "Forbidden"}
-                blocked_by_this_user:
-                  summary: Blocked by this user
-                  value: {"statusCode": 403, "message": "You have been blocked by this user", "error": "Forbidden"}
         '404':
           description: Not found
           content:

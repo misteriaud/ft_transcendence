@@ -16,16 +16,19 @@ ARG  CODE_VERSION=3.17
 FROM alpine:${CODE_VERSION}
 
 # Set the working directory for the subsequent instructions.                   #
-# WORKDIR /app
+WORKDIR /app
 
 # Copy the NestJS application.                                                 #
-# COPY app/ .
+COPY app/ .
 
 # Update package list from repositories then install npm, postgresql-client    #
 # and NestJS application dependencies.                                         #
 RUN apk update && \
-	apk add --no-cache npm postgresql-client
-# npm install --silent
+	apk add --no-cache npm postgresql-client && \
+	npm install --silent
+
+# Generate Prisma Client                                                       #
+RUN npx prisma generate
 
 # Copy and run the NestJS setup (and startup) script.                          #
 COPY tools/nestjs_setup.sh .

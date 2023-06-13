@@ -57,7 +57,7 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 	const isMeAdminOfRoom = room.members.some((m: i_member) => m.user.id === me.id && m.role === e_member_role.ADMIN);
 	const isUserOwnerOfRoom = room.members.some((m: i_member) => m.user.id === user.id && m.role === e_member_role.OWNER);
 	const isUserAdminOfRoom = room.members.some((m: i_member) => m.user.id === user.id && m.role === e_member_role.ADMIN);
-	const isUserMuted = room.members.some((m: i_member) => m.user.id === user.id && m.muted === true);
+	const isUserMuted = room.members.some((m: i_member) => m.user.id === user.id && new Date(Date.now()) < new Date(m.muted_until));
 	const isUserBanned = room.members.some((m: i_member) => m.user.id === user.id && m.banned === true);
 
 	const hidePromote = !isMeOwnerOfRoom || isUserAdminOfRoom || isUserBanned || isUserOwnerOfRoom;
