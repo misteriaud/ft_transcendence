@@ -151,9 +151,11 @@ export function GameButton() {
 
 	const timerDate = new Date(timer * 1000);
 
+	const disableDialog = getStatus(me.id) === e_user_status.INGAME || !!isPongRoute;
+
 	return (
 		<Fragment>
-			<Button onClick={handleOpen} variant="gradient">
+			<Button onClick={handleOpen} variant="gradient" disabled={disableDialog}>
 				{loading ? (
 					<div className="flex items-center justify-center">
 						<Spinner className="h-4 w-4" />
@@ -163,7 +165,7 @@ export function GameButton() {
 					'Play Game'
 				)}
 			</Button>
-			<Dialog open={open && getStatus(me.id) !== e_user_status.INGAME && !isPongRoute} handler={handleOpen}>
+			<Dialog open={open && !disableDialog} handler={handleOpen}>
 				<div className="flex items-center justify-between">
 					<DialogHeader>Play Pong</DialogHeader>
 					<XMarkIcon className="mr-3 h-5 w-5" onClick={handleOpen} />

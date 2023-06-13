@@ -9,8 +9,7 @@ import { Profile } from 'passport';
 export class AuthService {
 	constructor(
 		private readonly userService: UserService,
-		private readonly jwtService: JwtService,
-		// private mailService: MailService
+		private readonly jwtService: JwtService, // private mailService: MailService
 	) {}
 
 	async signJWT(payload: i_JWTPayload) {
@@ -19,9 +18,11 @@ export class AuthService {
 
 	async login(profile: Profile) {
 		let user = await this.userService.getMeByLogin42(profile.username);
+		let firstTimeLog = false;
 
 		if (!user) {
 			user = await this.userService.createFromOAuth2(profile);
+			firstTimeLog = true;
 		}
 
 		const jwt = await this.signJWT({
@@ -33,6 +34,7 @@ export class AuthService {
 		return {
 			jwt,
 			authorized: !user.twoFactorEnabled,
+			firstTimeLog,
 		};
 	}
 
@@ -50,7 +52,7 @@ export class AuthService {
 		const user = await this.userService.getMe(userId, true);
 		const { twoFactorSecret } = user;
 
-		if (!authenticator.verify({ token: totp, secret : twoFactorSecret })) {
+		if (!authenticator.verify({ token: totp, secret: twoFactorSecret })) {
 			throw new UnauthorizedException('totp is not good');
 		}
 

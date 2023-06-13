@@ -33,6 +33,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 interface Payload {
 	jwt: string;
 	authorized: boolean;
+	firstTimeLog: boolean;
 }
 
 export const LoginPage = () => {
@@ -57,6 +58,10 @@ export const LoginPage = () => {
 
 	if (loggedIn) {
 		return <Navigate to="/dashboard" />;
+	}
+
+	if (payload?.firstTimeLog) {
+		return <Navigate to={`/dashboard?firstTimeLog=true`} />;
 	}
 
 	if (payload && !payload.authorized) inside = <Totp />;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
 	Avatar,
 	Button,
@@ -36,6 +36,7 @@ import { useMe } from '../hooks/useUser';
 import { useApi } from '../hooks/useApi';
 import './me-settings.css';
 import { useNotifyError, useNotifySuccess } from '../hooks/notifications';
+import { useSearchParams } from 'react-router-dom';
 
 export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 	const { me, mutate } = useMe();
@@ -52,6 +53,12 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 	const notifySuccess = useNotifySuccess();
 	const notifyError = useNotifyError();
 	const api = useApi();
+	const [searchParams, setSearchParams] = useSearchParams();
+
+	useEffect(() => {
+		if (searchParams.get("firstTimeLog") === "true")
+			
+	})
 
 	function handleAvatarUpload(event: any) {
 		const avatar = event.target.files[0];
@@ -283,7 +290,7 @@ export function SettingsDialog({ dialogStatus, dialogHandler }: any) {
 	return (
 		<Dialog
 			className="settings-dialog"
-			open={dialogStatus}
+			open={dialogStatus || searchParams.get('firstTimeLog')}
 			handler={handleCancel}
 			dismiss={{ enabled: state !== 'loading' && state !== 'two-factor-secret' }}
 			animate={{
