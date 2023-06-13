@@ -115,8 +115,7 @@ export class UserService {
 			await this.prismaUser.deleteFriendRequest(other_id, user_id);
 		}
 		if (await this.prismaUser.getFriend(user_id, other_id)) {
-			await this.prismaUser.deleteFriend(user_id, other_id);
-			await this.prismaUser.deleteFriend(other_id, user_id);
+			this.deleteFriend(user_id, other_id);
 		}
 		return await this.prismaUser.createBlocked(user_id, other_id);
 	}

@@ -71,9 +71,7 @@ function SocialDialogNavBar({ handleTabClick }: { handleTabClick: (tab: BarStatu
 	// Use of debounce function to prevent re-rendering.
 	useEffect(() => {
 		const handleWindowResize = () => {
-			console.log('handle window call');
 			if (openNav) {
-				console.log('react rerender from handle window');
 				setOpenNav(false);
 			}
 		};
@@ -118,7 +116,7 @@ function UserBlock({ login42, handleCheck, handleCross }: { login42: string; han
 				{handleCheck && (
 					<IconButton variant="text" onClick={handleCheck} className="h-5 w-5 text-inherit hover:bg-transparent focus:bg-transparent" ripple={false}>
 						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+							<path stroke-linecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
 						</svg>
 					</IconButton>
 				)}
@@ -169,7 +167,7 @@ function BlockedTab({ me, handleUnblock }: { me: i_me; handleUnblock: any }) {
 
 function RequestsTab({ me, handleAccept, handleCancel, handleReject }: { me: i_me; handleAccept: any; handleReject: any; handleCancel: any }) {
 	return (
-		<Tabs value="Sent">
+		<Tabs value="Received">
 			<TabsHeader className="mx-auto max-w-xs">
 				<Tab key="Sent" value="Sent">
 					Sent
@@ -212,8 +210,6 @@ function FriendsTab({ me, handleRemoveFriend }: { me: i_me; handleRemoveFriend: 
 		<ul>
 			{me.friends.map((users) => {
 				const { login42, username } = users.userB;
-				console.log('login: ' + login42);
-				console.log('user: ' + username);
 				return <UserBlock key={login42} handleCheck={null} handleCross={() => handleRemoveFriend(login42, username)} login42={login42} />;
 			})}
 		</ul>
@@ -339,7 +335,7 @@ export function SocialDialog({ dialogStatus, dialogHandler }: any) {
 				)}
 				{navTabName === 'Blocked' && <BlockedTab me={me} handleUnblock={handleUnblock} />}
 			</DialogBody>
-			<DialogFooter className="bg-gray-300">
+			<DialogFooter className="bg-gray-300 rounded-b-2xl">
 				<Button variant="gradient" color="gray" onClick={dialogHandler} size="sm" className="2xl:invisible">
 					Close
 				</Button>
