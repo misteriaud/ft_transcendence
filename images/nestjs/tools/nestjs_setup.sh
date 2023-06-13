@@ -11,19 +11,14 @@ set -e
 #                                                                              #
 # **************************************************************************** #
 
-cd app;
-
-npm install --silent --force;
-
 # Wait until the database is up.
 while ! pg_isready --dbname=$DATABASE_URL --quiet
 do
 	sleep 1;
 done
 
-# # Perform the initial migration if the database has not been initialized yet.
-npx prisma generate
-npx prisma db push --accept-data-loss --force-reset
+# Perform the initial migration if the database has not been initialized yet.
+npx prisma db push
 
 # Start the NestJS application.
-exec npm run start:dev
+exec npm run start:prod

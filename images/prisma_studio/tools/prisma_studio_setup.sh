@@ -1,7 +1,8 @@
 #!/bin/sh
+set -e
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    prisma_studio_setup.sh                             :+:      :+:    :+:    #
+#    nestjs_setup.sh                                    :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: spayeur <spayeur@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
@@ -16,16 +17,14 @@ do
 	sleep 1;
 done
 
-cd app
+# Initialize the Prisma shema and its datasource.
+prisma init --url=$DATABASE_URL >/dev/null
 
-# # Initialize the Prisma shema and its datasource.
-# prisma init --url=$DATABASE_URL >/dev/null
-
-# # Perform the pull once the database has been initialized.
-# while ! prisma db pull >/dev/null 2>&1
-# do
-# 	sleep 1;
-# done
+# Perform the pull once the database has been initialized.
+while ! prisma db pull >/dev/null 2>&1
+do
+	sleep 1;
+done
 
 # Start the Prisma studio application.
 exec prisma studio --port $PORT --browser none

@@ -25,8 +25,6 @@ services:
             - REACT_APP_OAUTH_CALLBACK_URL=${OAUTH_CALLBACK_URL}
         networks:
             - ft_transcendence
-        volumes:
-            - react_app:/app
         depends_on:
             - nestjs
         restart: unless-stopped
@@ -43,10 +41,12 @@ services:
             - OAUTH_42_UID
             - OAUTH_42_SECRET
             - OAUTH_CALLBACK_URL
+        volumes:
+            - nestjs:/app/static
         networks:
             - ft_transcendence
-        volumes:
-            - nestjs_app:/app
+        depends_on:
+            - pgsql
         restart: unless-stopped
 
     pgsql:
@@ -63,34 +63,23 @@ services:
             - ft_transcendence
         restart: unless-stopped
 
-
-    prisma_studio:
-        build: images/prisma_studio
-        container_name: prisma_studio
-        ports:
-            - ${PRISMA_STUDIO_PORT}:${PRISMA_STUDIO_PORT}
-        environment:
-            - PORT=${PRISMA_STUDIO_PORT}
-            - DATABASE_URL=postgresql://${PGSQL_USER}:${PGSQL_PASSWORD}@pgsql:${PGSQL_PORT}/${PGSQL_DATABASE}
-        networks:
-            - ft_transcendence
-        volumes:
-            - nestjs_app:/app
-        restart: unless-stopped
+    # prisma_studio:
+    #     build: images/prisma_studio
+    #     container_name: prisma_studio
+    #     ports:
+    #         - ${PRISMA_STUDIO_PORT}:${PRISMA_STUDIO_PORT}
+    #     environment:
+    #         - PORT=${PRISMA_STUDIO_PORT}
+    #         - DATABASE_URL=postgresql://${PGSQL_USER}:${PGSQL_PASSWORD}@pgsql:${PGSQL_PORT}/${PGSQL_DATABASE}
+    #     networks:
+    #         - ft_transcendence
+    #     depends_on:
+    #         - pgsql
+    #     restart: unless-stopped
 
 volumes:
-  nestjs_app:
-    driver: local
-    driver_opts:
-      type: 'none'
-      o: 'bind'
-      device: './apps/nestjs'
-  react_app:
-    driver: local
-    driver_opts:
-      type: 'none'
-      o: 'bind'
-      device: './apps/react'
+  nestjs:
+    name: nestjs
   pgsql:
     name: pgsql
 

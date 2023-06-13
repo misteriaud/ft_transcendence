@@ -16,17 +16,19 @@ ARG  CODE_VERSION=3.17
 FROM alpine:${CODE_VERSION}
 
 # Set the working directory for the subsequent instructions.                   #
-# WORKDIR /app
+WORKDIR /app
 
-# Copy the React application.                                                  #
-# COPY app/ .
+# Copy the React application and the server.                                   #
+COPY app/ .
 
-# Update package list from repositories then install npm and React application #
-# dependencies.                                                                #
+# Update package list from repositories then install npm, nodejs and React     #
+# application dependencies.                                                    #
 RUN apk update && \
-	apk add --no-cache npm
-# npm install --silent
+	apk add --no-cache npm nodejs && \
+	npm install --silent
+
+# Build the React application.                                                 #
+RUN npm run build
 
 # Start the React application.                                                 #
-COPY tools/react_setup.sh .
-ENTRYPOINT ["/bin/sh", "react_setup.sh"]
+ENTRYPOINT [ "node", "server.mjs" ]
