@@ -1,6 +1,5 @@
 import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
 import { LoginPage, loader as loginLoader } from './pages/Login';
-import { LoginFakePage } from './pages/LoginFake';
 import HomePage from './pages/Home';
 import { DashboardLayout } from './pages/Dashboard';
 import { StoreProvider } from './context/storeProvider';
@@ -13,7 +12,6 @@ export const router = createBrowserRouter(
 		<Route element={<StoreProvider />}>
 			<Route path="/" element={<HomePage />} />
 			<Route path="/login" element={<LoginPage />} loader={loginLoader} />
-			<Route path="/login_fake" element={<LoginFakePage />} />
 			<Route path="/dashboard" element={<DashboardLayout />}>
 				<Route path="" element={<ProfilePage />} />
 				<Route path="pong/:gameId" element={<Pong />} />

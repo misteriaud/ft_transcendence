@@ -23,27 +23,6 @@ export class AuthController {
 	}
 
 	/**
-	 * Get a JWT of an account withour login-in
-	 */
-	@Get('login_fake')
-	async loginFake(@Query('name') name: string) {
-		console.log(name);
-		const fakeProfile: Profile = {
-			id: '0',
-			username: name,
-			displayName: name,
-			provider: 'Fake',
-		};
-		return this.authService.login(fakeProfile);
-	}
-
-	// @UseGuards(UnauthorizedJWTGuard)
-	// @Get('activate_2fa')
-	// async activate_2fa(@GetUser('id') userId: number) {
-	// 	return this.authService.generate2fa(userId);
-	// }
-
-	/**
 	 * Exchange un unauthorized JWT and a TOTP against an authorized JWT
 	 */
 	@UseGuards(UnauthorizedJWTGuard)

@@ -38,16 +38,6 @@ export class AuthService {
 		};
 	}
 
-	// async generate2fa(userId: number) {
-	// 	const secret = authenticator.generateSecret();
-
-	// 	await this.userService.set2faSecret(secret, userId);
-
-	// 	return {
-	// 		secret,
-	// 	};
-	// }
-
 	async validate2fa(userId: number, totp: string) {
 		const user = await this.userService.getMe(userId, true);
 		const { twoFactorSecret } = user;
