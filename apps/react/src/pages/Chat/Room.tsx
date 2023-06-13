@@ -13,7 +13,8 @@ import {
 	DialogFooter,
 	Button,
 	Input,
-	IconButton
+	IconButton,
+	Radio
 } from '@material-tailwind/react';
 import { User } from '../../components/user';
 import { UserUI } from '../../components/userUI';
@@ -24,6 +25,7 @@ import { MembersDialog } from '../../components/room-members';
 import { i_room } from '../../components/interfaces';
 import { ObservableContext } from '../../context/storeProvider';
 import { RocketLaunchIcon } from '@heroicons/react/24/solid';
+import { useNotifySuccess } from '../../hooks/notifications';
 
 export function PassDialog({ open, handleOpen, room, join }: any) {
 	const [pass, setPass] = useState('');
@@ -70,10 +72,12 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 	const api = useApi();
 	const { me, mutate } = useMe();
 	const [openJoinPassDial, setOpenJoinPassDial] = useState(false);
+	const [openEditDialog, setOpenEditDialog] = useState(false);
 	const [MembersDialogStatus, setMembersDialogStatus] = useState(false);
 	const { notify } = useNotificationContext();
 	const subject = useContext(ObservableContext);
 
+	const handleEditDial = () => setOpenEditDialog(!openEditDialog);
 	const handlePassDial = () => setOpenJoinPassDial(!openJoinPassDial);
 	const handleMembersDialog = () => setMembersDialogStatus(!MembersDialogStatus);
 
@@ -120,6 +124,72 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 			.catch((error) => {
 				console.log(error);
 			});
+	}
+
+	function EditRoom({ open, handleOpen }: { open: boolean; handleOpen: () => void }) {
+		//setOpenEditDialog(true);
+		const [name, setName] = useState(room.name);
+		const [access, setAccess] = useState('PUBLIC');
+		const [password, setPassword] = useState('');
+		const { me, mutate } = useMe();
+		const api = useApi();
+
+		function submit(e: any) {
+			e.preventDefault();
+			if (!name) return;
+			api
+				.put(`/rooms/${room.id}`, {
+					name,
+					access,
+					password
+				})
+				.then((response) => {
+					mutate({
+						...me,
+						memberOf: [...me.memberOf, { room: response.data }]
+					});
+					setName('');
+					setPassword('');
+					handleOpen();
+					notify({ elem: <h1>{room.name} successfuly edited</h1>, color: 'green' });
+				})
+				.catch((error) => {
+					console.log(error);
+					notify({ elem: <h1>{room.name} edition failed </h1>, color: 'red' });
+				});
+		}
+
+		return (
+			<Dialog open={open} handler={handleOpen} size="xs">
+				<form onSubmit={submit} className="flex flex-col gap-2">
+					<DialogHeader className="flex justify-center">Edit Room</DialogHeader>
+					<DialogBody divider className="flex flex-col gap-2 items-center">
+						<div className="flex flex-wrap justify-center">
+							<Radio id="PUBLIC" value="PUBLIC" name="type" label="Public" onChange={(e) => setAccess(e.target.value)} checked={access === 'PUBLIC'} />
+							<Radio id="PRIVATE" value="PRIVATE" name="type" label="Private" onChange={(e) => setAccess(e.target.value)} checked={access === 'PRIVATE'} />
+							<Radio
+								id="PROTECTED"
+								value="PROTECTED"
+								name="type"
+								label="Protected"
+								onChange={(e) => setAccess(e.target.value)}
+								checked={access === 'PROTECTED'}
+							/>
+						</div>
+						<Input value={name} onChange={(e) => setName(e.target.value)} maxLength={32} label="name"></Input>
+						{access == 'PROTECTED' && <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} label="password"></Input>}
+					</DialogBody>
+					<DialogFooter className="flex flex-row justify-center gap-2">
+						<Button variant="text" color="red" onClick={handleOpen}>
+							<span>Cancel</span>
+						</Button>
+						<Button variant="gradient" color="green" onClick={submit}>
+							<span>EDIT</span>
+						</Button>
+					</DialogFooter>
+				</form>
+			</Dialog>
+		);
 	}
 
 	if (isLoading) return <Spinner />;
@@ -189,7 +259,7 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 		default:
 			items = (
 				<>
-					<MenuItem>Edit Room</MenuItem>
+					<MenuItem onClick={handleEditDial}>Edit Room</MenuItem>
 					<MenuItem onClick={leaveChat}>Leave Room</MenuItem>
 					<hr className="my-1" />
 					<MenuItem onClick={handleMembersDialog}>Members</MenuItem>
@@ -202,6 +272,7 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 		<div className="w-full flex justify-between items-center">
 			<span
 				onClick={(e) => {
+					e.stopPropagation();
 					if (role && onClick) onClick(e);
 				}}
 				className={`basis-4/5 overflow-hidden flex items-center ${onClick ? 'cursor-pointer' : ''} gap-2`}
@@ -217,6 +288,7 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 			</Menu>
 			<PassDialog open={openJoinPassDial} handleOpen={handlePassDial} join={joinChat} room={room} />
 			{role && <MembersDialog me={me} room_id={room.id} dialogStatus={MembersDialogStatus} dialogHandler={handleMembersDialog} />}
+			<EditRoom open={openEditDialog} handleOpen={handleEditDial} />
 		</div>
 	);
 }

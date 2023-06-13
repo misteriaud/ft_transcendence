@@ -1,9 +1,10 @@
 import { e_room_access } from '@prisma/client';
-import { IsNotEmpty, IsString, IsEnum, ValidateIf, IsIn } from 'class-validator';
+import { IsNotEmpty, IsString, IsEnum, ValidateIf, IsIn, MaxLength } from 'class-validator';
 
 export class RoomDto {
 	@IsString()
 	@IsNotEmpty()
+	@MaxLength(32)
 	name: string;
 
 	@IsEnum(e_room_access)

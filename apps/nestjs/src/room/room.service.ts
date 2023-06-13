@@ -129,7 +129,12 @@ export class RoomService {
 
 	// Leave a room
 	async leave(user_id: number, room_id: number) {
-		await this.prismaRoom.deleteMember(room_id, user_id);
+		const member = await this.prismaRoom.getMember(room_id, user_id);
+		if (member && member.role === e_member_role.OWNER) {
+			await this.prismaRoom.delete(room_id);
+		} else {
+			await this.prismaRoom.deleteMember(room_id, user_id);
+		}
 	}
 
 	// MEMBER
