@@ -25,6 +25,7 @@ import { MembersDialog } from '../../components/room-members';
 import { i_room } from '../../components/interfaces';
 import { ObservableContext } from '../../context/storeProvider';
 import { RocketLaunchIcon } from '@heroicons/react/24/solid';
+import { useNotifySuccess } from '../../hooks/notifications';
 
 export function PassDialog({ open, handleOpen, room, join }: any) {
 	const [pass, setPass] = useState('');
@@ -150,16 +151,18 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 					setName('');
 					setPassword('');
 					handleOpen();
+					notify({ elem: <h1>{room.name} successfuly edited</h1>, color: 'green' });
 				})
 				.catch((error) => {
 					console.log(error);
+					notify({ elem: <h1>{room.name} edition failed </h1>, color: 'red' });
 				});
 		}
 
 		return (
 			<Dialog open={open} handler={handleOpen} size="xs">
 				<form onSubmit={submit} className="flex flex-col gap-2">
-					<DialogHeader className="flex justify-center">Create new room</DialogHeader>
+					<DialogHeader className="flex justify-center">Edit Room</DialogHeader>
 					<DialogBody divider className="flex flex-col gap-2 items-center">
 						<div className="flex flex-wrap justify-center">
 							<Radio id="PUBLIC" value="PUBLIC" name="type" label="Public" onChange={(e) => setAccess(e.target.value)} checked={access === 'PUBLIC'} />
@@ -247,7 +250,7 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 		case 'MEMBER':
 			items = (
 				<>
-					<MenuItem>Leave Room</MenuItem>
+					<MenuItem onClick={leaveChat}>Leave Room</MenuItem>
 					<hr className="my-1" />
 					<MenuItem onClick={handleMembersDialog}>Members</MenuItem>
 				</>
@@ -260,7 +263,6 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 					<MenuItem onClick={leaveChat}>Leave Room</MenuItem>
 					<hr className="my-1" />
 					<MenuItem onClick={handleMembersDialog}>Members</MenuItem>
-					<EditRoom open={openEditDialog} handleOpen={handleEditDial} />
 				</>
 			);
 			break;
@@ -270,6 +272,7 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 		<div className="w-full flex justify-between items-center">
 			<span
 				onClick={(e) => {
+					e.stopPropagation();
 					if (role && onClick) onClick(e);
 				}}
 				className={`basis-4/5 overflow-hidden flex items-center ${onClick ? 'cursor-pointer' : ''} gap-2`}
@@ -285,6 +288,7 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 			</Menu>
 			<PassDialog open={openJoinPassDial} handleOpen={handlePassDial} join={joinChat} room={room} />
 			{role && <MembersDialog me={me} room_id={room.id} dialogStatus={MembersDialogStatus} dialogHandler={handleMembersDialog} />}
+			<EditRoom open={openEditDialog} handleOpen={handleEditDial} />
 		</div>
 	);
 }

@@ -10,3 +10,14 @@ export function useRoom(id: number) {
 		error
 	};
 }
+
+export function useRooms() {
+	const { data, mutate, isLoading, error } = useCustomSWR(`/rooms`);
+
+	return {
+		data,
+		mutate,
+		isLoading,
+		error
+	};
+}

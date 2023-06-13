@@ -69,6 +69,7 @@ model FriendRequests {
 model Match {
     id        String        @id @unique
     playedBy  User[]
+    player1id Int
     score1    Int           @default(0)
     score2    Int           @default(0)
     mod       e_match_mod   @default(NORMAL)
@@ -119,7 +120,7 @@ model Message {
 
 model Invitation {
     id      Int    @id @default(autoincrement())
-    iss     Member @relation(fields: [room_id, user_id], references: [room_id, user_id])
+    iss     Member @relation(fields: [room_id, user_id], references: [room_id, user_id], onDelete: Cascade)
     room_id Int
     user_id Int
     token   String @unique

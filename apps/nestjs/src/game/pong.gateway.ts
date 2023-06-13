@@ -386,7 +386,9 @@ export class PongWebsocketGateway extends BaseWebsocketGateway {
 			clearInterval(game.gameInterval);
 		}
 		this.server.to(`pong:${game.id}`).emit(`pong/${status == GameStatus.FINISHED ? 'gameEnded' : 'gameAbandoned'}`, game);
-		await this.prismaMatch.create(game.id, game.players[0].id, game.players[1].id, game.players[0].score, game.players[1].score, game.mode === GameMode.NORMAL ? 'NORMAL' : 'HARDCORE', status as e_match_state);
+		try {
+			await this.prismaMatch.create(game.id, game.players[0].id, game.players[1].id, game.players[0].score, game.players[1].score, game.mode === GameMode.NORMAL ? 'NORMAL' : 'HARDCORE', status as e_match_state);
+		} catch (error) {}
 		const index = this.currentGame.findIndex((tmp) => tmp.id === game.id);
 		this.currentGame.splice(index, 1);
 		this.updateUserStatus(game.players[0].id, e_user_status.ONLINE);

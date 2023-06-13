@@ -14,6 +14,8 @@ export function PongResultPage() {
 		return <Spinner />;
 	}
 
+	const player1index = data.playedBy.findIndex((player: any) => player.id === data.player1id);
+
 	return (
 		<div className="flex flex-col justify-center items-center justify-center h-full w-full" style={{ backgroundColor: '#3f413e' }}>
 			<Card className="bg-gray-100 mt-6 w-96 transform hover:scale-105 transition-transform duration-200">
@@ -25,10 +27,10 @@ export function PongResultPage() {
 						SCORES
 					</Typography>
 					<Typography className="text-lg text-center font-extrabold text-blue-500 mb-2">
-						{data.playedBy[1].username}: {data.score1} PTS
+						{data.playedBy[player1index].username}: {data.score1} PTS
 					</Typography>
 					<Typography className="text-lg text-center font-extrabold text-indigo-500">
-						{data.playedBy[0].username}: {data.score2} PTS
+						{data.playedBy[player1index === 0 ? 1 : 0].username}: {data.score2} PTS
 					</Typography>
 				</CardBody>
 				<CardFooter className=" rounded-b-lg p-4">

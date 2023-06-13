@@ -10,6 +10,9 @@ export class Match {
 	playedBy: User[];
 
 	@ApiProperty({ type: Number })
+	player1id: number;
+
+	@ApiProperty({ type: Number })
 	score1: number;
 
 	@ApiProperty({ type: Number })

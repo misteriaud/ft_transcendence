@@ -46,8 +46,8 @@ import { ObservableContext, ObservableNotification } from '../../context/storePr
 import { i_me, i_member, i_room } from '../../components/interfaces';
 import { useNotifyError, useNotifySuccess } from '../../hooks/notifications';
 import { KeyedMutator } from 'swr';
-import { useRoom } from '../../hooks/useRoom';
-import { ExclamationTriangleIcon, HomeIcon } from '@heroicons/react/24/solid';
+import { useRoom, useRooms } from '../../hooks/useRoom';
+import { ChevronUpIcon, ExclamationTriangleIcon, HomeIcon } from '@heroicons/react/24/solid';
 import moment from 'moment';
 import Moment from 'react-moment';
 
@@ -142,6 +142,7 @@ function RelativeTimestamp({ timestamp }: { timestamp: Date }) {
 
 function RoomInvitation({ room_invitation_string }: { room_invitation_string: string }) {
 	const { me, mutate: mutateMe, isLoading: isLoadingMe, error: errorMe }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
+	const { mutate: mutateRooms } = useRooms();
 	const notifySuccess = useNotifySuccess();
 	const notifyError = useNotifyError();
 	const api = useApi();
@@ -177,6 +178,7 @@ function RoomInvitation({ room_invitation_string }: { room_invitation_string: st
 			.post(`/rooms/${room_id}/join/${invitation_token}`)
 			.then(() => {
 				mutateMe();
+				mutateRooms();
 				// should mutate /rooms
 				notifySuccess(`You have joined ${room_name}.`);
 			})
@@ -231,13 +233,14 @@ function Chat({ roomInfo, close }: { roomInfo: i_room; close: () => void }) {
 
 	return (
 		<li className="self-end flex flex-col justify-content w-56 max-h-80 mr-2 border-2 bg-gray-300 border-black/20 shadow-lg overflow-hidden rounded-t-lg backdrop-blur-sm  transition-all duration-500">
-			<div className="flex justify-around items-center px-2 py-1 bg-black bg-opacity-5 cursor-pointer hover:bg-opacity-10" onClick={() => setIsFold(!isFold)}>
+			<div className="flex justify-around items-center px-2 py-1 bg-black bg-opacity-5 cursor-pointer hover:bg-opacity-10">
 				<RoomInfo room={roomInfo} onClick={() => setIsFold(!isFold)} />
-				{close && (
-					<IconButton onClick={close} variant="text" color="blue-gray">
-						<XMarkIcon className="h-5 w-5" />
-					</IconButton>
-				)}
+				<IconButton onClick={() => setIsFold(!isFold)} variant="text" color="blue-gray">
+					{isFold ? <ChevronUpIcon className="h-5 w-5" /> : <ChevronDownIcon className="h-5 w-5" />}
+				</IconButton>
+				<IconButton onClick={close} variant="text" color="blue-gray">
+					<XMarkIcon className="h-5 w-5" />
+				</IconButton>
 			</div>
 			{!isFold && (
 				<div className="flex-shrink min-h-0 overflow-scroll flex flex-col">
@@ -350,7 +353,7 @@ function ChatAccordeon({
 
 export function ChatPanel() {
 	const { me }: { me: i_me } = useMe();
-	const { data: dataRoomsAvailable, isLoading } = useCustomSWR('/rooms');
+	const { data: dataRoomsAvailable, isLoading } = useRooms();
 	const [openedChatIds, setOpenedChatIds] = useState<number[]>([]);
 	const [openCreateRoom, setOpenCreateRoom] = useState(false);
 	const subject = useContext(ObservableContext);

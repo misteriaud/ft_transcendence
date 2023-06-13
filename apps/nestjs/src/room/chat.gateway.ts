@@ -14,8 +14,8 @@ export class ChatWebsocketGateway extends BaseWebsocketGateway {
 
 	@SubscribeMessage('chat/postMessage')
 	async handleMessage(@ConnectedSocket() client: Socket, @MessageBody() data: MessagePayload) {
-		const newMessage = await this.prismaRoom.createMessage(data.roomId, client.data.user.id, data.content);
 		const roomMembers = await this.prismaRoom.getRoomMembers(data.roomId);
+		const newMessage = await this.prismaRoom.createMessage(data.roomId, client.data.user.id, data.content);
 
 		// save message in DB
 		this.server.to(roomMembers.members.map((member) => member.user.id.toString())).emit(`chat/newMessage/${data.roomId}`, newMessage);
