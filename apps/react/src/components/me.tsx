@@ -33,7 +33,7 @@ export function Me({ inverse, ignoreHoverStyle, className }: { inverse?: boolean
 		notify({
 			elem: (
 				<h1 className="m-2 text-center font-semibold">
-					Welcome to ft_transcendence, a wonderfull online multiplayer pong game. We invite you to setup your account right now !
+					Welcome to ft_transcendence, a wonderful online multiplayer pong game. We invite you to setup your account right now !
 				</h1>
 			),
 			timer: 30,
