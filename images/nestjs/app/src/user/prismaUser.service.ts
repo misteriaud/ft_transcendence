@@ -159,6 +159,7 @@ export class PrismaUserService {
 								status: true,
 							},
 						},
+						player1id: true,
 						score1: true,
 						score2: true,
 						mod: true,
@@ -270,6 +271,7 @@ export class PrismaUserService {
 								status: true,
 							},
 						},
+						player1id: true,
 						score1: true,
 						score2: true,
 						mod: true,
@@ -408,7 +410,7 @@ export class PrismaUserService {
 				data: {
 					username: offset === 0 ? profile.displayName : profile.displayName + '_' + String(offset),
 					login42: profile.username,
-					avatar: `http://localhost:${this.config.get('PORT')}/static/uploads/avatar/default.jpg`,
+					avatar: `http://${this.config.get('LOCATION')}:${this.config.get('PORT')}/static/uploads/avatar/default.jpg`,
 				},
 			});
 		} catch (error) {

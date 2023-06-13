@@ -43,7 +43,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { User } from '../../components/user';
 import { ObservableContext, ObservableNotification } from '../../context/storeProvider';
-import { i_blocked, i_me, i_member, i_room } from '../../components/interfaces';
+import { i_blocked, i_me, i_member, i_message, i_room } from '../../components/interfaces';
 import { useNotifyError, useNotifySuccess } from '../../hooks/notifications';
 import { KeyedMutator } from 'swr';
 import { useRoom, useRooms } from '../../hooks/useRoom';
@@ -234,9 +234,9 @@ function Chat({ roomInfo, close }: { roomInfo: i_room; close: () => void }) {
 	if (error) return <h1>Something went wrong</h1>;
 
 	return (
-		<li className="self-end flex flex-col justify-content w-56 max-h-80 mr-2 border-2 bg-gray-300 border-black/20 shadow-lg overflow-hidden rounded-t-lg backdrop-blur-sm  transition-all duration-500">
+		<li className="self-end flex flex-col justify-content max-h-80 mr-2 border-2 bg-gray-300 border-black/20 shadow-lg overflow-hidden rounded-t-lg backdrop-blur-sm  transition-all duration-500">
 			<div className="flex justify-around items-center px-2 py-1 bg-black bg-opacity-5 cursor-pointer hover:bg-opacity-10">
-				<RoomInfo room={roomInfo} onClick={() => setIsFold(!isFold)} />
+				<RoomInfo room={roomInfo} />
 				<IconButton onClick={() => setIsFold(!isFold)} variant="text" color="blue-gray">
 					{isFold ? <ChevronUpIcon className="h-5 w-5" /> : <ChevronDownIcon className="h-5 w-5" />}
 				</IconButton>

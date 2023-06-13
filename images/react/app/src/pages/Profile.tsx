@@ -15,7 +15,6 @@ function CarouselUserData({ user }: { user: i_user }) {
 				<div className="flex gap-8">
 					<div className="rounded-full h-48 w-48 ">
 						<User login42={user.login42} size="xxl" ignoreHoverStyle={true} className="h-full w-full object-cover" />
-						{/* <img src={user.avatar} className="rounded-full h-full w-full object-cover" alt="user-img" /> */}
 					</div>
 					<div className="flex flex-col items-center justify-center w-60">
 						<Typography variant="h4" className="mt-8 truncate max-w-full text-white">
@@ -52,7 +51,7 @@ function CarouselStats({ user }: { user: i_user }) {
 
 		for (const match of user.history) {
 			if (match.state === e_match_state.FINISHED) {
-				if ((user.id === match.playedBy[0].id && match.score1 > match.score2) || (user.id === match.playedBy[1].id && match.score2 > match.score1)) {
+				if ((user.id == match.player1id && match.score1 > match.score2) || (user.id != match.player1id && match.score2 > match.score1)) {
 					++wins;
 				} else {
 					++loses;

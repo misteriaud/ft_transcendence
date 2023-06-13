@@ -198,7 +198,7 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 		if (roomError) return <NoSymbolIcon />;
 		const user = roomData.members.find((member: any) => member.user.id != me.id)?.user;
 		return (
-			<div className="flex justify-between w-full items-center">
+			<>
 				<User room_id={room.id} login42={user.login42} onClick={onClick} ignoreHoverStyle={true} className="basis-3/5" />
 				<IconButton
 					onClick={(e) => {
@@ -211,7 +211,9 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 				>
 					<RocketLaunchIcon className="h-5 w-5" />
 				</IconButton>
-			</div>
+			</>
+			// <div className="flex justify-between w-full items-center">
+			// </div>
 		);
 	}
 
@@ -269,13 +271,13 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 	}
 
 	return (
-		<div className="w-full flex justify-between items-center">
+		<>
 			<span
 				onClick={(e) => {
 					e.stopPropagation();
 					if (role && onClick) onClick(e);
 				}}
-				className={`basis-4/5 overflow-hidden flex items-center ${onClick ? 'cursor-pointer' : ''} gap-2`}
+				className={`overflow-hidden flex items-center ${onClick ? 'cursor-pointer' : ''} gap-2`}
 			>
 				<h1 className="truncate">{room.name}</h1>
 				{icon}
@@ -289,6 +291,6 @@ export function RoomInfo({ room, onClick }: { room: i_room; onClick?: (e: any) =
 			<PassDialog open={openJoinPassDial} handleOpen={handlePassDial} join={joinChat} room={room} />
 			{role && <MembersDialog me={me} room_id={room.id} dialogStatus={MembersDialogStatus} dialogHandler={handleMembersDialog} />}
 			<EditRoom open={openEditDialog} handleOpen={handleEditDial} />
-		</div>
+		</>
 	);
 }

@@ -51,6 +51,7 @@ export interface i_blocked {
 export interface i_match {
 	id: number;
 	playedBy: i_user[];
+	player1id: number;
 	score1: number;
 	score2: number;
 	mod: e_match_mod;

@@ -81,7 +81,7 @@ export function StoreProvider() {
 	useEffect(() => {
 		if (!store.JWT) return;
 		console.log('set socket');
-		socketRef.current = io('ws://localhost:8080/', {
+		socketRef.current = io(String(process.env.REACT_APP_WS_PATH), {
 			auth: {
 				token: store.JWT
 			}

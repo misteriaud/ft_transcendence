@@ -71,23 +71,29 @@ function MatchHistoryTableBody({ login42 }: { login42: string }) {
 	for (let i = user.history.length - 1; i >= 0; i--) {
 		const m = user.history[i];
 
+		const player1index = m.playedBy.findIndex((user) => user.id === m.player1id);
+		const player1 = {
+			id: m.player1id,
+			score: player1index === 0 ? m.score1 : m.score2
+		};
+
+		const player2 = {
+			id: m.playedBy[player1index === 0 ? 1 : 0].id,
+			score: player1index === 0 ? m.score2 : m.score1
+		};
+
 		rows.push(
 			<tr key={m.id} className="border-b-2 border-blue-gray-50">
 				<td className="p-2">
 					<div className="flex justify-around items-center gap-2">
 						<User
 							className="flex justify-center flex-1 max-w-md mr-auto"
-							login42={m.playedBy[0].login42}
+							login42={String(player1.id)}
 							inverse={false}
-							ignoreHoverStyle={me.id === m.playedBy[0].id}
+							ignoreHoverStyle={me.id === player1.id}
 						/>
 						<BoltIcon strokeWidth={2} className="h-6 w-6  text-blue-gray-500" />
-						<User
-							className="flex justify-center flex-1 max-w-md ml-auto"
-							login42={m.playedBy[1].login42}
-							inverse={true}
-							ignoreHoverStyle={me.id === m.playedBy[1].id}
-						/>
+						<User className="flex justify-center flex-1 max-w-md ml-auto" login42={String(player2.id)} inverse={true} ignoreHoverStyle={me.id === player2.id} />
 					</div>
 				</td>
 				<td className="p-2">
@@ -99,14 +105,14 @@ function MatchHistoryTableBody({ login42 }: { login42: string }) {
 							value={
 								m.state === e_match_state.ABANDONED
 									? 'Interrupted'
-									: (user.id === m.playedBy[0].id && m.score1 > m.score2) || (user.id === m.playedBy[1].id && m.score2 > m.score1)
+									: (user.id === player1.id && m.score1 > m.score2) || (user.id === player2.id && m.score2 > m.score1)
 									? 'Win'
 									: 'Lose'
 							}
 							color={
 								m.state === e_match_state.ABANDONED
 									? 'amber'
-									: (user.id === m.playedBy[0].id && m.score1 > m.score2) || (user.id === m.playedBy[1].id && m.score2 > m.score1)
+									: (user.id === player1.id && m.score1 > m.score2) || (user.id === player2.id && m.score2 > m.score1)
 									? 'green'
 									: 'red'
 							}

@@ -60,8 +60,8 @@ export const MenuRoomItems = forwardRef((props: any, ref: any) => {
 	const isUserMuted = room.members.some((m: i_member) => m.user.id === user.id && new Date(Date.now()) < new Date(m.muted_until));
 	const isUserBanned = room.members.some((m: i_member) => m.user.id === user.id && m.banned === true);
 
-	const hidePromote = !isMeOwnerOfRoom || isUserAdminOfRoom || isUserBanned || isUserOwnerOfRoom;
-	const hideDemote = !isMeOwnerOfRoom || !isUserAdminOfRoom || isUserBanned;
+	const hidePromote = (!isMeOwnerOfRoom && !isMeAdminOfRoom) || isUserAdminOfRoom || isUserBanned || isUserOwnerOfRoom;
+	const hideDemote = (!isMeOwnerOfRoom && !isMeAdminOfRoom) || !isUserAdminOfRoom || isUserBanned;
 	const hideMute = (!isMeOwnerOfRoom && !isMeAdminOfRoom) || isUserMuted || isUserBanned || isUserOwnerOfRoom;
 	const hideUnmute = (!isMeOwnerOfRoom && !isMeAdminOfRoom) || !isUserMuted || isUserBanned || isUserOwnerOfRoom;
 	const hideKick = (!isMeOwnerOfRoom && !isMeAdminOfRoom) || isUserBanned || isUserOwnerOfRoom;

@@ -20,6 +20,7 @@ services:
             - ${REACT_PORT}:${REACT_PORT}
         environment:
             - PORT=${REACT_PORT}
+            - REACT_APP_WS_PATH=ws://${LOCATION}:${REACT_PORT}/
             - REACT_APP_NESTJS_PORT=${NESTJS_PORT}
             - REACT_APP_OAUTH_42_UID=${OAUTH_42_UID}
             - REACT_APP_OAUTH_CALLBACK_URL=${OAUTH_CALLBACK_URL}
@@ -41,6 +42,7 @@ services:
             - OAUTH_42_UID
             - OAUTH_42_SECRET
             - OAUTH_CALLBACK_URL
+            - LOCATION
         volumes:
             - nestjs:/app/static
         networks:

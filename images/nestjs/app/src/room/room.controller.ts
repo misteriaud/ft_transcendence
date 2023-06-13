@@ -94,7 +94,7 @@ export class RoomController {
 	/**
 	 * Promote a member
 	 */
-	@UseGuards(RoomOwnerGuard, HierarchyGuard, GetMemberGuard)
+	@UseGuards(RoomAdminGuard, HierarchyGuard, GetMemberGuard)
 	@Put(':id/promote/:member_id')
 	promote(@GetMember() member: Member) {
 		return this.roomService.promote(member);
@@ -103,7 +103,7 @@ export class RoomController {
 	/**
 	 * Demote a member
 	 */
-	@UseGuards(RoomOwnerGuard, HierarchyGuard, GetMemberGuard)
+	@UseGuards(RoomAdminGuard, HierarchyGuard, GetMemberGuard)
 	@Put(':id/demote/:member_id')
 	demote(@GetMember() member: Member) {
 		return this.roomService.demote(member);

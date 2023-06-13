@@ -15,6 +15,7 @@ export function PongResultPage() {
 	}
 
 	const player1index = data.playedBy.findIndex((player: any) => player.id === data.player1id);
+	const player2index = player1index === 0 ? 1 : 0;
 
 	return (
 		<div className="flex flex-col justify-center items-center justify-center h-full w-full" style={{ backgroundColor: '#3f413e' }}>
@@ -30,7 +31,7 @@ export function PongResultPage() {
 						{data.playedBy[player1index].username}: {data.score1} PTS
 					</Typography>
 					<Typography className="text-lg text-center font-extrabold text-indigo-500">
-						{data.playedBy[player1index === 0 ? 1 : 0].username}: {data.score2} PTS
+						{data.playedBy[player2index].username}: {data.score2} PTS
 					</Typography>
 				</CardBody>
 				<CardFooter className=" rounded-b-lg p-4">
