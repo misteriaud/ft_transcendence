@@ -1,15 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Menu, MenuHandler, MenuItem, MenuList, Spinner, Typography } from '@material-tailwind/react';
-import { Cog6ToothIcon, ExclamationTriangleIcon, PowerIcon, UserCircleIcon, UsersIcon } from '@heroicons/react/24/solid';
+import { CakeIcon, Cog6ToothIcon, ExclamationTriangleIcon, PowerIcon, UserCircleIcon, UsersIcon } from '@heroicons/react/24/solid';
 import { KeyedMutator } from 'swr';
-import { getStatus, useStoreDispatchContext } from '../hooks/useContext';
+import { getStatus, useNotificationContext, useStoreDispatchContext } from '../hooks/useContext';
 import { StoreActionType } from '../context/storeProvider';
 import { useMe } from '../hooks/useUser';
 import { i_me } from './interfaces';
 import { SettingsDialog } from './me-settings';
 import { UserUI } from './userUI';
 import { SocialDialog } from './SocialDialog';
+import { useSearchParams } from 'react-router-dom';
 
 export function Me({ inverse, ignoreHoverStyle, className }: { inverse?: boolean; ignoreHoverStyle?: boolean; className?: string }) {
 	const { me, mutate, isLoading, error }: { isLoading: boolean; me: i_me; mutate: KeyedMutator<i_me>; error: Error } = useMe();
@@ -19,6 +20,27 @@ export function Me({ inverse, ignoreHoverStyle, className }: { inverse?: boolean
 	const navigate = useNavigate();
 	const dispatch = useStoreDispatchContext();
 	const status = getStatus(me.id);
+	const [searchParams, setSearchParams] = useSearchParams();
+	const { notify } = useNotificationContext();
+
+	useEffect(() => {
+		if (searchParams.get('firstTimeLog') !== 'true') return;
+		setOpenSettingsDialog(true);
+		setSearchParams((params) => {
+			params.delete('firstTimeLog');
+			return params;
+		});
+		notify({
+			elem: (
+				<h1 className="m-2 text-center font-semibold">
+					Welcome to ft_transcendence, a wonderfull online multiplayer pong game. We invite you to setup your account right now !
+				</h1>
+			),
+			timer: 30,
+			color: 'cyan',
+			icon: <CakeIcon strokeWidth={2} className="ml-4 h-6 w-6" />
+		});
+	}, [setOpenSettingsDialog]);
 
 	if (isLoading) {
 		return (

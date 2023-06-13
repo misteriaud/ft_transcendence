@@ -23,6 +23,7 @@ export class UnauthorizedJWTGuard {
 		}
 
 		request['user'] = await this.userService.getMe(payload.id);
+		if (!request['user']) throw new UnauthorizedException('Unknown user');
 		request['jwtPayload'] = payload;
 
 		return true;

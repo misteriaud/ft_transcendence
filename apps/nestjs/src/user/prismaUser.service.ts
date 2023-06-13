@@ -401,19 +401,19 @@ export class PrismaUserService {
 	// AUTH PART
 
 	// Create a user
-	async createFromOAuth2(profile: Profile) {
-		const room = await this.prisma.user.create({
-			data: {
-				username: profile.displayName,
-				login42: profile.username,
-				avatar: `http://localhost:${this.config.get('PORT')}/static/uploads/avatar/default.jpg`,
-			},
-			// select: {
-			// 	id: true,
-			// 	twoFactorEnabled: true,
-			// },
-		});
-		return room;
+	async createFromOAuth2(profile: Profile, offset = 0) {
+		try {
+			console.log(profile.displayName);
+			return await this.prisma.user.create({
+				data: {
+					username: offset === 0 ? profile.displayName : profile.displayName + '_' + String(offset),
+					login42: profile.username,
+					avatar: `http://localhost:${this.config.get('PORT')}/static/uploads/avatar/default.jpg`,
+				},
+			});
+		} catch (error) {
+			return this.createFromOAuth2(profile, offset + 1);
+		}
 	}
 
 	// Auth - Get me by login42
